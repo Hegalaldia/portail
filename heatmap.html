@@ -226,9 +226,9 @@ async function drawZone() {
     let nwIdx = 0, nwLat = -Infinity;
     ring.forEach(([lon, lat], i) => { if (lon < -1.2 && lat > nwLat) { nwLat = lat; nwIdx = i; } });
 
-    // Trouver le coin NE (point le plus à l'est de 65, lon > 0.3)
-    let neIdx = 0, neLon = -Infinity;
-    ring.forEach(([lon], i) => { if (lon > 0.3 && lon > neLon) { neLon = lon; neIdx = i; } });
+    // Trouver le coin NE : point le plus au nord sur le bord est (lon > 0.5 = côté Gers)
+    let neIdx = 0, neLat = -Infinity;
+    ring.forEach(([lon, lat], i) => { if (lon > 0.5 && lat > neLat) { neLat = lat; neIdx = i; } });
 
     // Parcourir dans les deux sens et garder l'arc qui passe par le sud (Pyrénées + côte)
     const arc = (from, to, dir) => {
