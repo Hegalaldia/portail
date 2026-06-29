@@ -217,7 +217,35 @@ async function drawZone() {
       fetch(`${base}/65-hautes-pyrenees/departement-65-hautes-pyrenees.geojson`).then(r => r.json()),
     ]);
     const merged = turf.union(r64, r65);
-    L.geoJSON(merged, { style: zoneStyle })
+    const geo    = merged.geometry;
+    // Extraire l'anneau extérieur (Polygon ou MultiPolygon)
+    const ring   = geo.type === 'Polygon' ? geo.coordinates[0]
+                 : geo.coordinates.reduce((a, b) => b[0].length > a[0].length ? b : a)[0];
+
+    // Trouver le coin NW (point le plus au nord sur la côte, lon < -1.2)
+    let nwIdx = 0, nwLat = -Infinity;
+    ring.forEach(([lon, lat], i) => { if (lon < -1.2 && lat > nwLat) { nwLat = lat; nwIdx = i; } });
+
+    // Trouver le coin NE (point le plus à l'est de 65, lon > 0.3)
+    let neIdx = 0, neLon = -Infinity;
+    ring.forEach(([lon], i) => { if (lon > 0.3 && lon > neLon) { neLon = lon; neIdx = i; } });
+
+    // Parcourir dans les deux sens et garder l'arc qui passe par le sud (Pyrénées + côte)
+    const arc = (from, to, dir) => {
+      const pts = [];
+      for (let i = from; ; i = (i + dir + ring.length) % ring.length) {
+        pts.push([ring[i][1], ring[i][0]]);
+        if (i === to) break;
+        if (pts.length > ring.length) break;
+      }
+      return pts;
+    };
+    const fwd = arc(nwIdx, neIdx,  1);
+    const bwd = arc(nwIdx, neIdx, -1);
+    const minLat = a => Math.min(...a.map(([lat]) => lat));
+    const southArc = minLat(fwd) < minLat(bwd) ? fwd : bwd;
+
+    L.polyline(southArc, zoneStyle)
      .bindTooltip("Zone d'intervention Hegalaldia", { sticky: true })
      .addTo(map);
   } catch(e) {
