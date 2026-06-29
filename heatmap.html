@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Heatmap Animaux Sauvages</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: sans-serif; background: #1a1a2e; color: #eee; }
+    #header {
+      padding: 12px 20px;
+      background: #16213e;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+    #header h1 { font-size: 1.1rem; font-weight: 600; }
+    #status { font-size: 0.8rem; color: #aaa; }
+    #map { height: calc(100vh - 48px); width: 100%; }
+    #legend {
+      position: absolute;
+      bottom: 30px;
+      right: 10px;
+      z-index: 1000;
+      background: rgba(22,33,62,0.92);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 0.8rem;
+      min-width: 160px;
+    }
+    #legend h3 { margin-bottom: 8px; font-size: 0.85rem; color: #ccc; }
+    .legend-bar {
+      height: 12px;
+      border-radius: 4px;
+      background: linear-gradient(to right, #1e64ff, #00dcdc, #ffdc00, #ff6400, #c80000);
+      margin-bottom: 4px;
+    }
+    .legend-labels { display: flex; justify-content: space-between; color: #aaa; }
+    #panel {
+      position: absolute;
+      top: 60px;
+      left: 10px;
+      z-index: 1000;
+      background: rgba(22,33,62,0.92);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 0.8rem;
+      max-width: 220px;
+    }
+    #panel h3 { margin-bottom: 8px; font-size: 0.85rem; color: #ccc; }
+    #panel label { display: block; margin: 6px 0 2px; color: #aaa; }
+    #panel input[type=range] { width: 100%; }
+    #panel select { width: 100%; padding: 4px; background: #1a1a2e; color: #eee; border: 1px solid #444; border-radius: 4px; }
+    #stats { margin-top: 10px; padding-top: 8px; border-top: 1px solid #333; color: #aaa; line-height: 1.6; }
+    #error-box {
+      display: none;
+      position: absolute;
+      top: 60px; left: 50%; transform: translateX(-50%);
+      z-index: 2000;
+      background: #2d1515;
+      border: 1px solid #a33;
+      border-radius: 8px;
+      padding: 16px 24px;
+      max-width: 500px;
+      line-height: 1.6;
+    }
+    #error-box b { color: #f88; }
+    .loader {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2000;
+      text-align: center;
+    }
+    .spinner {
+      width: 48px; height: 48px;
+      border: 4px solid #333;
+      border-top-color: #4fc3f7;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div id="header">
+  <h1>🗺️ Heatmap — Animaux Sauvages</h1>
+  <span id="status">Chargement...</span>
+</div>
+
+<div id="map">
+  <div class="loader" id="loader">
+    <div class="spinner"></div>
+    <div id="loader-msg">Chargement des données...</div>
+  </div>
+</div>
+
+<div id="error-box" id="error-box"></div>
+
+<div id="panel">
+  <h3>Filtres</h3>
+  <label>Type de prise en charge</label>
+  <select id="filter-type">
+    <option value="">DCVR + Cliniques</option>
+    <option value="DCVR">DCVR uniquement</option>
+    <option value="Clinique">Cliniques uniquement</option>
+  </select>
+  <label>Espèce</label>
+  <select id="filter-espece"><option value="">Toutes</option></select>
+  <label>Taille des cercles</label>
+  <input type="range" id="radius" min="10" max="80" value="35">
+  <label>Opacité</label>
+  <input type="range" id="blur" min="5" max="40" value="20">
+  <div id="stats"></div>
+</div>
+
+<div id="legend">
+  <h3>Densité</h3>
+  <div class="legend-bar"></div>
+  <div class="legend-labels" id="legend-labels" style="justify-content:space-between">
+    <span>-</span><span>-</span><span>-</span><span>-</span><span>-</span>
+  </div>
+  <div id="legend-unit" style="text-align:center;color:#888;font-size:0.72rem;margin-top:3px"></div>
+  <div style="margin-top:8px;padding-top:8px;border-top:1px solid #333;font-size:0.75rem;line-height:1.8">
+    <span style="color:#22cc66;font-weight:bold">✚</span> Clinique partenaire<br>
+    <span style="color:#999;font-weight:bold">✚</span> Vétérinaire
+  </div>
+</div>
+
+<script>
+const SHEET_ID = '1VpN669xp2u34Itapwz5UWuEIi2UmoxTTWfrPQP83rhE';
+const GEO_CACHE_KEY = 'heatmap_geo_cache_v1';
+
+// Coordonnées pré-géocodées — chargement instantané, zéro requête Nominatim
+const GEO_PRELOADED = {"Andoins":{"lat":43.3041615,"lon":-0.2291714},"Anglet":{"lat":43.4813927,"lon":-1.5149935},"Anibio":{"lat":43.4004714,"lon":-0.3694297},"Argelès-Gazost":{"lat":43.00511,"lon":-0.0997681},"Assat":{"lat":43.2495978,"lon":-0.2990176},"Bagnères-de-Bigorre":{"lat":43.0658212,"lon":0.1530914},"Biarritz":{"lat":43.4711437,"lon":-1.5527266},"Bidache":{"lat":43.4839874,"lon":-1.1408913},"Billère":{"lat":43.3030044,"lon":-0.3905556},"Bordes":{"lat":43.234542,"lon":-0.2817162},"Boucau":{"lat":43.5236127,"lon":-1.4857538},"Briscous":{"lat":43.4602151,"lon":-1.3339998},"Capbreton":{"lat":43.6403659,"lon":-1.4315213},"Ciboure":{"lat":43.3844003,"lon":-1.6676238},"Coarraze":{"lat":43.1693043,"lon":-0.2313527},"Dax":{"lat":43.7084065,"lon":-1.0518771},"Gan":{"lat":43.2270903,"lon":-0.3878291},"Guiche":{"lat":43.5123509,"lon":-1.2045243},"Guéthary":{"lat":43.423001,"lon":-1.6062693},"Hagetmau":{"lat":43.65506,"lon":-0.59393},"Hasparren":{"lat":43.3838917,"lon":-1.3050408},"Herrère":{"lat":43.1685106,"lon":-0.5405624},"La Barthe-de-Neste":{"lat":43.0810539,"lon":0.3841668},"Labenne":{"lat":43.5977,"lon":-1.42811},"Lacq":{"lat":43.4247479,"lon":-0.6137677},"Lanne":{"lat":43.1653847,"lon":0.0149161},"Lannemezan":{"lat":43.1252298,"lon":0.384241},"Lons":{"lat":43.3043,"lon":-0.3837},"Lourdes":{"lat":43.0940904,"lon":-0.0464975},"Lucq-de-Béarn":{"lat":43.2879229,"lon":-0.6586027},"Mirepeix":{"lat":43.1899724,"lon":-0.249522},"Mouguerre":{"lat":43.4694806,"lon":-1.4149834},"Nay Piémont":{"lat":43.1756,"lon":-0.2636},"Nousty":{"lat":43.2674411,"lon":-0.2094011},"Oloron":{"lat":43.1922408,"lon":-0.6115586},"Oloron-Sainte-Marie":{"lat":43.1922408,"lon":-0.6115586},"Ondres":{"lat":43.5651547,"lon":-1.453883},"Orincles":{"lat":43.1300443,"lon":0.0387612},"Orthez":{"lat":43.4874963,"lon":-0.7738363},"Pau":{"lat":43.2957547,"lon":-0.3685668},"Peyrehorade":{"lat":43.5440941,"lon":-1.105088},"Pontacq":{"lat":43.1856262,"lon":-0.1144186},"Saint-Martin-de-Hinx":{"lat":43.5815313,"lon":-1.2699076},"Saint-Martin-de-Seignanx":{"lat":43.5415353,"lon":-1.3870972},"Saint-Palais":{"lat":43.3273438,"lon":-1.0345115},"Saint-Pierre-d'Irube":{"lat":43.4731208,"lon":-1.4474527},"Saint-Vincent-de-Tyrosse":{"lat":43.6604837,"lon":-1.3029669},"Salies-de-Béarn":{"lat":43.4703515,"lon":-0.9234025},"Sare":{"lat":43.3129609,"lon":-1.5793011},"Seignosse":{"lat":43.68866,"lon":-1.37328},"Séméac":{"lat":43.2284141,"lon":0.1046315},"Tarbes":{"lat":43.232858,"lon":0.0781021},"Tarnos":{"lat":43.5405622,"lon":-1.4611915},"Tournay":{"lat":43.1838447,"lon":0.2441345},"Urt":{"lat":43.4942669,"lon":-1.2913084},"Ustaritz":{"lat":43.39876,"lon":-1.4562207},"Vic-en-Bigorre":{"lat":43.3860159,"lon":0.0548805},"Les pattes de l'adour":{"lat":43.7084,"lon":-1.0519}};
+
+// Tous les vétérinaires — partenaires en vert, autres en gris
+const VETOS_PARTENAIRES = [
+  {"nom":"Ustaritz (Errobia)",                    "lat":43.39876, "lon":-1.45622},
+  {"nom":"Saint-Pée-sur-Nivelle (Arche des 4 pattes)", "lat":43.3558,  "lon":-1.5505},
+  {"nom":"Peyrehorade (Biovet)",                  "lat":43.54409, "lon":-1.10509},
+  {"nom":"Orthez (Gaston Pheobus)",               "lat":43.4875,  "lon":-0.77384},
+  {"nom":"Oloron (Porte d'Aspe + Haut Béarn)",     "lat":43.19224, "lon":-0.61156},
+  {"nom":"Lourdes (Biscaye)",                     "lat":43.09409, "lon":-0.0465},
+  {"nom":"Lembeye (Vic-Bilh)",                    "lat":43.477,   "lon":-0.031},
+  {"nom":"Billère (Caillard)",                    "lat":43.303,   "lon":-0.39056},
+  {"nom":"Biarritz (Parme)",                      "lat":43.47114, "lon":-1.55273},
+  {"nom":"Arudy (Les Crestadous)",                "lat":43.1062,  "lon":-0.4281},
+  {"nom":"Labenne (Ker Guilhem)",                 "lat":43.5977,  "lon":-1.42811},
+  {"nom":"Amou (Bio'Vet)",                        "lat":43.5875,  "lon":-0.750},
+];
+const VETOS_AUTRES = [{"nom":"Anglet (Mercure)","lat":43.48139,"lon":-1.51499},{"nom":"Anglet (Saint-Jean)","lat":43.48139,"lon":-1.51499},{"nom":"Anglet (Rives et marvoyer)","lat":43.48139,"lon":-1.51499},{"nom":"Bardos","lat":43.4752,"lon":-1.2038},{"nom":"Bayonne (Arènes)","lat":43.4945,"lon":-1.4737},{"nom":"Bayonne (Sainte croix)","lat":43.4945,"lon":-1.4737},{"nom":"Biarritz (Joël BRIED)","lat":43.47114,"lon":-1.55273},{"nom":"Billère (Zenimo)","lat":43.303,"lon":-0.39056},{"nom":"Capbreton (Boudigau)","lat":43.64037,"lon":-1.43152},{"nom":"Ciboure","lat":43.3844,"lon":-1.66762},{"nom":"Tarbes (Ger)","lat":43.23286,"lon":0.0781},{"nom":"Hendaye (Clinique de la plage)","lat":43.3642,"lon":-1.7616},{"nom":"Lembeye","lat":43.477,"lon":-0.031},{"nom":"Hendaye (Hegal Zabal)","lat":43.3642,"lon":-1.7616},{"nom":"Lannemezan","lat":43.12523,"lon":0.38424},{"nom":"Lons","lat":43.3043,"lon":-0.3837},{"nom":"Lourdes","lat":43.09409,"lon":-0.0465},{"nom":"Mirepeix","lat":43.18997,"lon":-0.24952},{"nom":"Oloron (Haut Bearn)","lat":43.19224,"lon":-0.61156},{"nom":"Oloron (Porte d'Aspe)","lat":43.19224,"lon":-0.61156},{"nom":"Morlaas","lat":43.3501,"lon":-0.2627},{"nom":"Orthez (Les Brises)","lat":43.4875,"lon":-0.77384},{"nom":"Orthez (Gaston Pheobus)","lat":43.4875,"lon":-0.77384},{"nom":"Saint-Jean-de-Luz (La croix basque)","lat":43.3872,"lon":-1.6637},{"nom":"Saint-Jean-de-Luz (Montréjeau)","lat":43.3872,"lon":-1.6637},{"nom":"Saint-Jean-de-Luz (Animalia Ttikiak)","lat":43.3872,"lon":-1.6637},{"nom":"Saint-Jean-Pied-de-Port","lat":43.163,"lon":-1.2381},{"nom":"Saint-Pée-sur-Nivelle (Arche des 4 pattes)","lat":43.3558,"lon":-1.5505},{"nom":"Salies-de-Béarn (Sanglier)","lat":43.47035,"lon":-0.9234},{"nom":"Tarbes (L'aiguille)","lat":43.23286,"lon":0.0781},{"nom":"Tarbes (Marcadieu)","lat":43.23286,"lon":0.0781},{"nom":"Tarnos (Vet'o Squart)","lat":43.54056,"lon":-1.46119},{"nom":"Arcangues (Chapelet)","lat":43.4367,"lon":-1.5216},{"nom":"Urrugne","lat":43.3625,"lon":-1.7003},{"nom":"Ustaritz","lat":43.39876,"lon":-1.45622},{"nom":"Saint Palais (Amikuze)","lat":43.32734,"lon":-1.03451},{"nom":"Labenne (Ker Guilhem)","lat":43.5977,"lon":-1.42811},{"nom":"Marais d'Orx","lat":43.5815,"lon":-1.2699},{"nom":"Soumoulou (110 Bêtes)","lat":43.2657,"lon":-0.1885},{"nom":"Saint-Paul-Lès-Dax (Biovet)","lat":43.7253,"lon":-1.0515},{"nom":"Biarritz (Vétivia / Parme)","lat":43.47114,"lon":-1.55273},{"nom":"Peyrehorade (Biovet)","lat":43.54409,"lon":-1.10509},{"nom":"Saint-Palais","lat":43.32734,"lon":-1.03451},{"nom":"Mauléon-Licharre","lat":43.2233,"lon":-0.8886},{"nom":"Séméac","lat":43.22841,"lon":0.10463},{"nom":"Ascain","lat":43.3449,"lon":-1.6208},{"nom":"Seignosse (SEIGNOSSE)","lat":43.68866,"lon":-1.37328},{"nom":"Arudy (Les Crestadous)","lat":43.1062,"lon":-0.4281},{"nom":"Hasparren","lat":43.38389,"lon":-1.30504},{"nom":"Tournay","lat":43.18384,"lon":0.24413},{"nom":"Pouzac (Pieri Nicolas)","lat":43.0849,"lon":0.1345},{"nom":"Bizanos","lat":43.279,"lon":-0.337},{"nom":"Vic-en-Bigorre","lat":43.38602,"lon":0.05488},{"nom":"Navarrenx (Playoust)","lat":43.3221,"lon":-0.761},{"nom":"Navarrenx (Bocahut et Rousset SCP)","lat":43.3221,"lon":-0.761},{"nom":"Béhasque","lat":43.3189,"lon":-1.0069},{"nom":"Ondres","lat":43.56515,"lon":-1.45388},{"nom":"Sauvagnon","lat":43.4,"lon":-0.37},{"nom":"Cambo-les-Bains (Ursuya)","lat":43.3609,"lon":-1.3995},{"nom":"Bayonne (Petit Bayonne)","lat":43.4945,"lon":-1.4737},{"nom":"Capbreton (Côte Sud Landes)","lat":43.64037,"lon":-1.43152},{"nom":"Maubourguet (Croix Blanche)","lat":43.4657,"lon":0.0433},{"nom":"Bidart (Zatozte)","lat":43.4392,"lon":-1.5899},{"nom":"Anglet (Clinique du port)","lat":43.48139,"lon":-1.51499},{"nom":"Gan","lat":43.22709,"lon":-0.38783},{"nom":"Tardets-Sorholus","lat":43.1163,"lon":-0.8645},{"nom":"Pau (Clinique de la Paix)","lat":43.29575,"lon":-0.36857},{"nom":"Tarnos (L'Ariou)","lat":43.54056,"lon":-1.46119},{"nom":"Anglet (Clinique du BAB)","lat":43.48139,"lon":-1.51499},{"nom":"Ibos","lat":43.2326,"lon":0.0046},{"nom":"Saint-Martin-de-Seignanx","lat":43.54154,"lon":-1.3871},{"nom":"Bayonne (Biovet)","lat":43.4945,"lon":-1.4737},{"nom":"Pau (Lapuyade)","lat":43.29575,"lon":-0.36857},{"nom":"Saint Pierre d'Irube (Saint Pierre)","lat":43.47312,"lon":-1.44745},{"nom":"Arzacq-Arraziguet (abiopole)","lat":43.5363,"lon":-0.4117},{"nom":"Tardets-Sorholus (Saison)","lat":43.1163,"lon":-0.8645},{"nom":"Saint-Jean-le-Vieux (Garazi)","lat":43.1654,"lon":-1.1941},{"nom":"Amou","lat":43.5875,"lon":-0.75},{"nom":"Cambo-les-Bains (Artategia)","lat":43.3609,"lon":-1.3995},{"nom":"Argeles-Gazost","lat":43.00511,"lon":-0.09977},{"nom":"Tarbes (Gambetta)","lat":43.23286,"lon":0.0781},{"nom":"Sauveterre-de-Béarn","lat":43.3994,"lon":-0.9388},{"nom":"Navarrenx (Carsuzaa Jacques)","lat":43.3221,"lon":-0.761},{"nom":"Lourdes (Maréchal Juin)","lat":43.09409,"lon":-0.0465},{"nom":"Susmiou","lat":43.3155,"lon":-0.7772},{"nom":"Juillan (l'ami fidèle)","lat":43.2011,"lon":0.0243},{"nom":"Hossegor","lat":43.6584,"lon":-1.4262},{"nom":"SCOOBY Tyrosse","lat":43.6605,"lon":-1.303},{"nom":"Mauléon Belzunce","lat":43.2233,"lon":-0.8886},{"nom":"Tosse Maremne","lat":43.6883,"lon":-1.3338},{"nom":"Nay Piémont","lat":43.1756,"lon":-0.2636},{"nom":"Briscous (l'épervier)","lat":43.46022,"lon":-1.334},{"nom":"Vét' in Land","lat":43.658,"lon":-1.3734},{"nom":"Clinique Vétérinaire du Lac (DAX)","lat":43.7084,"lon":-1.0519},{"nom":"Biarritz (Vetivia)","lat":43.47114,"lon":-1.55273},{"nom":"Anibio hagetmau","lat":43.65506,"lon":-0.59393},{"nom":"Biovet (Saint-martin de Seignanx)","lat":43.54154,"lon":-1.3871},{"nom":"Luy de Bearn (Serres-Castet)","lat":43.3862,"lon":-0.3542},{"nom":"Saint-Gaudens","lat":43.1078,"lon":0.7247},{"nom":"Ekidocs (Urrugne)","lat":43.3625,"lon":-1.7003},{"nom":"Lourdes (Biscaye)","lat":43.09409,"lon":-0.0465},{"nom":"Les pattes de l'adour (Tarbes)","lat":43.54056,"lon":-1.46119},{"nom":"Vét' in Land (Angresse)","lat":43.658,"lon":-1.3734},{"nom":"Anibio (Sauvagnon)","lat":43.4,"lon":-0.37},{"nom":"Septier Myriam (Cenon)","lat":43.4,"lon":-0.37},{"nom":"Navarrenx (Coum câ e gat)","lat":43.3221,"lon":-0.761},{"nom":"Urt (Fovéa)","lat":43.49427,"lon":-1.29131}];
+
+const map = L.map('map').setView([43.3, -0.4], 9);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors', maxZoom: 18
+}).addTo(map);
+
+// Icône vétérinaire personnalisée
+function vetoIcon(color) {
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:22px;height:22px;background:${color};border:2px solid rgba(0,0,0,0.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;color:white;box-shadow:0 1px 4px rgba(0,0,0,0.4);line-height:1">✚</div>`,
+    iconSize: [22, 22], iconAnchor: [11, 11]
+  });
+}
+
+// Ajouter les marqueurs vétérinaires (toujours visibles, au-dessus de la heatmap)
+const vetoLayer = L.layerGroup().addTo(map);
+VETOS_PARTENAIRES.forEach(v => {
+  L.marker([v.lat, v.lon], {icon: vetoIcon('#22cc66'), zIndexOffset: 100})
+   .bindTooltip(`<b style="color:#22cc66">⬤ Partenaire</b><br>${v.nom}`, {direction:'top'})
+   .addTo(vetoLayer);
+});
+VETOS_AUTRES.forEach(v => {
+  L.marker([v.lat, v.lon], {icon: vetoIcon('#999'), zIndexOffset: 50})
+   .bindTooltip(`<b style="color:#999">⬤ Vétérinaire</b><br>${v.nom}`, {direction:'top'})
+   .addTo(vetoLayer);
+});
+
+let allData = [];  // [{ville, lat, lon, count, espece, type:'DCVR'|'Clinique'}]
+
+function setStatus(msg) { document.getElementById('status').textContent = msg; }
+function setLoader(msg) { document.getElementById('loader-msg').textContent = msg; }
+function showError(msg) {
+  const el = document.getElementById('error-box');
+  el.innerHTML = msg;
+  el.style.display = 'block';
+  document.getElementById('loader').style.display = 'none';
+}
+
+// Extraire la ville depuis le champ Vétérinaire(s)
+// "Pau (Clinique de la Paix)" → "Pau"
+// "Oloron (Haut Bearn (Lindt))" → "Oloron"
+function extractVetCity(vet) {
+  if (!vet || !vet.trim()) return null;
+  const idx = vet.indexOf('(');
+  const city = idx > 0 ? vet.substring(0, idx).trim() : vet.trim();
+  return city || null;
+}
+
+// Cache géocodage local (fusionne avec GEO_PRELOADED au démarrage)
+const geoCache = (() => {
+  try { return JSON.parse(localStorage.getItem(GEO_CACHE_KEY) || '{}'); }
+  catch(e) { return {}; }
+})();
+// Fusionner le cache local dans GEO_PRELOADED (sans écraser les valeurs manuelles)
+Object.assign(GEO_PRELOADED, geoCache);
+
+// Geocoding Nominatim : appelé uniquement pour les villes vraiment inconnues
+async function geocode(ville) {
+  await new Promise(r => setTimeout(r, 1100)); // respecter 1 req/s
+  try {
+    const q   = encodeURIComponent(ville + ', Pyrénées-Atlantiques, France');
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1&countrycodes=fr`,
+      { headers: { 'Accept-Language': 'fr', 'User-Agent': 'heatmap-animaux/1.0' } });
+    const data = await res.json();
+    if (data.length > 0) {
+      const coords = { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+      // Sauvegarder dans le cache localStorage ET dans GEO_PRELOADED en mémoire
+      geoCache[ville] = coords;
+      GEO_PRELOADED[ville] = coords;
+      localStorage.setItem(GEO_CACHE_KEY, JSON.stringify(geoCache));
+      return coords;
+    }
+  } catch(e) { /* ignoré */ }
+  // Marquer comme introuvable pour ne pas retenter à chaque rechargement
+  geoCache[ville] = null;
+  localStorage.setItem(GEO_CACHE_KEY, JSON.stringify(geoCache));
+  return null;
+}
+
+// Parse CSV robuste
+function parseCSV(text) {
+  const lines = text.split('\n').filter(l => l.trim());
+  const headers = [];
+  let cur = '', inQ = false;
+  for (const ch of lines[0]) {
+    if (ch === '"') { inQ = !inQ; }
+    else if (ch === ',' && !inQ) { headers.push(cur.trim()); cur = ''; }
+    else { cur += ch; }
+  }
+  headers.push(cur.trim());
+
+  return lines.slice(1).map(line => {
+    const cols = [];
+    cur = ''; inQ = false;
+    for (const ch of line) {
+      if (ch === '"') { inQ = !inQ; }
+      else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+      else { cur += ch; }
+    }
+    cols.push(cur.trim());
+    const row = {};
+    headers.forEach((h, i) => row[h] = (cols[i] || '').trim());
+    return row;
+  });
+}
+
+async function fetchSheet() {
+  const res = await fetch('/api/data');
+  if (!res.ok) throw new Error(`Serveur local : HTTP ${res.status}`);
+  return parseCSV(await res.text());
+}
+
+// Filtrer et agréger les lignes selon les règles métier
+function processRows(rows) {
+  const map = {};
+  for (const r of rows) {
+    const devenir = (r['Devenir'] || '').trim();
+    if (devenir !== 'DCVR' && devenir !== 'Clinique') continue;
+
+    const vet    = (r['Vétérinaire(s)'] || '').trim();
+    const lieux  = (r['Lieux'] || '').trim();
+    const espece = (r['Espèces'] || '').trim();
+    const n      = parseInt(r['Nombre']) || 1;
+
+    let ville, type;
+    if (devenir === 'Clinique') {
+      // Animal en clinique → ville extraite du vétérinaire
+      const vetCity = extractVetCity(vet);
+      if (!vetCity) continue;
+      ville = vetCity;
+      type  = 'Clinique';
+    } else {
+      // Animal au DCVR → ville de découverte
+      if (!lieux) continue;
+      ville = lieux;
+      type  = 'DCVR';
+    }
+
+    const key = `${ville}|||${espece}|||${type}`;
+    if (!map[key]) map[key] = { ville, espece, type, count: 0 };
+    map[key].count += n;
+  }
+  return Object.values(map);
+}
+
+let bubbleLayer = L.layerGroup().addTo(map);
+
+// Palette bleu → cyan → jaune → orange → rouge
+function ratioToColor(r) {
+  const stops = [
+    [0.00, [ 30, 100, 255]],
+    [0.30, [  0, 220, 220]],
+    [0.55, [255, 220,   0]],
+    [0.75, [255, 100,   0]],
+    [1.00, [200,   0,   0]],
+  ];
+  let i = stops.length - 2;
+  for (let j = 0; j < stops.length - 1; j++) {
+    if (r <= stops[j+1][0]) { i = j; break; }
+  }
+  const [t0, c0] = stops[i], [t1, c1] = stops[i+1];
+  const f = (t1 - t0) === 0 ? 1 : (r - t0) / (t1 - t0);
+  const c = c0.map((v, k) => Math.round(v + f * (c1[k] - v)));
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+
+function buildHeatmap() {
+  const typeFilter   = document.getElementById('filter-type').value;
+  const especeFilter = document.getElementById('filter-espece').value;
+
+  let filtered = allData;
+  if (typeFilter)   filtered = filtered.filter(d => d.type   === typeFilter);
+  if (especeFilter) filtered = filtered.filter(d => d.espece === especeFilter);
+
+  const byCoord = {};
+  for (const d of filtered) {
+    const key = `${d.lat},${d.lon}`;
+    if (!byCoord[key]) byCoord[key] = { lat: d.lat, lon: d.lon, count: 0, ville: d.ville };
+    byCoord[key].count += d.count;
+  }
+
+  const points = Object.values(byCoord);
+  const max    = Math.max(...points.map(p => p.count), 1);
+  const min    = Math.min(...points.map(p => p.count));
+  const r       = parseInt(document.getElementById('radius').value);
+  const opacity = parseInt(document.getElementById('blur').value) / 40;
+
+  bubbleLayer.clearLayers();
+  points.forEach(p => {
+    const ratio = Math.log1p(p.count) / Math.log1p(max);
+    const color = ratioToColor(ratio);
+    L.circleMarker([p.lat, p.lon], {
+      radius:      r,
+      color:       'rgba(0,0,0,0.25)',
+      weight:      1,
+      fillColor:   color,
+      fillOpacity: opacity
+    })
+    .bindTooltip(`<b>${p.ville}</b><br>${p.count} animal${p.count > 1 ? 'x' : ''}`, {direction: 'top'})
+    .addTo(bubbleLayer);
+  });
+
+  const totalAnimaux = filtered.reduce((s, d) => s + d.count, 0);
+  const dcvr     = filtered.filter(d => d.type === 'DCVR').reduce((s,d)=>s+d.count,0);
+  const clinique = filtered.filter(d => d.type === 'Clinique').reduce((s,d)=>s+d.count,0);
+  document.getElementById('stats').innerHTML =
+    `<b>${totalAnimaux}</b> animaux · <b>${points.length}</b> localités<br>` +
+    `<span style="color:#7cf">⬤ DCVR : ${dcvr}</span><br>` +
+    `<span style="color:#fc7">⬤ Cliniques : ${clinique}</span>`;
+  document.getElementById('legend-labels').innerHTML =
+    `<span>${min}</span><span>${Math.round(max*0.25)}</span><span>${Math.round(max*0.5)}</span><span>${Math.round(max*0.75)}</span><span>${max}</span>`;
+  document.getElementById('legend-unit').textContent = 'animaux / ville';
+}
+
+async function main() {
+  setLoader('Chargement du Google Sheet...');
+
+  let rows;
+  try {
+    rows = await fetchSheet();
+  } catch(e) {
+    showError(
+      `<b>Impossible de charger les données</b><br><br>` +
+      `Erreur : ${e.message}<br><br>` +
+      `Assurez-vous de lancer le serveur local :<br>` +
+      `<code>python3 server.py</code><br><br>` +
+      `Puis ouvrez la page via <b>http://localhost:8080</b>`
+    );
+    setStatus('Erreur de chargement');
+    return;
+  }
+
+  const aggregated = processRows(rows);
+
+  if (aggregated.length === 0) {
+    showError(`<b>Aucune donnée</b> trouvée avec Devenir = "DCVR" ou "Clinique".`);
+    return;
+  }
+
+  // Lister les espèces uniques
+  const especes = [...new Set(aggregated.map(d => d.espece))].filter(Boolean).sort();
+  const sel = document.getElementById('filter-espece');
+  especes.forEach(e => {
+    const opt = document.createElement('option');
+    opt.value = e; opt.textContent = e;
+    sel.appendChild(opt);
+  });
+
+  // Assembler données finales — villes connues en direct, inconnues via Nominatim
+  const aGeocoderr = [];
+  for (const d of aggregated) {
+    const coords = GEO_PRELOADED[d.ville];
+    if (coords) {
+      allData.push({ ...d, lat: coords.lat, lon: coords.lon });
+    } else if (geoCache[d.ville] === undefined) {
+      // Pas encore tenté : à géocoder
+      aGeocoderr.push(d);
+    }
+    // Si geoCache[ville] === null : déjà tenté, introuvable → on ignore
+  }
+
+  if (aGeocoderr.length > 0) {
+    setStatus(`⏳ Géocodage de ${aGeocoderr.length} nouvelle(s) commune(s)...`);
+    setLoader(`Géocodage de ${aGeocoderr.length} nouvelle(s) commune(s)...`);
+    document.getElementById('loader').style.display = 'block';
+
+    for (const d of aGeocoderr) {
+      setLoader(`Géocodage : ${d.ville}…`);
+      const coords = await geocode(d.ville);
+      if (coords) {
+        allData.push({ ...d, lat: coords.lat, lon: coords.lon });
+        console.info(`✓ Géocodé : ${d.ville}`, coords);
+        // Sauvegarder sur le serveur → mis à jour dans heatmap.html pour tous les ordis
+        fetch('/api/geocache', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ville: d.ville, lat: coords.lat, lon: coords.lon })
+        }).catch(() => {}); // silencieux si le serveur est absent
+      } else {
+        console.warn(`✗ Introuvable : ${d.ville}`);
+      }
+    }
+    document.getElementById('loader').style.display = 'none';
+  }
+
+  document.getElementById('loader').style.display = 'none';
+  setStatus(`✓ ${rows.length} appels · ${allData.reduce((s,d)=>s+d.count,0)} animaux (DCVR + Cliniques)`);
+
+  buildHeatmap();
+
+  // Centrer sur les données
+  if (allData.length > 0) {
+    const lats = allData.map(d => d.lat);
+    const lons = allData.map(d => d.lon);
+    map.fitBounds([
+      [Math.min(...lats), Math.min(...lons)],
+      [Math.max(...lats), Math.max(...lons)]
+    ]);
+  }
+
+  document.getElementById('filter-type').addEventListener('change', buildHeatmap);
+  document.getElementById('filter-espece').addEventListener('change', buildHeatmap);
+  document.getElementById('radius').addEventListener('input', buildHeatmap);
+  document.getElementById('blur').addEventListener('input', buildHeatmap);
+}
+
+main();
+</script>
+</body>
+</html>
