@@ -172,13 +172,96 @@
   input[type=number]::-webkit-inner-spin-button,
   input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
   input[type=number] { -moz-appearance: textfield; }
+
+  /* Boutons DCVR / Vétérinaire dans le header */
+  .header-btn {
+    background: rgba(255,255,255,0.18);
+    border: 1.5px solid rgba(255,255,255,0.45);
+    color: #fff;
+    padding: 5px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: background 0.18s;
+    white-space: nowrap;
+  }
+  .header-btn:hover { background: rgba(255,255,255,0.32); }
+  .header-btn.active { background: rgba(255,255,255,0.45); }
+
+  /* Panneau liste déroulant */
+  #list-panel {
+    position: absolute;
+    top: 48px;
+    right: 10px;
+    width: 370px;
+    max-height: 0;
+    overflow: hidden;
+    z-index: 1001;
+    background: #fff;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.22);
+    transition: max-height 0.3s ease;
+  }
+  #list-panel.open { max-height: 500px; }
+  #list-header {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    background: #f5f5f5;
+    border-bottom: 1px solid #e0e0e0;
+    gap: 10px;
+    position: sticky;
+    top: 0;
+  }
+  #list-title { font-weight: 700; font-size: 0.9rem; color: #222; flex: 1; }
+  #list-search {
+    border: 1px solid #ccc;
+    border-radius: 16px;
+    padding: 4px 12px;
+    font-size: 0.82rem;
+    outline: none;
+    color: #333;
+    width: 130px;
+    background: #fff;
+  }
+  #list-body { max-height: 430px; overflow-y: auto; }
+  .list-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.82rem;
+    color: #333;
+  }
+  .list-item:last-child { border-bottom: none; }
+  .list-item-date { color: #999; font-size: 0.73rem; white-space: nowrap; min-width: 60px; }
+  .list-item-espece { font-weight: 600; flex: 1; }
+  .list-item-lieu { color: #666; font-size: 0.76rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px; }
+  .list-item-count { background: #019939; color: #fff; border-radius: 10px; padding: 1px 8px; font-size: 0.73rem; font-weight: 700; white-space: nowrap; }
+  .list-empty { padding: 20px; text-align: center; color: #aaa; font-size: 0.85rem; }
   </style>
 </head>
 <body>
 
 <div id="header">
   <h1>🗺️ Heatmap — Hegalaldia</h1>
-  <span id="status">Chargement...</span>
+  <div style="display:flex;gap:8px;align-items:center">
+    <button class="header-btn" id="btn-dcvr">◆ DCVR</button>
+    <button class="header-btn" id="btn-clinique">⬤ Vétérinaire</button>
+    <span id="status">Chargement...</span>
+  </div>
+</div>
+
+<div id="list-panel">
+  <div id="list-panel-inner">
+    <div id="list-header">
+      <span id="list-title"></span>
+      <input type="text" id="list-search" placeholder="Filtrer…">
+    </div>
+    <div id="list-body"></div>
+  </div>
 </div>
 
 <div id="map">
@@ -359,7 +442,8 @@ async function drawZone() {
 }
 drawZone();
 
-let allData = [];  // [{ville, lat, lon, count, espece, type:'DCVR'|'Clinique'}]
+let allData    = [];  // [{ville, lat, lon, count, espece, type:'DCVR'|'Clinique'}]
+let allRawRows = [];  // [{date, espece, count, lieu, type:'DCVR'|'Clinique'}] — lignes brutes pour les panneaux
 
 function setStatus(msg) { document.getElementById('status').textContent = msg; }
 function setLoader(msg) { document.getElementById('loader-msg').textContent = msg; }
@@ -599,6 +683,27 @@ async function main() {
     return;
   }
 
+  // Collecter les lignes brutes pour les panneaux DCVR / Vétérinaire
+  allRawRows = [];
+  for (const r of rows) {
+    const devenir = (r['Devenir'] || '').trim();
+    if (devenir !== 'DCVR' && devenir !== 'Clinique') continue;
+    const espece = (r['Espèces'] || '').trim();
+    const n      = parseInt(r['Nombre']) || 1;
+    const date   = (r['Date'] || '').trim();       // DD/MM/YYYY
+    const vet    = (r['Vétérinaire(s)'] || '').trim();
+    const lieux  = (r['Lieux'] || '').trim();
+    const lieu   = devenir === 'Clinique' ? (vet || lieux) : lieux;
+    if (!lieu) continue;
+    // Convertir date en timestamp pour tri (DD/MM/YYYY → YYYY-MM-DD)
+    let ts = 0;
+    const dm = date.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (dm) ts = new Date(`${dm[3]}-${dm[2]}-${dm[1]}`).getTime();
+    allRawRows.push({ date, ts, espece, count: n, lieu, type: devenir });
+  }
+  // Trier par date décroissante
+  allRawRows.sort((a, b) => b.ts - a.ts);
+
   const aggregated = processRows(rows);
 
   if (aggregated.length === 0) {
@@ -815,6 +920,78 @@ async function main() {
     document.getElementById('toggle-track').style.background = this.checked ? '#4fc3f7' : '#444';
     document.getElementById('toggle-thumb').style.transform  = this.checked ? 'translateX(18px)' : 'translateX(0)';
     buildHeatmap();
+  });
+
+  // ── Panneaux DCVR / Vétérinaire ────────────────────────────────────────────
+  const listPanel  = document.getElementById('list-panel');
+  const listTitle  = document.getElementById('list-title');
+  const listSearch = document.getElementById('list-search');
+  const listBody   = document.getElementById('list-body');
+  let   listType   = null; // 'DCVR' | 'Clinique' | null
+
+  function renderListPanel(filter) {
+    const q = (filter || '').toLowerCase().trim();
+    const rows = allRawRows.filter(r => {
+      if (r.type !== listType) return false;
+      if (!q) return true;
+      return r.espece.toLowerCase().includes(q) || r.lieu.toLowerCase().includes(q);
+    });
+
+    listBody.innerHTML = '';
+    if (rows.length === 0) {
+      listBody.innerHTML = `<div class="list-empty">Aucun résultat</div>`;
+      return;
+    }
+    rows.forEach(r => {
+      const item = document.createElement('div');
+      item.className = 'list-item';
+      const icon = r.type === 'DCVR' ? `<span style="color:#1e64ff;font-size:11px">◆</span>`
+                                      : `<span style="color:#019939;font-size:13px">⬤</span>`;
+      item.innerHTML = `
+        ${icon}
+        <span class="list-item-espece">${r.espece || '—'}</span>
+        <span class="list-item-lieu" title="${r.lieu}">${r.lieu}</span>
+        ${r.count > 1 ? `<span class="list-item-count">×${r.count}</span>` : ''}
+        <span class="list-item-date">${r.date || '—'}</span>
+      `;
+      listBody.appendChild(item);
+    });
+  }
+
+  function openListPanel(type) {
+    listType = type;
+    const label = type === 'DCVR' ? '◆ DCVR' : '⬤ Vétérinaire';
+    listTitle.textContent = label;
+    listSearch.value = '';
+    renderListPanel('');
+    listPanel.classList.add('open');
+    document.getElementById('btn-dcvr').classList.toggle('active', type === 'DCVR');
+    document.getElementById('btn-clinique').classList.toggle('active', type === 'Clinique');
+  }
+
+  function closeListPanel() {
+    listPanel.classList.remove('open');
+    document.getElementById('btn-dcvr').classList.remove('active');
+    document.getElementById('btn-clinique').classList.remove('active');
+    listType = null;
+  }
+
+  document.getElementById('btn-dcvr').addEventListener('click', () => {
+    if (listType === 'DCVR') { closeListPanel(); } else { openListPanel('DCVR'); }
+  });
+  document.getElementById('btn-clinique').addEventListener('click', () => {
+    if (listType === 'Clinique') { closeListPanel(); } else { openListPanel('Clinique'); }
+  });
+
+  listSearch.addEventListener('input', () => renderListPanel(listSearch.value));
+
+  // Fermer en cliquant en dehors
+  document.addEventListener('click', e => {
+    if (!listPanel.contains(e.target) &&
+        !document.getElementById('btn-dcvr').contains(e.target) &&
+        !document.getElementById('btn-clinique').contains(e.target)) {
+      closeListPanel();
+    }
   });
 }
 
