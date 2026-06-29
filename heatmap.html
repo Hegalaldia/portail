@@ -113,14 +113,14 @@
   </select>
   <label>Espèce</label>
   <select id="filter-espece"><option value="">Toutes</option></select>
-  <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:4px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
     <span style="color:#aaa">Vue heatmap</span>
-    <div style="position:relative;width:40px;height:22px;flex-shrink:0" onclick="document.getElementById('mode-heatmap').click()">
+    <label style="position:relative;width:40px;height:22px;flex-shrink:0;cursor:pointer">
       <input type="checkbox" id="mode-heatmap" style="opacity:0;width:0;height:0;position:absolute">
       <span id="toggle-track" style="position:absolute;inset:0;background:#444;border-radius:22px;transition:background 0.2s"></span>
       <span id="toggle-thumb" style="position:absolute;top:3px;left:3px;width:16px;height:16px;background:white;border-radius:50%;transition:transform 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.4)"></span>
-    </div>
-  </label>
+    </label>
+  </div>
   <label>Taille des cercles</label>
   <input type="range" id="radius" min="10" max="80" value="35">
   <label>Opacité</label>
