@@ -121,9 +121,17 @@
       <span id="toggle-thumb" style="position:absolute;top:3px;left:3px;width:16px;height:16px;background:white;border-radius:50%;transition:transform 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.4)"></span>
     </label>
   </div>
-  <label>Taille des cercles</label>
-  <input type="range" id="radius" min="10" max="80" value="35">
-  <label>Opacité</label>
+  <label style="display:flex;justify-content:space-between">
+    <span>Taille des cercles</span>
+    <input type="number" id="radius-num" min="5" max="150" value="35"
+      style="width:46px;background:#1a1a2e;color:#eee;border:1px solid #444;border-radius:4px;padding:1px 4px;font-size:0.8rem;text-align:center">
+  </label>
+  <input type="range" id="radius" min="5" max="150" value="35">
+  <label style="display:flex;justify-content:space-between">
+    <span>Opacité</span>
+    <input type="number" id="blur-num" min="5" max="40" value="20"
+      style="width:46px;background:#1a1a2e;color:#eee;border:1px solid #444;border-radius:4px;padding:1px 4px;font-size:0.8rem;text-align:center">
+  </label>
   <input type="range" id="blur" min="5" max="40" value="20">
   <div id="stats"></div>
 </div>
@@ -501,10 +509,34 @@ async function main() {
     ]);
   }
 
+  // Restaurer les valeurs sauvegardées
+  const savedRadius = localStorage.getItem('heatmap_radius');
+  const savedBlur   = localStorage.getItem('heatmap_blur');
+  if (savedRadius) { document.getElementById('radius').value = savedRadius; document.getElementById('radius-num').value = savedRadius; }
+  if (savedBlur)   { document.getElementById('blur').value   = savedBlur;   document.getElementById('blur-num').value   = savedBlur; }
+
+  // Synchronisation slider ↔ champ numérique
+  function syncRadius(val) {
+    val = Math.max(5, Math.min(150, parseInt(val) || 35));
+    document.getElementById('radius').value     = val;
+    document.getElementById('radius-num').value = val;
+    localStorage.setItem('heatmap_radius', val);
+    buildHeatmap();
+  }
+  function syncBlur(val) {
+    val = Math.max(5, Math.min(40, parseInt(val) || 20));
+    document.getElementById('blur').value     = val;
+    document.getElementById('blur-num').value = val;
+    localStorage.setItem('heatmap_blur', val);
+    buildHeatmap();
+  }
+
   document.getElementById('filter-type').addEventListener('change', buildHeatmap);
   document.getElementById('filter-espece').addEventListener('change', buildHeatmap);
-  document.getElementById('radius').addEventListener('input', buildHeatmap);
-  document.getElementById('blur').addEventListener('input', buildHeatmap);
+  document.getElementById('radius').addEventListener('input',  e => syncRadius(e.target.value));
+  document.getElementById('radius-num').addEventListener('change', e => syncRadius(e.target.value));
+  document.getElementById('blur').addEventListener('input',    e => syncBlur(e.target.value));
+  document.getElementById('blur-num').addEventListener('change',   e => syncBlur(e.target.value));
   document.getElementById('mode-heatmap').addEventListener('change', function() {
     document.getElementById('toggle-track').style.background = this.checked ? '#4fc3f7' : '#444';
     document.getElementById('toggle-thumb').style.transform  = this.checked ? 'translateX(18px)' : 'translateX(0)';
