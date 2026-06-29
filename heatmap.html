@@ -284,8 +284,8 @@ const geoCache = (() => {
   try { return JSON.parse(localStorage.getItem(GEO_CACHE_KEY) || '{}'); }
   catch(e) { return {}; }
 })();
-// Fusionner le cache local dans GEO_PRELOADED (sans écraser les valeurs manuelles)
-Object.assign(GEO_PRELOADED, geoCache);
+// Fusionner le cache local dans GEO_PRELOADED — les valeurs manuelles ont priorité
+Object.keys(geoCache).forEach(k => { if (!(k in GEO_PRELOADED) && geoCache[k]) GEO_PRELOADED[k] = geoCache[k]; });
 
 // Geocoding Nominatim : appelé uniquement pour les villes vraiment inconnues
 async function geocode(ville) {
@@ -606,8 +606,7 @@ async function main() {
 
     villes.forEach(ville => {
       const item = document.createElement('div');
-      const hasData = villesData.has(ville);
-      item.innerHTML = `${ville} ${hasData ? '' : '<span style="opacity:0.5;font-size:0.7rem">(aucune donnée)</span>'}`;
+      item.textContent = ville;
       item.style.cssText = 'padding:5px 8px;cursor:pointer;color:#fff;font-size:0.8rem;border-bottom:1px solid rgba(255,255,255,0.1)';
       item.addEventListener('mouseenter', () => item.style.background = '#019939');
       item.addEventListener('mouseleave', () => item.style.background = '');
