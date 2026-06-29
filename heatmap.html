@@ -359,7 +359,7 @@ function buildHeatmap() {
 
   if (modeHeatmap) {
     // Vue heatmap Leaflet.heat
-    const heatPoints = points.map(p => [p.lat, p.lon, p.count]);
+    const heatPoints = points.map(p => [p.lat, p.lon, Math.log1p(p.count) / Math.log1p(max)]);
     heatLayer = L.heatLayer(heatPoints, {
       radius:  r,
       blur:    r * 1.2,
