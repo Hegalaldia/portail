@@ -250,14 +250,25 @@ function vetoIcon(color) {
 
 // Ajouter les marqueurs vétérinaires (toujours visibles, au-dessus de la heatmap)
 const vetoLayer = L.layerGroup().addTo(map);
-VETOS_PARTENAIRES.forEach(v => {
-  L.marker([v.lat, v.lon], {icon: vetoIcon('#22cc66'), zIndexOffset: 100})
-   .bindTooltip(`<b style="color:#22cc66">⬤ Partenaire</b><br>${v.nom}`, {direction:'top'})
+// Grouper les vétérinaires par coordonnées (un seul marker par lieu)
+function groupVetos(list) {
+  const groups = {};
+  list.forEach(v => {
+    const key = `${v.lat},${v.lon}`;
+    if (!groups[key]) groups[key] = { lat: v.lat, lon: v.lon, noms: [] };
+    groups[key].noms.push(v.nom);
+  });
+  return Object.values(groups);
+}
+
+groupVetos(VETOS_PARTENAIRES).forEach(g => {
+  L.marker([g.lat, g.lon], {icon: vetoIcon('#22cc66'), zIndexOffset: 100})
+   .bindTooltip(`<b style="color:#22cc66">⬤ Partenaire</b><br>${g.noms.join('<br>')}`, {direction:'top'})
    .addTo(vetoLayer);
 });
-VETOS_AUTRES.forEach(v => {
-  L.marker([v.lat, v.lon], {icon: vetoIcon('#999'), zIndexOffset: 50})
-   .bindTooltip(`<b style="color:#999">⬤ Vétérinaire</b><br>${v.nom}`, {direction:'top'})
+groupVetos(VETOS_AUTRES).forEach(g => {
+  L.marker([g.lat, g.lon], {icon: vetoIcon('#999'), zIndexOffset: 50})
+   .bindTooltip(`<b style="color:#999">⬤ Vétérinaire</b><br>${g.noms.join('<br>')}`, {direction:'top'})
    .addTo(vetoLayer);
 });
 
