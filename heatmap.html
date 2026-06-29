@@ -409,7 +409,7 @@ function buildHeatmap() {
     points.forEach(p => {
       const ratio = Math.log1p(p.count) / Math.log1p(max);
       const color = ratioToColor(ratio);
-      const label = `<b>${p.ville}</b><br>${p.count} animal${p.count > 1 ? 'x' : ''}<br><i>${p.type}</i>`;
+      const label = `<b>${p.ville}</b><br>${p.count} ${p.count > 1 ? 'animaux' : 'animal'}<br><i>${p.type}</i>`;
 
       if (p.type === 'DCVR') {
         const size = r * 0.8;
