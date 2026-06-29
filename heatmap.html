@@ -222,13 +222,13 @@ async function drawZone() {
     const ring   = geo.type === 'Polygon' ? geo.coordinates[0]
                  : geo.coordinates.reduce((a, b) => b[0].length > a[0].length ? b : a)[0];
 
-    // Trouver le coin NW (point le plus au nord sur la côte, lon < -1.2)
+    // Trouver le coin NW : jonction côte/40 (côte atlantique, autour de Tarnos)
     let nwIdx = 0, nwLat = -Infinity;
-    ring.forEach(([lon, lat], i) => { if (lon < -1.2 && lat > nwLat) { nwLat = lat; nwIdx = i; } });
+    ring.forEach(([lon, lat], i) => { if (lon < -1.4 && lat > nwLat) { nwLat = lat; nwIdx = i; } });
 
-    // Trouver le coin NE : point le plus au nord sur le bord est (lon > 0.5 = côté Gers)
+    // Trouver le coin NE : bout nord de la limite Gers/65
     let neIdx = 0, neLat = -Infinity;
-    ring.forEach(([lon, lat], i) => { if (lon > 0.5 && lat > neLat) { neLat = lat; neIdx = i; } });
+    ring.forEach(([lon, lat], i) => { if (lon > 0.4 && lat > neLat) { neLat = lat; neIdx = i; } });
 
     // Parcourir dans les deux sens et garder l'arc qui passe par le sud (Pyrénées + côte)
     const arc = (from, to, dir) => {
