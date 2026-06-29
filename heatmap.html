@@ -301,7 +301,15 @@
     <button class="header-btn" id="btn-dcvr">◆ DCVR</button>
     <button class="header-btn" id="btn-clinique">⬤ Vétérinaire</button>
     <span id="status">Chargement...</span>
-    <button class="header-btn" id="btn-config" title="Changer le fichier Google Sheet">⚙ Fichier</button>
+    <span style="display:inline-flex;align-items:center;gap:5px">
+      <button class="header-btn" id="btn-config" title="Changer le fichier Google Sheet">⚙ Fichier</button>
+      <span id="sheet-dot" title="" style="
+        width:10px;height:10px;border-radius:50%;
+        background:#fff;flex-shrink:0;
+        box-shadow:0 0 0 2px rgba(255,255,255,0.3);
+        transition:background 0.4s;
+      "></span>
+    </span>
   </div>
 </div>
 
@@ -826,6 +834,9 @@ async function main() {
   document.getElementById('loader').style.display = 'none';
   setStatus(`✓ ${rows.length} appels · ${allData.reduce((s,d)=>s+d.count,0)} animaux (DCVR + Cliniques)`);
 
+  // Indicateur de fraîcheur des données (point à côté du bouton Fichier)
+  updateSheetDot();
+
   buildHeatmap();
 
   // Centrer sur les données
@@ -1059,6 +1070,31 @@ async function main() {
       closeListPanel();
     }
   });
+}
+
+// ── Indicateur de fraîcheur du Sheet ──────────────────────────────────────────
+function updateSheetDot() {
+  const dot = document.getElementById('sheet-dot');
+  if (!dot) return;
+
+  // Trouver la date la plus récente parmi toutes les lignes brutes
+  const latest = allRawRows.length > 0 ? allRawRows[0].ts : 0; // déjà trié desc
+  if (!latest) {
+    dot.style.background = '#fff';
+    dot.title = 'Aucune date trouvée';
+    return;
+  }
+
+  const ageJours = (Date.now() - latest) / (1000 * 60 * 60 * 24);
+  const date     = new Date(latest).toLocaleDateString('fr-FR');
+
+  if (ageJours > 2) {
+    dot.style.background = '#ff3b30';
+    dot.title = `⚠ Aucune donnée depuis ${Math.floor(ageJours)} jour${Math.floor(ageJours) > 1 ? 's' : ''} (dernier : ${date})`;
+  } else {
+    dot.style.background = '#fff';
+    dot.title = `Données à jour — dernier ajout : ${date}`;
+  }
 }
 
 // ── Gestion du fichier Google Sheet (changement d'année + bouton manuel) ───────
