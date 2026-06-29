@@ -234,7 +234,7 @@
 
 <div id="veto-panel">
   <div id="veto-panel-header">
-    <span id="veto-panel-title">Cliniques proches</span>
+    <span id="veto-panel-title">Vétérinaires proches</span>
   </div>
   <div id="veto-panel-list"></div>
 </div>
@@ -249,7 +249,7 @@
   <div style="margin-top:8px;padding-top:8px;border-top:1px solid #333;font-size:0.75rem;line-height:1.8">
     <span style="display:inline-block;width:12px;height:12px;background:#aaa;transform:rotate(45deg);margin-right:4px;vertical-align:middle"></span> DCVR<br>
     <span style="display:inline-block;width:12px;height:12px;background:#aaa;border-radius:50%;margin-right:4px;vertical-align:middle"></span> Clinique<br>
-    <span style="color:#22cc66;font-weight:bold">✚</span> Clinique partenaire<br>
+    <span style="color:#22cc66;font-weight:bold">✚</span> Vétérinaire partenaire<br>
     <span style="color:#999;font-weight:bold">✚</span> Vétérinaire
   </div>
 </div>
@@ -723,7 +723,7 @@ async function main() {
 
     const list = document.getElementById('veto-panel-list');
     list.innerHTML = '';
-    document.getElementById('veto-panel-title').textContent = `Cliniques près de ${ville}`;
+    document.getElementById('veto-panel-title').textContent = `Vétérinaires près de ${ville}`;
 
     resultats.forEach(v => {
       const item = document.createElement('div');
