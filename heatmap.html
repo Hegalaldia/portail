@@ -113,8 +113,13 @@
   </select>
   <label>Espèce</label>
   <select id="filter-espece"><option value="">Toutes</option></select>
-  <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
-    <input type="checkbox" id="mode-heatmap"> Vue heatmap
+  <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:4px">
+    <span style="color:#aaa">Vue heatmap</span>
+    <div style="position:relative;width:40px;height:22px;flex-shrink:0" onclick="document.getElementById('mode-heatmap').click()">
+      <input type="checkbox" id="mode-heatmap" style="opacity:0;width:0;height:0;position:absolute">
+      <span id="toggle-track" style="position:absolute;inset:0;background:#444;border-radius:22px;transition:background 0.2s"></span>
+      <span id="toggle-thumb" style="position:absolute;top:3px;left:3px;width:16px;height:16px;background:white;border-radius:50%;transition:transform 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.4)"></span>
+    </div>
   </label>
   <label>Taille des cercles</label>
   <input type="range" id="radius" min="10" max="80" value="35">
@@ -500,7 +505,11 @@ async function main() {
   document.getElementById('filter-espece').addEventListener('change', buildHeatmap);
   document.getElementById('radius').addEventListener('input', buildHeatmap);
   document.getElementById('blur').addEventListener('input', buildHeatmap);
-  document.getElementById('mode-heatmap').addEventListener('change', buildHeatmap);
+  document.getElementById('mode-heatmap').addEventListener('change', function() {
+    document.getElementById('toggle-track').style.background = this.checked ? '#4fc3f7' : '#444';
+    document.getElementById('toggle-thumb').style.transform  = this.checked ? 'translateX(18px)' : 'translateX(0)';
+    buildHeatmap();
+  });
 }
 
 main();
