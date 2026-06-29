@@ -793,6 +793,7 @@ async function main() {
     searchInput.value = '';
     searchResults.style.display = 'none';
     document.getElementById('search-clear').style.display = 'none';
+    document.getElementById('veto-panel').classList.remove('open');
     if (searchPrevView) {
       map.setView(searchPrevView.center, searchPrevView.zoom);
       searchPrevView = null;
