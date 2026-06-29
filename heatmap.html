@@ -301,6 +301,7 @@
     <button class="header-btn" id="btn-dcvr">◆ DCVR</button>
     <button class="header-btn" id="btn-clinique">⬤ Vétérinaire</button>
     <span id="status">Chargement...</span>
+    <button class="header-btn" id="btn-config" title="Changer le fichier Google Sheet">⚙ Fichier</button>
   </div>
 </div>
 
@@ -317,17 +318,13 @@
 <!-- Modal changement d'année -->
 <div id="year-modal-overlay">
   <div id="year-modal">
-    <h2>🎉 Nouvelle année — nouveau fichier ?</h2>
-    <p>
-      C'est le début d'une nouvelle année.<br>
-      Si vous avez créé un nouveau fichier Google Sheet pour <strong id="year-modal-year"></strong>,
-      collez son lien ci-dessous. Sinon, vous pouvez continuer avec l'ancien fichier.
-    </p>
-    <label for="year-sheet-url">Lien du nouveau Google Sheet</label>
+    <h2 id="year-modal-title">⚙ Fichier Google Sheet</h2>
+    <p id="year-modal-desc"></p>
+    <label for="year-sheet-url">Lien du Google Sheet</label>
     <input type="text" id="year-sheet-url" placeholder="https://docs.google.com/spreadsheets/d/…">
     <div id="year-url-error">Lien invalide — coller l'URL complète du Google Sheet.</div>
     <div class="year-modal-btns">
-      <button class="year-btn-secondary" id="year-btn-skip">Continuer avec l'ancien</button>
+      <button class="year-btn-secondary" id="year-btn-skip">Annuler</button>
       <button class="year-btn-primary"   id="year-btn-ok">Mettre à jour</button>
     </div>
   </div>
@@ -1064,20 +1061,17 @@ async function main() {
   });
 }
 
-// ── Gestion du changement d'année ─────────────────────────────────────────────
+// ── Gestion du fichier Google Sheet (changement d'année + bouton manuel) ───────
 const YEAR_KEY = 'heatmap_confirmed_year';
 
 function extractSheetId(url) {
-  // Accepte une URL complète ou un ID brut
   const m = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]{20,})/);
   if (m) return m[1];
-  // Peut-être que c'est directement un ID
   if (/^[a-zA-Z0-9_-]{20,}$/.test(url.trim())) return url.trim();
   return null;
 }
 
 async function updateSheetId(newId) {
-  // Appeler le serveur pour sauvegarder le nouvel ID
   const resp = await fetch('/api/config', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -1086,57 +1080,99 @@ async function updateSheetId(newId) {
   if (!resp.ok) throw new Error(`Serveur : HTTP ${resp.status}`);
 }
 
-async function checkNewYear() {
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const confirmedYear = parseInt(localStorage.getItem(YEAR_KEY) || '0');
-
-  if (currentYear <= confirmedYear) return; // déjà confirmé pour cette année
-
-  // Récupérer l'ID actuel depuis le serveur
-  let currentId = '';
+async function getCurrentSheetId() {
   try {
     const r = await fetch('/api/config');
-    if (r.ok) { const cfg = await r.json(); currentId = cfg.sheet_id || ''; }
-  } catch(e) { /* serveur absent, continuer quand même */ }
+    if (r.ok) { const cfg = await r.json(); return cfg.sheet_id || ''; }
+  } catch(e) { /* serveur absent */ }
+  return '';
+}
 
-  // Afficher le modal
-  document.getElementById('year-modal-year').textContent = currentYear;
-  document.getElementById('year-sheet-url').value =
-    currentId ? `https://docs.google.com/spreadsheets/d/${currentId}` : '';
-  document.getElementById('year-modal-overlay').classList.add('show');
+// Ouvre le modal de configuration du Sheet.
+// isNewYear=true → texte "nouvelle année" + bouton "Continuer" mémorise l'année
+// isNewYear=false → bouton "Annuler" ferme juste
+function openConfigModal({ isNewYear = false, currentYear = null } = {}) {
+  return new Promise(async resolve => {
+    const overlay = document.getElementById('year-modal-overlay');
+    const title   = document.getElementById('year-modal-title');
+    const desc    = document.getElementById('year-modal-desc');
+    const input   = document.getElementById('year-sheet-url');
+    const errEl   = document.getElementById('year-url-error');
+    const btnSkip = document.getElementById('year-btn-skip');
+    const btnOk   = document.getElementById('year-btn-ok');
 
-  return new Promise(resolve => {
-    document.getElementById('year-btn-skip').onclick = () => {
-      // Continuer avec l'ancien — marquer l'année comme confirmée
-      localStorage.setItem(YEAR_KEY, currentYear);
-      document.getElementById('year-modal-overlay').classList.remove('show');
-      resolve();
+    // Remplir le titre et la description selon le contexte
+    if (isNewYear) {
+      title.textContent = '🎉 Nouvelle année — nouveau fichier ?';
+      desc.innerHTML    = `C'est le début d'une nouvelle année.<br>
+        Si vous avez créé un nouveau Google Sheet pour <strong>${currentYear}</strong>,
+        collez son lien ci-dessous. Sinon, continuez avec l'ancien.`;
+      btnSkip.textContent = 'Continuer avec l\'ancien';
+    } else {
+      title.textContent = '⚙ Changer le fichier Google Sheet';
+      desc.innerHTML    = 'Collez l\'URL du Google Sheet à utiliser pour la heatmap.';
+      btnSkip.textContent = 'Annuler';
+    }
+
+    // Pré-remplir avec l'ID courant
+    const currentId = await getCurrentSheetId();
+    input.value = currentId ? `https://docs.google.com/spreadsheets/d/${currentId}` : '';
+    errEl.style.display = 'none';
+    btnOk.textContent = 'Mettre à jour';
+    btnOk.disabled    = false;
+
+    overlay.classList.add('show');
+    input.focus();
+
+    // Fermeture sans changement
+    btnSkip.onclick = () => {
+      if (isNewYear) localStorage.setItem(YEAR_KEY, currentYear); // ne plus demander cette année
+      overlay.classList.remove('show');
+      resolve(false);
     };
 
-    document.getElementById('year-btn-ok').onclick = async () => {
-      const raw   = document.getElementById('year-sheet-url').value.trim();
+    // Mise à jour
+    btnOk.onclick = async () => {
+      const raw   = input.value.trim();
       const newId = extractSheetId(raw);
-      const errEl = document.getElementById('year-url-error');
       if (!newId) { errEl.style.display = 'block'; return; }
       errEl.style.display = 'none';
 
-      document.getElementById('year-btn-ok').textContent = '⏳ Mise à jour…';
-      document.getElementById('year-btn-ok').disabled = true;
+      btnOk.textContent = '⏳ Mise à jour…';
+      btnOk.disabled    = true;
       try {
         await updateSheetId(newId);
-        localStorage.setItem(YEAR_KEY, currentYear);
-        document.getElementById('year-modal-overlay').classList.remove('show');
-        resolve();
+        if (isNewYear) localStorage.setItem(YEAR_KEY, currentYear);
+        overlay.classList.remove('show');
+        resolve(true); // indiquer qu'on a changé le Sheet
       } catch(e) {
-        errEl.textContent = `Erreur : ${e.message}`;
+        errEl.textContent   = `Erreur : ${e.message}`;
         errEl.style.display = 'block';
-        document.getElementById('year-btn-ok').textContent = 'Mettre à jour';
-        document.getElementById('year-btn-ok').disabled = false;
+        btnOk.textContent   = 'Mettre à jour';
+        btnOk.disabled      = false;
       }
     };
   });
 }
+
+async function checkNewYear() {
+  const currentYear   = new Date().getFullYear();
+  const confirmedYear = parseInt(localStorage.getItem(YEAR_KEY) || '0');
+  if (currentYear <= confirmedYear) return; // déjà confirmé pour cette année
+  await openConfigModal({ isNewYear: true, currentYear });
+}
+
+// Bouton manuel dans le header
+document.getElementById('btn-config').addEventListener('click', async () => {
+  const changed = await openConfigModal({ isNewYear: false });
+  if (changed) {
+    // Recharger les données avec le nouveau Sheet
+    allData    = [];
+    allRawRows = [];
+    setStatus('Rechargement…');
+    await main();
+  }
+});
 
 async function init() {
   await checkNewYear();
