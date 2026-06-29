@@ -86,6 +86,46 @@
       margin: 0 auto 12px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+    #veto-panel {
+      position: absolute;
+      top: 64px;
+      right: -320px;
+      width: 300px;
+      z-index: 1000;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      transition: right 0.3s ease;
+      overflow: hidden;
+    }
+    #veto-panel.open { right: 10px; }
+    #veto-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: #019939;
+      color: white;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    #veto-panel-list { max-height: 400px; overflow-y: auto; }
+    .veto-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 0.82rem;
+      color: #333;
+    }
+    .veto-item:last-child { border-bottom: none; }
+    .veto-item .veto-dist {
+      margin-left: auto;
+      font-size: 0.75rem;
+      color: #888;
+      white-space: nowrap;
+    }
     #search-box {
       position: absolute;
       top: 64px;
@@ -190,6 +230,14 @@
     <button id="search-clear" style="background:none;border:none;cursor:pointer;font-size:16px;color:#999;padding:0 4px;display:none">✕</button>
   </div>
   <div id="search-results"></div>
+</div>
+
+<div id="veto-panel">
+  <div id="veto-panel-header">
+    <span id="veto-panel-title">Cliniques proches</span>
+    <button onclick="document.getElementById('veto-panel').classList.remove('open')" style="background:none;border:none;cursor:pointer;font-size:18px;color:#666;line-height:1">✕</button>
+  </div>
+  <div id="veto-panel-list"></div>
 </div>
 
 <div id="legend">
@@ -647,6 +695,53 @@ async function main() {
   const searchResults = document.getElementById('search-results');
   let searchPrevView  = null;
 
+  // Distance Haversine en km
+  function distKm(lat1, lon1, lat2, lon2) {
+    const R = 6371, dLat = (lat2-lat1)*Math.PI/180, dLon = (lon2-lon1)*Math.PI/180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+
+  function showVetoPanel(ville, lat, lon) {
+    // Calculer distance à tous les vétérinaires
+    const tous = [
+      ...VETOS_PARTENAIRES.map(v => ({ ...v, partenaire: true })),
+      ...VETOS_AUTRES.map(v => ({ ...v, partenaire: false }))
+    ].map(v => ({ ...v, dist: distKm(lat, lon, v.lat, v.lon) }));
+
+    // Dédupliquer par coordonnées, garder le plus proche de chaque lieu
+    const seen = {};
+    const dedup = [];
+    tous.sort((a,b) => a.dist - b.dist).forEach(v => {
+      const key = `${v.lat},${v.lon}`;
+      if (!seen[key]) { seen[key] = true; dedup.push(v); }
+    });
+
+    // Partenaires en premier (triés par distance), puis autres
+    const partenaires = dedup.filter(v => v.partenaire).slice(0, 3);
+    const autres      = dedup.filter(v => !v.partenaire).slice(0, 3);
+    const resultats   = [...partenaires, ...autres];
+
+    const list = document.getElementById('veto-panel-list');
+    list.innerHTML = '';
+    document.getElementById('veto-panel-title').textContent = `Cliniques près de ${ville}`;
+
+    resultats.forEach(v => {
+      const item = document.createElement('div');
+      item.className = 'veto-item';
+      item.innerHTML = `
+        <span style="font-size:16px;font-weight:bold;color:${v.partenaire ? '#22cc66' : '#999'}">✚</span>
+        <span>${v.nom}</span>
+        <span class="veto-dist">${v.dist < 10 ? v.dist.toFixed(1) : Math.round(v.dist)} km</span>
+      `;
+      item.style.cursor = 'pointer';
+      item.addEventListener('click', () => map.setView([v.lat, v.lon], 15));
+      list.appendChild(item);
+    });
+
+    document.getElementById('veto-panel').classList.add('open');
+  }
+
   searchInput.addEventListener('input', () => {
     const q = searchInput.value.trim().toLowerCase();
     searchResults.innerHTML = '';
@@ -675,9 +770,9 @@ async function main() {
       item.addEventListener('click', () => {
         const coords = GEO_PRELOADED[ville];
         if (coords) {
-          // Sauvegarder la vue actuelle avant de zoomer
           searchPrevView = { center: map.getCenter(), zoom: map.getZoom() };
           map.setView([coords.lat, coords.lon], 13);
+          showVetoPanel(ville, coords.lat, coords.lon);
         }
         searchInput.value = ville;
         searchResults.style.display = 'none';
