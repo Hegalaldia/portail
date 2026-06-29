@@ -116,14 +116,6 @@
   </select>
   <label>Espèce</label>
   <select id="filter-espece"><option value="">Toutes</option></select>
-  <label>Période</label>
-  <div style="display:flex;gap:4px;margin-bottom:2px">
-    <input type="date" id="date-debut" style="flex:1;background:#017a2e;color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:4px;padding:2px 4px;font-size:0.75rem;color-scheme:dark">
-    <input type="date" id="date-fin"   style="flex:1;background:#017a2e;color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:4px;padding:2px 4px;font-size:0.75rem;color-scheme:dark">
-  </div>
-  <div style="text-align:right;margin-bottom:4px">
-    <span id="reset-dates" style="font-size:0.72rem;color:rgba(255,255,255,0.6);cursor:pointer;text-decoration:underline">Réinitialiser</span>
-  </div>
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
     <span style="color:#fff">Vue heatmap</span>
     <label style="position:relative;width:40px;height:22px;flex-shrink:0;cursor:pointer">
@@ -310,17 +302,6 @@ function processRows(rows) {
     const espece = (r['Espèces'] || '').trim();
     const n      = parseInt(r['Nombre']) || 1;
 
-    // Parser la date (formats possibles : DD/MM/YYYY ou YYYY-MM-DD)
-    const dateRaw = (r['Date'] || '').trim();
-    let dateISO = null;
-    if (dateRaw) {
-      const parts = dateRaw.split('/');
-      if (parts.length === 3) {
-        dateISO = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
-      } else {
-        dateISO = dateRaw.substring(0, 10);
-      }
-    }
 
     let ville, type;
     if (devenir === 'Clinique') {
@@ -337,9 +318,8 @@ function processRows(rows) {
     }
 
     const key = `${ville}|||${espece}|||${type}`;
-    if (!map[key]) map[key] = { ville, espece, type, count: 0, dates: [] };
+    if (!map[key]) map[key] = { ville, espece, type, count: 0 };
     map[key].count += n;
-    if (dateISO) map[key].dates.push(dateISO);
   }
   return Object.values(map);
 }
@@ -370,21 +350,9 @@ function buildHeatmap() {
   const typeFilter   = document.getElementById('filter-type').value;
   const especeFilter = document.getElementById('filter-espece').value;
 
-  const dateDebut = document.getElementById('date-debut').value;
-  const dateFin   = document.getElementById('date-fin').value;
-
   let filtered = allData;
   if (typeFilter)   filtered = filtered.filter(d => d.type   === typeFilter);
   if (especeFilter) filtered = filtered.filter(d => d.espece === especeFilter);
-  if (dateDebut || dateFin) {
-    filtered = filtered.map(d => {
-      const datesOk = d.dates.filter(dt =>
-        (!dateDebut || dt >= dateDebut) && (!dateFin || dt <= dateFin)
-      );
-      if (datesOk.length === 0) return null;
-      return { ...d, count: datesOk.length };
-    }).filter(Boolean);
-  }
 
   // Agréger séparément par type pour garder DCVR et Clinique distincts
   const byCoord = {};
@@ -569,13 +537,6 @@ async function main() {
 
   document.getElementById('filter-type').addEventListener('change', buildHeatmap);
   document.getElementById('filter-espece').addEventListener('change', buildHeatmap);
-  document.getElementById('date-debut').addEventListener('change', buildHeatmap);
-  document.getElementById('date-fin').addEventListener('change', buildHeatmap);
-  document.getElementById('reset-dates').addEventListener('click', () => {
-    document.getElementById('date-debut').value = '';
-    document.getElementById('date-fin').value   = '';
-    buildHeatmap();
-  });
   document.getElementById('radius').addEventListener('input',  e => syncRadius(e.target.value));
   document.getElementById('radius-num').addEventListener('change', e => syncRadius(e.target.value));
   document.getElementById('blur').addEventListener('input',    e => syncBlur(e.target.value));
