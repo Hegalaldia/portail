@@ -138,6 +138,15 @@
   </label>
   <input type="range" id="blur" min="5" max="40" value="20">
   <div id="stats"></div>
+  <div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.3)">
+    <label>Rechercher une ville</label>
+    <div style="position:relative">
+      <input type="text" id="search-ville" placeholder="Ex: Pau, Bayonne…"
+        style="width:100%;padding:4px 8px;background:#017a2e;color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:4px;font-size:0.8rem"
+        autocomplete="off">
+      <div id="search-results" style="display:none;position:absolute;top:100%;left:0;right:0;background:#015a22;border:1px solid rgba(255,255,255,0.3);border-radius:0 0 4px 4px;max-height:150px;overflow-y:auto;z-index:2000"></div>
+    </div>
+  </div>
 </div>
 
 <div id="legend">
@@ -578,6 +587,46 @@ async function main() {
     localStorage.setItem('heatmap_blur', val);
     buildHeatmap();
   }
+
+  // Barre de recherche de villes
+  const searchInput   = document.getElementById('search-ville');
+  const searchResults = document.getElementById('search-results');
+
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.trim().toLowerCase();
+    searchResults.innerHTML = '';
+    if (q.length < 2) { searchResults.style.display = 'none'; return; }
+
+    const villes = [...new Set(allData.map(d => d.ville))]
+      .filter(v => v.toLowerCase().includes(q))
+      .sort();
+
+    if (villes.length === 0) { searchResults.style.display = 'none'; return; }
+
+    villes.forEach(ville => {
+      const item = document.createElement('div');
+      item.textContent = ville;
+      item.style.cssText = 'padding:5px 8px;cursor:pointer;color:#fff;font-size:0.8rem;border-bottom:1px solid rgba(255,255,255,0.1)';
+      item.addEventListener('mouseenter', () => item.style.background = '#019939');
+      item.addEventListener('mouseleave', () => item.style.background = '');
+      item.addEventListener('click', () => {
+        const coords = GEO_PRELOADED[ville];
+        if (coords) {
+          map.setView([coords.lat, coords.lon], 13);
+        }
+        searchInput.value = ville;
+        searchResults.style.display = 'none';
+      });
+      searchResults.appendChild(item);
+    });
+    searchResults.style.display = 'block';
+  });
+
+  document.addEventListener('click', e => {
+    if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+      searchResults.style.display = 'none';
+    }
+  });
 
   document.getElementById('filter-type').addEventListener('change', buildHeatmap);
   document.getElementById('filter-espece').addEventListener('change', buildHeatmap);
