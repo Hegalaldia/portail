@@ -241,6 +241,56 @@
   .list-item-lieu { color: #666; font-size: 0.76rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px; }
   .list-item-count { background: #019939; color: #fff; border-radius: 10px; padding: 1px 8px; font-size: 0.73rem; font-weight: 700; white-space: nowrap; }
   .list-empty { padding: 20px; text-align: center; color: #aaa; font-size: 0.85rem; }
+
+  /* Modal nouvelle année */
+  #year-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 3000;
+    align-items: center;
+    justify-content: center;
+  }
+  #year-modal-overlay.show { display: flex; }
+  #year-modal {
+    background: #fff;
+    border-radius: 16px;
+    padding: 32px 28px 24px;
+    max-width: 480px;
+    width: calc(100vw - 40px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+    position: relative;
+  }
+  #year-modal h2 { font-size: 1.2rem; color: #019939; margin-bottom: 10px; }
+  #year-modal p  { font-size: 0.88rem; color: #444; line-height: 1.6; margin-bottom: 18px; }
+  #year-modal label { display: block; font-size: 0.82rem; font-weight: 600; color: #333; margin-bottom: 6px; }
+  #year-sheet-url {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid #ccc;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: #333;
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+  }
+  #year-sheet-url:focus { border-color: #019939; }
+  #year-url-error { font-size: 0.78rem; color: #c00; margin-top: 4px; display: none; }
+  .year-modal-btns { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+  .year-btn-primary {
+    background: #019939; color: #fff; border: none;
+    padding: 9px 22px; border-radius: 8px; font-size: 0.88rem;
+    font-weight: 600; cursor: pointer; transition: background 0.18s;
+  }
+  .year-btn-primary:hover { background: #017a2e; }
+  .year-btn-secondary {
+    background: #f0f0f0; color: #555; border: none;
+    padding: 9px 18px; border-radius: 8px; font-size: 0.88rem;
+    cursor: pointer; transition: background 0.18s;
+  }
+  .year-btn-secondary:hover { background: #e0e0e0; }
   </style>
 </head>
 <body>
@@ -261,6 +311,25 @@
       <input type="text" id="list-search" placeholder="Filtrer…">
     </div>
     <div id="list-body"></div>
+  </div>
+</div>
+
+<!-- Modal changement d'année -->
+<div id="year-modal-overlay">
+  <div id="year-modal">
+    <h2>🎉 Nouvelle année — nouveau fichier ?</h2>
+    <p>
+      C'est le début d'une nouvelle année.<br>
+      Si vous avez créé un nouveau fichier Google Sheet pour <strong id="year-modal-year"></strong>,
+      collez son lien ci-dessous. Sinon, vous pouvez continuer avec l'ancien fichier.
+    </p>
+    <label for="year-sheet-url">Lien du nouveau Google Sheet</label>
+    <input type="text" id="year-sheet-url" placeholder="https://docs.google.com/spreadsheets/d/…">
+    <div id="year-url-error">Lien invalide — coller l'URL complète du Google Sheet.</div>
+    <div class="year-modal-btns">
+      <button class="year-btn-secondary" id="year-btn-skip">Continuer avec l'ancien</button>
+      <button class="year-btn-primary"   id="year-btn-ok">Mettre à jour</button>
+    </div>
   </div>
 </div>
 
@@ -995,7 +1064,85 @@ async function main() {
   });
 }
 
-main();
+// ── Gestion du changement d'année ─────────────────────────────────────────────
+const YEAR_KEY = 'heatmap_confirmed_year';
+
+function extractSheetId(url) {
+  // Accepte une URL complète ou un ID brut
+  const m = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]{20,})/);
+  if (m) return m[1];
+  // Peut-être que c'est directement un ID
+  if (/^[a-zA-Z0-9_-]{20,}$/.test(url.trim())) return url.trim();
+  return null;
+}
+
+async function updateSheetId(newId) {
+  // Appeler le serveur pour sauvegarder le nouvel ID
+  const resp = await fetch('/api/config', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sheet_id: newId })
+  });
+  if (!resp.ok) throw new Error(`Serveur : HTTP ${resp.status}`);
+}
+
+async function checkNewYear() {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const confirmedYear = parseInt(localStorage.getItem(YEAR_KEY) || '0');
+
+  if (currentYear <= confirmedYear) return; // déjà confirmé pour cette année
+
+  // Récupérer l'ID actuel depuis le serveur
+  let currentId = '';
+  try {
+    const r = await fetch('/api/config');
+    if (r.ok) { const cfg = await r.json(); currentId = cfg.sheet_id || ''; }
+  } catch(e) { /* serveur absent, continuer quand même */ }
+
+  // Afficher le modal
+  document.getElementById('year-modal-year').textContent = currentYear;
+  document.getElementById('year-sheet-url').value =
+    currentId ? `https://docs.google.com/spreadsheets/d/${currentId}` : '';
+  document.getElementById('year-modal-overlay').classList.add('show');
+
+  return new Promise(resolve => {
+    document.getElementById('year-btn-skip').onclick = () => {
+      // Continuer avec l'ancien — marquer l'année comme confirmée
+      localStorage.setItem(YEAR_KEY, currentYear);
+      document.getElementById('year-modal-overlay').classList.remove('show');
+      resolve();
+    };
+
+    document.getElementById('year-btn-ok').onclick = async () => {
+      const raw   = document.getElementById('year-sheet-url').value.trim();
+      const newId = extractSheetId(raw);
+      const errEl = document.getElementById('year-url-error');
+      if (!newId) { errEl.style.display = 'block'; return; }
+      errEl.style.display = 'none';
+
+      document.getElementById('year-btn-ok').textContent = '⏳ Mise à jour…';
+      document.getElementById('year-btn-ok').disabled = true;
+      try {
+        await updateSheetId(newId);
+        localStorage.setItem(YEAR_KEY, currentYear);
+        document.getElementById('year-modal-overlay').classList.remove('show');
+        resolve();
+      } catch(e) {
+        errEl.textContent = `Erreur : ${e.message}`;
+        errEl.style.display = 'block';
+        document.getElementById('year-btn-ok').textContent = 'Mettre à jour';
+        document.getElementById('year-btn-ok').disabled = false;
+      }
+    };
+  });
+}
+
+async function init() {
+  await checkNewYear();
+  await main();
+}
+init();
 </script>
 </body>
 </html>

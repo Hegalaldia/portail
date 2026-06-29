@@ -6,17 +6,48 @@ Puis ouvre : http://localhost:8080  (ou http://[IP]:8080 depuis un autre ordi)
 """
 import http.server, urllib.request, json, os, threading, time, re
 
-PORT     = 8080
-SHEET_ID = '1VpN669xp2u34Itapwz5UWuEIi2UmoxTTWfrPQP83rhE'
-CSV_URL  = f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv'
+PORT             = 8080
+DEFAULT_SHEET_ID = '1VpN669xp2u34Itapwz5UWuEIi2UmoxTTWfrPQP83rhE'
+CONFIG_FILE      = 'config.json'
 
-# Cache en mémoire : évite de recharger le sheet à chaque requête
+# ── Configuration persistante (config.json) ────────────────────────────────────
+_cfg_lock = threading.Lock()
+
+def load_config():
+    if os.path.exists(CONFIG_FILE):
+        try:
+            with open(CONFIG_FILE, encoding='utf-8') as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}
+
+def save_config(cfg):
+    with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
+        json.dump(cfg, f, ensure_ascii=False, indent=2)
+
+def get_sheet_id():
+    return load_config().get('sheet_id', DEFAULT_SHEET_ID)
+
+def set_sheet_id(new_id):
+    with _cfg_lock:
+        cfg = load_config()
+        cfg['sheet_id'] = new_id
+        save_config(cfg)
+        # Invalider le cache pour forcer un rechargement
+        _cache['data'] = None
+        _cache['ts']   = 0
+    print(f'[config] ✓ Sheet ID mis à jour : {new_id}')
+
+# ── Cache données ──────────────────────────────────────────────────────────────
 _cache = {'data': None, 'ts': 0}
 CACHE_TTL = 300  # secondes (5 min)
 
 def fetch_sheet_csv():
-    """Télécharge le CSV depuis Google Sheets avec suivi de redirection."""
-    req = urllib.request.Request(CSV_URL, headers={'User-Agent': 'heatmap-server/1.0'})
+    """Télécharge le CSV depuis Google Sheets."""
+    sheet_id = get_sheet_id()
+    csv_url  = f'https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv'
+    req = urllib.request.Request(csv_url, headers={'User-Agent': 'heatmap-server/1.0'})
     with urllib.request.urlopen(req, timeout=15) as r:
         return r.read().decode('utf-8')
 
@@ -29,6 +60,7 @@ def get_data():
         print(f'  OK — {len(_cache["data"].splitlines())} lignes')
     return _cache['data']
 
+# ── Géocache HTML ──────────────────────────────────────────────────────────────
 HTML_FILE = 'heatmap.html'
 GEO_LOCK  = threading.Lock()
 
@@ -38,18 +70,15 @@ def add_to_geo_preloaded(ville, lat, lon):
         with open(HTML_FILE, 'r', encoding='utf-8') as f:
             html = f.read()
 
-        # Extraire le JSON actuel de GEO_PRELOADED
         m = re.search(r'const GEO_PRELOADED = (\{.*?\});', html, re.DOTALL)
         if not m:
             return False, 'GEO_PRELOADED introuvable dans le HTML'
 
         geo = json.loads(m.group(1))
         if ville in geo:
-            return True, 'déjà présent'  # rien à faire
+            return True, 'déjà présent'
 
         geo[ville] = {'lat': lat, 'lon': lon}
-
-        # Réécrire le JSON sur une seule ligne compacte
         new_json  = json.dumps(geo, ensure_ascii=False, separators=(',', ':'))
         new_html  = html[:m.start(1)] + new_json + html[m.end(1):]
 
@@ -60,11 +89,13 @@ def add_to_geo_preloaded(ville, lat, lon):
         return True, 'ajouté'
 
 
+# ── Serveur HTTP ───────────────────────────────────────────────────────────────
 class Handler(http.server.SimpleHTTPRequestHandler):
+
     def do_GET(self):
         if self.path == '/api/data':
             try:
-                csv = get_data()
+                csv  = get_data()
                 body = csv.encode('utf-8')
                 self.send_response(200)
                 self.send_header('Content-Type', 'text/csv; charset=utf-8')
@@ -77,6 +108,18 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.send_header('Content-Type', 'text/plain')
                 self.end_headers()
                 self.wfile.write(str(e).encode())
+
+        elif self.path == '/api/config':
+            body = json.dumps({
+                'sheet_id': get_sheet_id()
+            }).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', len(body))
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(body)
+
         else:
             super().do_GET()
 
@@ -100,6 +143,27 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.send_header('Content-Type', 'text/plain')
                 self.end_headers()
                 self.wfile.write(str(e).encode())
+
+        elif self.path == '/api/config':
+            try:
+                length   = int(self.headers.get('Content-Length', 0))
+                body     = json.loads(self.rfile.read(length))
+                new_id   = str(body.get('sheet_id', '')).strip()
+                if not new_id:
+                    raise ValueError('sheet_id manquant')
+                set_sheet_id(new_id)
+                resp = json.dumps({'ok': True, 'sheet_id': new_id}).encode()
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp)
+            except Exception as e:
+                self.send_response(400)
+                self.send_header('Content-Type', 'text/plain')
+                self.end_headers()
+                self.wfile.write(str(e).encode())
+
         else:
             self.send_response(404)
             self.end_headers()
@@ -107,6 +171,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, fmt, *args):
         if '/api/' in args[0]:
             print(f'[{args[1]}] {args[0]}')
+
 
 if __name__ == '__main__':
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -117,12 +182,14 @@ if __name__ == '__main__':
     hostname = socket.gethostname()
     try:
         local_ip = socket.gethostbyname(hostname)
-    except:
+    except Exception:
         local_ip = '127.0.0.1'
 
+    sheet_id = get_sheet_id()
     print(f'\n🗺️  Heatmap Animaux Sauvages')
     print(f'   http://localhost:{PORT}')
-    print(f'   http://{local_ip}:{PORT}  ← partager cette adresse\n')
+    print(f'   http://{local_ip}:{PORT}  ← partager cette adresse')
+    print(f'   Sheet ID : {sheet_id}\n')
 
     with http.server.ThreadingHTTPServer(('', PORT), Handler) as srv:
         try:
