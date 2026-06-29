@@ -647,7 +647,13 @@ async function main() {
     const villesData = new Set(allData.map(d => d.ville));
     const villes = [...new Set([...villesData, ...Object.keys(GEO_PRELOADED)])]
       .filter(v => v.toLowerCase().includes(q))
-      .sort()
+      .sort((a, b) => {
+        const aStarts = a.toLowerCase().startsWith(q);
+        const bStarts = b.toLowerCase().startsWith(q);
+        if (aStarts && !bStarts) return -1;
+        if (!aStarts && bStarts) return 1;
+        return a.localeCompare(b, 'fr');
+      })
       .slice(0, 8);
 
     if (villes.length === 0) { searchResults.style.display = 'none'; return; }
