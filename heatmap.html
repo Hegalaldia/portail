@@ -86,6 +86,52 @@
       margin: 0 auto 12px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+    #search-box {
+      position: absolute;
+      top: 64px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 380px;
+      max-width: calc(100vw - 40px);
+      z-index: 1000;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.25));
+    }
+    #search-inner {
+      display: flex;
+      align-items: center;
+      background: #fff;
+      border-radius: 24px;
+      padding: 10px 16px;
+    }
+    #search-ville {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 0.95rem;
+      color: #333;
+      background: transparent;
+    }
+    #search-ville::placeholder { color: #aaa; }
+    #search-results {
+      display: none;
+      background: #fff;
+      border-radius: 0 0 16px 16px;
+      margin-top: 4px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .search-item {
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .search-item:last-child { border-bottom: none; }
+    .search-item:hover { background: #f5f5f5; }
   input[type=number]::-webkit-inner-spin-button,
   input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
   input[type=number] { -moz-appearance: textfield; }
@@ -138,15 +184,15 @@
   </label>
   <input type="range" id="blur" min="5" max="40" value="20">
   <div id="stats"></div>
-  <div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.3)">
-    <label>Rechercher une ville</label>
-    <div style="position:relative">
-      <input type="text" id="search-ville" placeholder="Ex: Pau, Bayonne…"
-        style="width:100%;padding:4px 8px;background:#017a2e;color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:4px;font-size:0.8rem"
-        autocomplete="off">
-      <div id="search-results" style="display:none;position:absolute;top:100%;left:0;right:0;background:#015a22;border:1px solid rgba(255,255,255,0.3);border-radius:0 0 4px 4px;max-height:150px;overflow-y:auto;z-index:2000"></div>
-    </div>
+</div>
+
+<div id="search-box">
+  <div id="search-inner">
+    <span style="font-size:18px;color:#999;margin-right:8px">🔍</span>
+    <input type="text" id="search-ville" placeholder="Rechercher une ville…" autocomplete="off">
+    <button id="search-clear" onclick="document.getElementById('search-ville').value='';document.getElementById('search-results').style.display='none'" style="background:none;border:none;cursor:pointer;font-size:16px;color:#999;padding:0 4px;display:none">✕</button>
   </div>
+  <div id="search-results"></div>
 </div>
 
 <div id="legend">
@@ -595,28 +641,28 @@ async function main() {
   searchInput.addEventListener('input', () => {
     const q = searchInput.value.trim().toLowerCase();
     searchResults.innerHTML = '';
+    document.getElementById('search-clear').style.display = q ? 'block' : 'none';
     if (q.length < 2) { searchResults.style.display = 'none'; return; }
 
     const villesData = new Set(allData.map(d => d.ville));
     const villes = [...new Set([...villesData, ...Object.keys(GEO_PRELOADED)])]
       .filter(v => v.toLowerCase().includes(q))
-      .sort();
+      .sort()
+      .slice(0, 8);
 
     if (villes.length === 0) { searchResults.style.display = 'none'; return; }
 
     villes.forEach(ville => {
       const item = document.createElement('div');
-      item.textContent = ville;
-      item.style.cssText = 'padding:5px 8px;cursor:pointer;color:#fff;font-size:0.8rem;border-bottom:1px solid rgba(255,255,255,0.1)';
-      item.addEventListener('mouseenter', () => item.style.background = '#019939');
-      item.addEventListener('mouseleave', () => item.style.background = '');
+      item.className = 'search-item';
+      const count = allData.filter(d => d.ville === ville).reduce((s,d) => s+d.count, 0);
+      item.innerHTML = `<span style="color:#019939">📍</span> ${ville}${count ? `<span style="margin-left:auto;font-size:0.75rem;color:#019939;font-weight:600">${count} animaux</span>` : ''}`;
       item.addEventListener('click', () => {
         const coords = GEO_PRELOADED[ville];
-        if (coords) {
-          map.setView([coords.lat, coords.lon], 13);
-        }
+        if (coords) map.setView([coords.lat, coords.lon], 13);
         searchInput.value = ville;
         searchResults.style.display = 'none';
+        document.getElementById('search-clear').style.display = 'block';
       });
       searchResults.appendChild(item);
     });
@@ -625,6 +671,12 @@ async function main() {
 
   document.addEventListener('click', e => {
     if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+      searchResults.style.display = 'none';
+    }
+  });
+
+  document.addEventListener('click', e => {
+    if (!document.getElementById('search-box').contains(e.target)) {
       searchResults.style.display = 'none';
     }
   });
