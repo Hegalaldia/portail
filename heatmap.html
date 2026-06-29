@@ -94,13 +94,14 @@
       width: 380px;
       max-width: calc(100vw - 40px);
       z-index: 1000;
-      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.25));
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+      overflow: hidden;
     }
     #search-inner {
       display: flex;
       align-items: center;
-      background: #fff;
-      border-radius: 24px;
       padding: 10px 16px;
     }
     #search-ville {
@@ -114,11 +115,7 @@
     #search-ville::placeholder { color: #aaa; }
     #search-results {
       display: none;
-      background: #fff;
-      border-radius: 0 0 16px 16px;
-      margin-top: 4px;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      border-top: 1px solid #eee;
     }
     .search-item {
       padding: 10px 20px;
