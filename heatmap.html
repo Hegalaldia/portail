@@ -190,7 +190,7 @@
   <div id="search-inner">
     <span style="font-size:18px;color:#999;margin-right:8px">🔍</span>
     <input type="text" id="search-ville" placeholder="Rechercher une ville…" autocomplete="off">
-    <button id="search-clear" onclick="document.getElementById('search-ville').value='';document.getElementById('search-results').style.display='none'" style="background:none;border:none;cursor:pointer;font-size:16px;color:#999;padding:0 4px;display:none">✕</button>
+    <button id="search-clear" style="background:none;border:none;cursor:pointer;font-size:16px;color:#999;padding:0 4px;display:none">✕</button>
   </div>
   <div id="search-results"></div>
 </div>
@@ -648,6 +648,7 @@ async function main() {
   // Barre de recherche de villes
   const searchInput   = document.getElementById('search-ville');
   const searchResults = document.getElementById('search-results');
+  let searchPrevView  = null;
 
   searchInput.addEventListener('input', () => {
     const q = searchInput.value.trim().toLowerCase();
@@ -676,7 +677,11 @@ async function main() {
       item.innerHTML = `<span style="color:#019939">📍</span> ${ville}${count ? `<span style="margin-left:auto;font-size:0.75rem;color:#019939;font-weight:600">${count} animaux</span>` : ''}`;
       item.addEventListener('click', () => {
         const coords = GEO_PRELOADED[ville];
-        if (coords) map.setView([coords.lat, coords.lon], 13);
+        if (coords) {
+          // Sauvegarder la vue actuelle avant de zoomer
+          searchPrevView = { center: map.getCenter(), zoom: map.getZoom() };
+          map.setView([coords.lat, coords.lon], 13);
+        }
         searchInput.value = ville;
         searchResults.style.display = 'none';
         document.getElementById('search-clear').style.display = 'block';
@@ -689,6 +694,16 @@ async function main() {
   document.addEventListener('click', e => {
     if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
       searchResults.style.display = 'none';
+    }
+  });
+
+  document.getElementById('search-clear').addEventListener('click', () => {
+    searchInput.value = '';
+    searchResults.style.display = 'none';
+    document.getElementById('search-clear').style.display = 'none';
+    if (searchPrevView) {
+      map.setView(searchPrevView.center, searchPrevView.zoom);
+      searchPrevView = null;
     }
   });
 
