@@ -128,6 +128,8 @@
   </div>
   <div id="legend-unit" style="text-align:center;color:#888;font-size:0.72rem;margin-top:3px"></div>
   <div style="margin-top:8px;padding-top:8px;border-top:1px solid #333;font-size:0.75rem;line-height:1.8">
+    <span style="display:inline-block;width:12px;height:12px;background:#aaa;transform:rotate(45deg);margin-right:4px;vertical-align:middle"></span> DCVR<br>
+    <span style="display:inline-block;width:12px;height:12px;background:#aaa;border-radius:50%;margin-right:4px;vertical-align:middle"></span> Clinique<br>
     <span style="color:#22cc66;font-weight:bold">✚</span> Clinique partenaire<br>
     <span style="color:#999;font-weight:bold">✚</span> Vétérinaire
   </div>
@@ -331,16 +333,17 @@ function buildHeatmap() {
   if (typeFilter)   filtered = filtered.filter(d => d.type   === typeFilter);
   if (especeFilter) filtered = filtered.filter(d => d.espece === especeFilter);
 
+  // Agréger séparément par type pour garder DCVR et Clinique distincts
   const byCoord = {};
   for (const d of filtered) {
-    const key = `${d.lat},${d.lon}`;
-    if (!byCoord[key]) byCoord[key] = { lat: d.lat, lon: d.lon, count: 0, ville: d.ville };
+    const key = `${d.type}|${d.lat},${d.lon}`;
+    if (!byCoord[key]) byCoord[key] = { lat: d.lat, lon: d.lon, count: 0, ville: d.ville, type: d.type };
     byCoord[key].count += d.count;
   }
 
-  const points = Object.values(byCoord);
-  const max    = Math.max(...points.map(p => p.count), 1);
-  const min    = Math.min(...points.map(p => p.count));
+  const points  = Object.values(byCoord);
+  const max     = Math.max(...points.map(p => p.count), 1);
+  const min     = Math.min(...points.map(p => p.count));
   const r       = parseInt(document.getElementById('radius').value);
   const opacity = parseInt(document.getElementById('blur').value) / 40;
 
@@ -348,15 +351,32 @@ function buildHeatmap() {
   points.forEach(p => {
     const ratio = Math.log1p(p.count) / Math.log1p(max);
     const color = ratioToColor(ratio);
-    L.circleMarker([p.lat, p.lon], {
-      radius:      r,
-      color:       'rgba(0,0,0,0.25)',
-      weight:      1,
-      fillColor:   color,
-      fillOpacity: opacity
-    })
-    .bindTooltip(`<b>${p.ville}</b><br>${p.count} animal${p.count > 1 ? 'x' : ''}`, {direction: 'top'})
-    .addTo(bubbleLayer);
+    const label = `<b>${p.ville}</b><br>${p.count} animal${p.count > 1 ? 'x' : ''}<br><i>${p.type}</i>`;
+
+    if (p.type === 'DCVR') {
+      // Losange (carré tourné à 45°) via divIcon
+      const size = r * 2;
+      const icon = L.divIcon({
+        className: '',
+        html: `<div style="width:${size}px;height:${size}px;background:${color};opacity:${opacity};border:1px solid rgba(0,0,0,0.3);transform:rotate(45deg);box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>`,
+        iconSize:   [size, size],
+        iconAnchor: [size/2, size/2]
+      });
+      L.marker([p.lat, p.lon], { icon })
+       .bindTooltip(label, { direction: 'top' })
+       .addTo(bubbleLayer);
+    } else {
+      // Cercle = Clinique
+      L.circleMarker([p.lat, p.lon], {
+        radius:      r,
+        color:       'rgba(0,0,0,0.25)',
+        weight:      1,
+        fillColor:   color,
+        fillOpacity: opacity
+      })
+      .bindTooltip(label, { direction: 'top' })
+      .addTo(bubbleLayer);
+    }
   });
 
   const totalAnimaux = filtered.reduce((s, d) => s + d.count, 0);
@@ -364,7 +384,7 @@ function buildHeatmap() {
   const clinique = filtered.filter(d => d.type === 'Clinique').reduce((s,d)=>s+d.count,0);
   document.getElementById('stats').innerHTML =
     `<b>${totalAnimaux}</b> animaux · <b>${points.length}</b> localités<br>` +
-    `<span style="color:#7cf">⬤ DCVR : ${dcvr}</span><br>` +
+    `<span style="color:#7cf">◆ DCVR : ${dcvr}</span><br>` +
     `<span style="color:#fc7">⬤ Cliniques : ${clinique}</span>`;
   document.getElementById('legend-labels').innerHTML =
     `<span>${min}</span><span>${Math.round(max*0.25)}</span><span>${Math.round(max*0.5)}</span><span>${Math.round(max*0.75)}</span><span>${max}</span>`;
