@@ -218,36 +218,31 @@ async function drawZone() {
     ]);
     const merged = turf.union(r64, r65);
     const geo    = merged.geometry;
-    // Extraire l'anneau extérieur (Polygon ou MultiPolygon)
     const ring   = geo.type === 'Polygon' ? geo.coordinates[0]
                  : geo.coordinates.reduce((a, b) => b[0].length > a[0].length ? b : a)[0];
 
-    // Trouver le coin NW : jonction côte/40 (côte atlantique, autour de Tarnos)
-    let nwIdx = 0, nwLat = -Infinity;
-    ring.forEach(([lon, lat], i) => { if (lon < -1.4 && lat > nwLat) { nwLat = lat; nwIdx = i; } });
+    // Exclure les segments de la frontière nord (avec 40 et Haute-Garonne)
+    // Un point est "nord" si : lat > 43.5 ET pas sur la côte (lon > -1.42) ET pas sur le Gers (lon < 0.48)
+    const isNorth = ([lon, lat]) => lat > 43.5 && lon > -1.42 && lon < 0.48;
 
-    // Trouver le coin NE : bout nord de la limite Gers/65
-    let neIdx = 0, neLat = -Infinity;
-    ring.forEach(([lon, lat], i) => { if (lon > 0.4 && lat > neLat) { neLat = lat; neIdx = i; } });
-
-    // Parcourir dans les deux sens et garder l'arc qui passe par le sud (Pyrénées + côte)
-    const arc = (from, to, dir) => {
-      const pts = [];
-      for (let i = from; ; i = (i + dir + ring.length) % ring.length) {
-        pts.push([ring[i][1], ring[i][0]]);
-        if (i === to) break;
-        if (pts.length > ring.length) break;
+    // Découper l'anneau en segments continus en sautant les points "nord"
+    const segments = [];
+    let current = [];
+    for (const pt of ring) {
+      if (!isNorth(pt)) {
+        current.push([pt[1], pt[0]]); // [lat, lon] pour Leaflet
+      } else {
+        if (current.length > 1) segments.push([...current]);
+        current = [];
       }
-      return pts;
-    };
-    const fwd = arc(nwIdx, neIdx,  1);
-    const bwd = arc(nwIdx, neIdx, -1);
-    const minLat = a => Math.min(...a.map(([lat]) => lat));
-    const southArc = minLat(fwd) < minLat(bwd) ? fwd : bwd;
+    }
+    if (current.length > 1) segments.push(current);
 
-    L.polyline(southArc, zoneStyle)
-     .bindTooltip("Zone d'intervention Hegalaldia", { sticky: true })
-     .addTo(map);
+    segments.forEach(seg =>
+      L.polyline(seg, zoneStyle)
+       .bindTooltip("Zone d'intervention Hegalaldia", { sticky: true })
+       .addTo(map)
+    );
   } catch(e) {
     console.warn('Contours départements non chargés :', e);
   }
