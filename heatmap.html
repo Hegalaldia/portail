@@ -223,7 +223,7 @@ async function drawZone() {
 
     // Exclure les segments de la frontière nord (avec 40 et Haute-Garonne)
     // Un point est "nord" si : lat > 43.5 ET pas sur la côte (lon > -1.42) ET pas sur le Gers (lon < 0.48)
-    const isNorth = ([lon, lat]) => lat > 43.5 && lon > -1.42 && lon < 0.48;
+    const isNorth = ([lon, lat]) => lat > 43.35 && lon > -1.42 && lon < 0.48;
 
     // Découper l'anneau en segments continus en sautant les points "nord"
     const segments = [];
