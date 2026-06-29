@@ -205,6 +205,64 @@ VETOS_AUTRES.forEach(v => {
    .addTo(vetoLayer);
 });
 
+// Zone d'intervention approximative
+// Côte à l'ouest, Pyrénées au sud, limite floue au nord (sud Landes) et à l'est (65)
+const ZONE_COORDS = [
+  // Côte atlantique (ouest) — du sud vers le nord
+  [43.358, -1.787], // Hendaye
+  [43.387, -1.668], // Ciboure / Saint-Jean-de-Luz
+  [43.433, -1.606], // Guéthary
+  [43.471, -1.553], // Biarritz
+  [43.493, -1.474], // Anglet / Bayonne
+  [43.540, -1.461], // Tarnos
+  [43.565, -1.453], // Ondres
+  [43.598, -1.428], // Labenne
+  [43.641, -1.432], // Capbreton
+  [43.659, -1.402], // Hossegor / Seignosse
+  [43.689, -1.373], // Seignosse nord
+  // Limite nord approximative (sud Landes — pointillés = flou)
+  [43.730, -1.250],
+  [43.780, -1.050], // Dax
+  [43.760, -0.800],
+  [43.720, -0.600], // Hagetmau
+  [43.680, -0.400],
+  [43.650, -0.200],
+  [43.620,  0.000],
+  [43.580,  0.100], // Tarbes nord
+  [43.520,  0.220],
+  [43.450,  0.400],
+  [43.350,  0.600],
+  [43.230,  0.720], // Est des Hautes-Pyrénées
+  [43.130,  0.720],
+  // Frontière espagnole (sud) — suit les Pyrénées
+  [43.020,  0.620],
+  [42.960,  0.500],
+  [42.900,  0.350],
+  [42.850,  0.200],
+  [42.830,  0.050],
+  [42.800, -0.100],
+  [42.780, -0.250],
+  [42.800, -0.450],
+  [42.820, -0.600],
+  [42.850, -0.750],
+  [42.870, -0.900],
+  [42.900, -1.050],
+  [42.930, -1.200],
+  [42.980, -1.350],
+  [43.050, -1.450],
+  [43.150, -1.600],
+  [43.250, -1.700],
+  [43.358, -1.787], // retour Hendaye
+];
+
+const zoneLayer = L.polygon(ZONE_COORDS, {
+  color:       '#ffffff',
+  weight:      2,
+  opacity:     0.7,
+  fill:        false,
+  dashArray:   '8, 6',
+}).addTo(map).bindTooltip("Zone d'intervention Hegalaldia", { sticky: true });
+
 let allData = [];  // [{ville, lat, lon, count, espece, type:'DCVR'|'Clinique'}]
 
 function setStatus(msg) { document.getElementById('status').textContent = msg; }
