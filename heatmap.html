@@ -355,7 +355,7 @@ function buildHeatmap() {
 
     if (p.type === 'DCVR') {
       // Losange (carré tourné à 45°) via divIcon
-      const size = r * 2;
+      const size = r * 1.2;
       const icon = L.divIcon({
         className: '',
         html: `<div style="width:${size}px;height:${size}px;background:${color};opacity:${opacity};border:1px solid rgba(0,0,0,0.3);transform:rotate(45deg);box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>`,
