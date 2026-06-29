@@ -113,6 +113,9 @@
   </select>
   <label>Espèce</label>
   <select id="filter-espece"><option value="">Toutes</option></select>
+  <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+    <input type="checkbox" id="mode-heatmap"> Vue heatmap
+  </label>
   <label>Taille des cercles</label>
   <input type="range" id="radius" min="10" max="80" value="35">
   <label>Opacité</label>
@@ -305,6 +308,7 @@ function processRows(rows) {
 }
 
 let bubbleLayer = L.layerGroup().addTo(map);
+let heatLayer   = null;
 
 // Palette bleu → cyan → jaune → orange → rouge
 function ratioToColor(r) {
@@ -347,37 +351,52 @@ function buildHeatmap() {
   const r       = parseInt(document.getElementById('radius').value);
   const opacity = parseInt(document.getElementById('blur').value) / 40;
 
-  bubbleLayer.clearLayers();
-  points.forEach(p => {
-    const ratio = Math.log1p(p.count) / Math.log1p(max);
-    const color = ratioToColor(ratio);
-    const label = `<b>${p.ville}</b><br>${p.count} animal${p.count > 1 ? 'x' : ''}<br><i>${p.type}</i>`;
+  const modeHeatmap = document.getElementById('mode-heatmap').checked;
 
-    if (p.type === 'DCVR') {
-      // Losange (carré tourné à 45°) via divIcon
-      const size = r * 0.8;
-      const icon = L.divIcon({
-        className: '',
-        html: `<div style="width:${size}px;height:${size}px;background:${color};opacity:${opacity};border:1px solid rgba(0,0,0,0.3);transform:rotate(45deg);box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>`,
-        iconSize:   [size, size],
-        iconAnchor: [size/2, size/2]
-      });
-      L.marker([p.lat, p.lon], { icon })
-       .bindTooltip(label, { direction: 'top' })
-       .addTo(bubbleLayer);
-    } else {
-      // Cercle = Clinique
-      L.circleMarker([p.lat, p.lon], {
-        radius:      r,
-        color:       'rgba(0,0,0,0.25)',
-        weight:      1,
-        fillColor:   color,
-        fillOpacity: opacity
-      })
-      .bindTooltip(label, { direction: 'top' })
-      .addTo(bubbleLayer);
-    }
-  });
+  // Supprimer l'ancienne couche heatmap si elle existe
+  if (heatLayer) { map.removeLayer(heatLayer); heatLayer = null; }
+  bubbleLayer.clearLayers();
+
+  if (modeHeatmap) {
+    // Vue heatmap Leaflet.heat
+    const heatPoints = points.map(p => [p.lat, p.lon, p.count]);
+    heatLayer = L.heatLayer(heatPoints, {
+      radius:  r,
+      blur:    r * 1.2,
+      maxZoom: 10,
+      gradient: { 0.0: '#1e64ff', 0.3: '#00dcdc', 0.55: '#ffdc00', 0.75: '#ff6400', 1.0: '#c80000' }
+    }).addTo(map);
+  } else {
+    // Vue cercles / losanges
+    points.forEach(p => {
+      const ratio = Math.log1p(p.count) / Math.log1p(max);
+      const color = ratioToColor(ratio);
+      const label = `<b>${p.ville}</b><br>${p.count} animal${p.count > 1 ? 'x' : ''}<br><i>${p.type}</i>`;
+
+      if (p.type === 'DCVR') {
+        const size = r * 0.8;
+        const icon = L.divIcon({
+          className: '',
+          html: `<div style="width:${size}px;height:${size}px;background:${color};opacity:${opacity};border:1px solid rgba(0,0,0,0.3);transform:rotate(45deg);box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>`,
+          iconSize:   [size, size],
+          iconAnchor: [size/2, size/2]
+        });
+        L.marker([p.lat, p.lon], { icon })
+         .bindTooltip(label, { direction: 'top' })
+         .addTo(bubbleLayer);
+      } else {
+        L.circleMarker([p.lat, p.lon], {
+          radius:      r,
+          color:       'rgba(0,0,0,0.25)',
+          weight:      1,
+          fillColor:   color,
+          fillOpacity: opacity
+        })
+        .bindTooltip(label, { direction: 'top' })
+        .addTo(bubbleLayer);
+      }
+    });
+  }
 
   const totalAnimaux = filtered.reduce((s, d) => s + d.count, 0);
   const dcvr     = filtered.filter(d => d.type === 'DCVR').reduce((s,d)=>s+d.count,0);
@@ -481,6 +500,7 @@ async function main() {
   document.getElementById('filter-espece').addEventListener('change', buildHeatmap);
   document.getElementById('radius').addEventListener('input', buildHeatmap);
   document.getElementById('blur').addEventListener('input', buildHeatmap);
+  document.getElementById('mode-heatmap').addEventListener('change', buildHeatmap);
 }
 
 main();
