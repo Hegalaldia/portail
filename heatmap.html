@@ -302,13 +302,13 @@
 <body>
 
 <div id="header">
-  <h1>🗺️ Heatmap — Hegalaldia</h1>
+  <h1>Heatmap — Hegalaldia</h1>
   <div style="display:flex;gap:8px;align-items:center">
-    <button class="header-btn" id="btn-dcvr"><span style="display:inline-block;line-height:1;vertical-align:middle;margin-bottom:3px">◆</span> DCVR</button>
-    <button class="header-btn" id="btn-clinique"><span style="display:inline-block;line-height:1;vertical-align:middle;margin-bottom:3px">⬤</span> Vétérinaire</button>
+    <button class="header-btn" id="btn-dcvr"><svg width="10" height="10" viewBox="0 0 10 10" style="vertical-align:middle"><rect x="1" y="1" width="8" height="8" transform="rotate(45 5 5)" fill="currentColor"/></svg> DCVR</button>
+    <button class="header-btn" id="btn-clinique"><svg width="10" height="10" viewBox="0 0 10 10" style="vertical-align:middle"><circle cx="5" cy="5" r="4" fill="currentColor"/></svg> Vétérinaire</button>
     <span id="status">Chargement...</span>
     <span style="display:inline-flex;align-items:center;gap:5px">
-      <button class="header-btn" id="btn-config" title="Changer le fichier Google Sheet"><span style="display:inline-block;line-height:1;vertical-align:middle;margin-bottom:3px">⚙</span> Fichier</button>
+      <button class="header-btn" id="btn-config" title="Changer le fichier Google Sheet"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Fichier</button>
       <span id="sheet-dot" title="" style="
         width:10px;height:10px;border-radius:50%;
         background:#fff;flex-shrink:0;
@@ -332,7 +332,7 @@
 <!-- Modal changement d'année -->
 <div id="year-modal-overlay">
   <div id="year-modal">
-    <h2 id="year-modal-title">⚙ Fichier Google Sheet</h2>
+    <h2 id="year-modal-title">Fichier Google Sheet</h2>
     <p id="year-modal-desc"></p>
     <label for="year-sheet-url">Lien du Google Sheet</label>
     <input type="text" id="year-sheet-url" placeholder="https://docs.google.com/spreadsheets/d/…">
@@ -388,7 +388,7 @@
 
 <div id="search-box">
   <div id="search-inner">
-    <span style="font-size:18px;color:#999;margin-right:8px">🔍</span>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-right:6px"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="15.65" y2="15.65"/></svg>
     <input type="text" id="search-ville" placeholder="Rechercher une ville…" autocomplete="off">
     <button id="search-clear" style="background:none;border:none;cursor:pointer;font-size:16px;color:#999;padding:0 4px;display:none">✕</button>
   </div>
@@ -702,7 +702,7 @@ function makeMarkerPopup(ville, type, animaux) {
       <div style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid #f0f0f0;font-size:0.82rem">
         <span style="color:#aaa;font-size:0.72rem;white-space:nowrap;min-width:52px">${a.date || '—'}</span>
         <span style="font-weight:600;color:#222;flex:1">${a.espece || '—'}${nbBadge}<br>
-          <span style="font-weight:400;font-size:0.72rem;color:#888">📍 ${commune}</span>
+          <span style="font-weight:400;font-size:0.72rem;color:#aaa;display:inline-flex;align-items:center;gap:3px"><svg width="8" height="10" viewBox="0 0 12 14" fill="#bbb"><path d="M6 0C3.24 0 1 2.24 1 5c0 3.75 5 9 5 9s5-5.25 5-9c0-2.76-2.24-5-5-5zm0 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/></svg>${commune}</span>
         </span>
         ${linkBtn}
       </div>`;
@@ -884,7 +884,7 @@ async function main() {
   }
 
   if (aGeocoderr.length > 0) {
-    setStatus(`⏳ Géocodage de ${aGeocoderr.length} nouvelle(s) commune(s)...`);
+    setStatus(`Géocodage de ${aGeocoderr.length} nouvelle(s) commune(s)...`);
     setLoader(`Géocodage de ${aGeocoderr.length} nouvelle(s) commune(s)...`);
     document.getElementById('loader').style.display = 'block';
 
@@ -1023,7 +1023,7 @@ async function main() {
       const item = document.createElement('div');
       item.className = 'search-item';
       const count = allData.filter(d => d.ville === ville).reduce((s,d) => s+d.count, 0);
-      item.innerHTML = `<span style="color:#019939">📍</span> ${ville}${count ? `<span style="margin-left:auto;font-size:0.75rem;color:#019939;font-weight:600">${count} animaux</span>` : ''}`;
+      item.innerHTML = `<svg width="12" height="14" viewBox="0 0 12 14" fill="#019939" style="flex-shrink:0"><path d="M6 0C3.24 0 1 2.24 1 5c0 3.75 5 9 5 9s5-5.25 5-9c0-2.76-2.24-5-5-5zm0 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/></svg> ${ville}${count ? `<span style="margin-left:auto;font-size:0.75rem;color:#019939;font-weight:600">${count} animaux</span>` : ''}`;
       item.addEventListener('click', () => {
         const coords = GEO_PRELOADED[ville];
         if (coords) {
@@ -1215,13 +1215,13 @@ function openConfigModal({ isNewYear = false, currentYear = null } = {}) {
 
     // Remplir le titre et la description selon le contexte
     if (isNewYear) {
-      title.textContent = '🎉 Nouvelle année — nouveau fichier ?';
+      title.textContent = 'Nouvelle année — nouveau fichier ?';
       desc.innerHTML    = `C'est le début d'une nouvelle année.<br>
         Si vous avez créé un nouveau Google Sheet pour <strong>${currentYear}</strong>,
         collez son lien ci-dessous. Sinon, continuez avec l'ancien.`;
       btnSkip.textContent = 'Continuer avec l\'ancien';
     } else {
-      title.textContent = '⚙ Changer le fichier Google Sheet';
+      title.textContent = 'Changer le fichier Google Sheet';
       desc.innerHTML    = 'Collez l\'URL du Google Sheet à utiliser pour la heatmap.';
       btnSkip.textContent = 'Annuler';
     }
@@ -1250,7 +1250,7 @@ function openConfigModal({ isNewYear = false, currentYear = null } = {}) {
       if (!newId) { errEl.style.display = 'block'; return; }
       errEl.style.display = 'none';
 
-      btnOk.textContent = '⏳ Mise à jour…';
+      btnOk.textContent = 'Mise à jour…';
       btnOk.disabled    = true;
       try {
         await updateSheetId(newId);
