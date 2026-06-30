@@ -1031,6 +1031,10 @@ async function main() {
     const matches = toutesVilles
       .filter(v => v.toLowerCase().includes(q))
       .sort((a, b) => {
+        const aHas    = villesAvecData.has(a);
+        const bHas    = villesAvecData.has(b);
+        if (aHas && !bHas) return -1;
+        if (!aHas && bHas) return 1;
         const aStarts = a.toLowerCase().startsWith(q);
         const bStarts = b.toLowerCase().startsWith(q);
         if (aStarts && !bStarts) return -1;
