@@ -663,6 +663,62 @@ function ratioToColor(r) {
   return `rgb(${c[0]},${c[1]},${c[2]})`;
 }
 
+// Retourne les lignes brutes pour un marqueur donné
+function getAnimauxForPoint(ville, type) {
+  if (type === 'DCVR') {
+    return allRawRows.filter(r => r.type === 'DCVR' && r.lieu === ville);
+  } else {
+    return allRawRows.filter(r => r.type === 'Clinique' && extractVetCity(r.lieu) === ville);
+  }
+}
+
+// Génère le contenu HTML du popup
+function makeMarkerPopup(ville, type, animaux) {
+  const icon  = type === 'DCVR' ? '◆' : '⬤';
+  const color = type === 'DCVR' ? '#1e64ff' : '#019939';
+
+  // Regrouper par espèce pour affichage compact
+  const byEspece = {};
+  animaux.forEach(a => {
+    const k = a.espece || '—';
+    if (!byEspece[k]) byEspece[k] = { count: 0, dates: [] };
+    byEspece[k].count += a.count;
+    if (a.date) byEspece[k].dates.push(a.date);
+  });
+
+  const total = animaux.reduce((s, a) => s + a.count, 0);
+
+  let rows = '';
+  Object.entries(byEspece)
+    .sort((a, b) => b[1].count - a[1].count)
+    .forEach(([espece, info]) => {
+      const derniere = info.dates[0] || '—'; // déjà triées par date desc
+      rows += `<tr>
+        <td style="padding:4px 8px;font-weight:600;color:#222">${espece}</td>
+        <td style="padding:4px 8px;text-align:center;font-weight:700;color:${color}">${info.count}</td>
+        <td style="padding:4px 8px;color:#999;font-size:0.73rem;white-space:nowrap">${derniere}</td>
+      </tr>`;
+    });
+
+  return `
+    <div style="font-family:sans-serif;min-width:200px;max-width:280px">
+      <div style="font-weight:700;font-size:0.95rem;color:${color};margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid ${color}">
+        ${icon} ${ville}
+        <span style="float:right;font-size:0.78rem;color:#888;font-weight:400">${total} animal${total>1?'x':''}</span>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:0.82rem">
+        <thead>
+          <tr style="font-size:0.72rem;color:#aaa;border-bottom:1px solid #eee">
+            <th style="text-align:left;padding:2px 8px;font-weight:400">Espèce</th>
+            <th style="text-align:center;padding:2px 8px;font-weight:400">Nb</th>
+            <th style="text-align:left;padding:2px 8px;font-weight:400">Dernier</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
 function buildHeatmap() {
   const typeFilter   = document.getElementById('filter-type').value;
   const especeFilter = document.getElementById('filter-espece').value;
@@ -707,6 +763,9 @@ function buildHeatmap() {
       const color = ratioToColor(ratio);
       const label = `<b>${p.ville}</b><br>${p.count} ${p.count > 1 ? 'animaux' : 'animal'}<br><i>${p.type}</i>`;
 
+      const animaux = getAnimauxForPoint(p.ville, p.type);
+      const popup   = L.popup({ maxWidth: 300 }).setContent(makeMarkerPopup(p.ville, p.type, animaux));
+
       if (p.type === 'DCVR') {
         const size = r * 0.8;
         const icon = L.divIcon({
@@ -717,6 +776,7 @@ function buildHeatmap() {
         });
         L.marker([p.lat, p.lon], { icon })
          .bindTooltip(label, { direction: 'top' })
+         .bindPopup(popup)
          .addTo(bubbleLayer);
       } else {
         L.circleMarker([p.lat, p.lon], {
@@ -727,6 +787,7 @@ function buildHeatmap() {
           fillOpacity: opacity
         })
         .bindTooltip(label, { direction: 'top' })
+        .bindPopup(popup)
         .addTo(bubbleLayer);
       }
     });
