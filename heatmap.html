@@ -200,53 +200,63 @@
     position: absolute;
     top: 48px;
     right: 10px;
-    width: 370px;
+    width: 340px;
     max-height: 0;
     overflow: hidden;
     z-index: 1001;
     background: #fff;
-    border-radius: 0 0 12px 12px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.22);
-    transition: max-height 0.3s ease;
+    border-radius: 0 0 14px 14px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    transition: max-height 0.3s cubic-bezier(.4,0,.2,1);
   }
-  #list-panel.open { max-height: 500px; }
+  #list-panel.open { max-height: 520px; }
   #list-header {
     display: flex;
     align-items: center;
     padding: 10px 14px;
-    background: #f5f5f5;
-    border-bottom: 1px solid #e0e0e0;
+    background: #017a2e;
     gap: 10px;
     position: sticky;
     top: 0;
+    z-index: 1;
   }
-  #list-title { font-weight: 700; font-size: 0.9rem; color: #222; flex: 1; }
+  #list-title {
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: #fff;
+    flex: 1;
+    letter-spacing: 0.02em;
+  }
   #list-search {
-    border: 1px solid #ccc;
-    border-radius: 16px;
-    padding: 4px 12px;
-    font-size: 0.82rem;
+    border: none;
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 0.8rem;
     outline: none;
     color: #333;
-    width: 130px;
-    background: #fff;
+    width: 120px;
+    background: rgba(255,255,255,0.92);
   }
-  #list-body { max-height: 430px; overflow-y: auto; }
+  #list-search::placeholder { color: #aaa; }
+  #list-body { max-height: 460px; overflow-y: auto; }
   .list-item {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 14px;
-    border-bottom: 1px solid #f0f0f0;
-    font-size: 0.82rem;
-    color: #333;
+    gap: 10px;
+    padding: 10px 14px;
+    border-bottom: 1px solid #f2f2f2;
+    transition: background 0.12s;
   }
   .list-item:last-child { border-bottom: none; }
-  .list-item-date { color: #999; font-size: 0.73rem; white-space: nowrap; min-width: 60px; }
-  .list-item-espece { font-weight: 600; flex: 1; }
-  .list-item-lieu { color: #666; font-size: 0.76rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px; }
-  .list-item-count { background: #019939; color: #fff; border-radius: 10px; padding: 1px 8px; font-size: 0.73rem; font-weight: 700; white-space: nowrap; }
-  .list-empty { padding: 20px; text-align: center; color: #aaa; font-size: 0.85rem; }
+  .list-item:hover { background: #f8f8f8; }
+  .list-item-icon { flex-shrink: 0; opacity: 0.85; }
+  .list-item-body { flex: 1; min-width: 0; }
+  .list-item-espece { font-weight: 600; font-size: 0.84rem; color: #1a1a1a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .list-item-meta { font-size: 0.73rem; color: #999; margin-top: 2px; display: flex; gap: 6px; align-items: center; }
+  .list-item-lieu { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px; }
+  .list-item-count { flex-shrink: 0; font-size: 0.72rem; font-weight: 700; color: #fff; border-radius: 20px; padding: 2px 8px; }
+  .list-item-date { flex-shrink: 0; font-size: 0.73rem; color: #bbb; white-space: nowrap; }
+  .list-empty { padding: 28px 16px; text-align: center; color: #bbb; font-size: 0.85rem; }
 
   /* Modal nouvelle année */
   #year-modal-overlay {
@@ -1098,13 +1108,20 @@ async function main() {
     rows.forEach(r => {
       const item = document.createElement('div');
       item.className = 'list-item';
-      const icon = r.type === 'DCVR' ? `<span style="color:#1e64ff;font-size:11px">◆</span>`
-                                      : `<span style="color:#019939;font-size:13px">⬤</span>`;
+      const isDCVR  = r.type === 'DCVR';
+      const color   = isDCVR ? '#3b82f6' : '#019939';
+      const iconSvg = isDCVR
+        ? `<svg width="11" height="11" viewBox="0 0 10 10"><rect x="0.5" y="0.5" width="9" height="9" transform="rotate(45 5 5)" fill="${color}" rx="1"/></svg>`
+        : `<svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="${color}"/></svg>`;
       item.innerHTML = `
-        ${icon}
-        <span class="list-item-espece">${r.espece || '—'}</span>
-        <span class="list-item-lieu" title="${r.lieu}">${r.lieu}</span>
-        ${r.count > 1 ? `<span class="list-item-count">×${r.count}</span>` : ''}
+        <span class="list-item-icon">${iconSvg}</span>
+        <span class="list-item-body">
+          <div class="list-item-espece">${r.espece || '—'}</div>
+          <div class="list-item-meta">
+            <span class="list-item-lieu" title="${r.lieu}">${r.lieu || '—'}</span>
+          </div>
+        </span>
+        ${r.count > 1 ? `<span class="list-item-count" style="background:${color}">×${r.count}</span>` : ''}
         <span class="list-item-date">${r.date || '—'}</span>
       `;
       listBody.appendChild(item);
@@ -1113,7 +1130,7 @@ async function main() {
 
   function openListPanel(type) {
     listType = type;
-    const label = type === 'DCVR' ? '◆ DCVR' : '⬤ Vétérinaire';
+    const label = type === 'DCVR' ? 'Signalements DCVR' : 'Animaux en clinique';
     listTitle.textContent = label;
     listSearch.value = '';
     renderListPanel('');
