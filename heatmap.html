@@ -474,24 +474,27 @@ function vetoIcon(color) {
 // Ajouter les marqueurs vétérinaires (toujours visibles, au-dessus de la heatmap)
 const vetoLayer = L.layerGroup().addTo(map);
 // Grouper les vétérinaires par coordonnées (un seul marker par lieu)
-function groupVetos(list) {
-  const groups = {};
-  list.forEach(v => {
-    const key = `${v.lat},${v.lon}`;
-    if (!groups[key]) groups[key] = { lat: v.lat, lon: v.lon, noms: [] };
-    groups[key].noms.push(v.nom);
-  });
-  return Object.values(groups);
-}
-
-groupVetos(VETOS_PARTENAIRES).forEach(g => {
-  L.marker([g.lat, g.lon], {icon: vetoIcon('#22cc66'), zIndexOffset: 100})
-   .bindTooltip(`<b style="color:#22cc66">⬤ Partenaire</b><br>${g.noms.join('<br>')}`, {direction:'top'})
-   .addTo(vetoLayer);
+// Grouper TOUS les vétérinaires par coordonnées — un seul marqueur par lieu
+const partenaireKeys = new Set(VETOS_PARTENAIRES.map(v => `${v.lat},${v.lon}`));
+const groupsAll = {};
+[
+  ...VETOS_PARTENAIRES.map(v => ({ ...v, partenaire: true })),
+  ...VETOS_AUTRES.map(v => ({ ...v, partenaire: false }))
+].forEach(v => {
+  const key = `${v.lat},${v.lon}`;
+  if (!groupsAll[key]) groupsAll[key] = { lat: v.lat, lon: v.lon, partenaire: false, noms: [], nomsAutres: [] };
+  if (v.partenaire) { groupsAll[key].partenaire = true; groupsAll[key].noms.push(v.nom); }
+  else groupsAll[key].nomsAutres.push(v.nom);
 });
-groupVetos(VETOS_AUTRES).forEach(g => {
-  L.marker([g.lat, g.lon], {icon: vetoIcon('#999'), zIndexOffset: 50})
-   .bindTooltip(`<b style="color:#999">⬤ Vétérinaire</b><br>${g.noms.join('<br>')}`, {direction:'top'})
+
+Object.values(groupsAll).forEach(g => {
+  const color   = g.partenaire ? '#22cc66' : '#999';
+  const zIndex  = g.partenaire ? 100 : 50;
+  let tooltip   = '';
+  if (g.noms.length)      tooltip += `<b style="color:#22cc66">⬤ Partenaire</b><br>${g.noms.join('<br>')}`;
+  if (g.nomsAutres.length) tooltip += `${g.noms.length ? '<br>' : ''}<b style="color:#999">⬤ Vétérinaire</b><br>${g.nomsAutres.join('<br>')}`;
+  L.marker([g.lat, g.lon], { icon: vetoIcon(color), zIndexOffset: zIndex })
+   .bindTooltip(tooltip, { direction: 'top' })
    .addTo(vetoLayer);
 });
 
