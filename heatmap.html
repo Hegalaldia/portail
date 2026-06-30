@@ -388,6 +388,12 @@
   </label>
   <input type="range" id="radius" min="5" max="150" value="35">
   <label style="display:flex;justify-content:space-between">
+    <span>Taille des losanges</span>
+    <input type="number" id="radius-dcvr-num" min="5" max="150" value="20"
+      style="width:46px;background:#017a2e;color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:4px;padding:1px 4px;font-size:0.8rem;text-align:center">
+  </label>
+  <input type="range" id="radius-dcvr" min="5" max="150" value="20">
+  <label style="display:flex;justify-content:space-between">
     <span>Opacité</span>
     <input type="number" id="blur-num" min="5" max="40" value="20"
       style="width:46px;background:#017a2e;color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:4px;padding:1px 4px;font-size:0.8rem;text-align:center">
@@ -745,11 +751,12 @@ function buildHeatmap() {
     byCoord[key].count += d.count;
   }
 
-  const points  = Object.values(byCoord);
-  const max     = Math.max(...points.map(p => p.count), 1);
-  const min     = Math.min(...points.map(p => p.count));
-  const r       = parseInt(document.getElementById('radius').value);
-  const opacity = parseInt(document.getElementById('blur').value) / 40;
+  const points   = Object.values(byCoord);
+  const max      = Math.max(...points.map(p => p.count), 1);
+  const min      = Math.min(...points.map(p => p.count));
+  const r        = parseInt(document.getElementById('radius').value);
+  const rDcvr    = parseInt(document.getElementById('radius-dcvr').value);
+  const opacity  = parseInt(document.getElementById('blur').value) / 40;
 
   const modeHeatmap = document.getElementById('mode-heatmap').checked;
 
@@ -777,7 +784,7 @@ function buildHeatmap() {
       const popup   = L.popup({ maxWidth: 300 }).setContent(makeMarkerPopup(p.ville, p.type, animaux));
 
       if (p.type === 'DCVR') {
-        const size = r * 0.8;
+        const size = rDcvr;
         const icon = L.divIcon({
           className: '',
           html: `<div style="width:${size}px;height:${size}px;background:${color};opacity:${opacity};border:1px solid rgba(0,0,0,0.3);transform:rotate(45deg);box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>`,
@@ -941,10 +948,12 @@ async function main() {
   }
 
   // Restaurer les valeurs sauvegardées
-  const savedRadius = localStorage.getItem('heatmap_radius');
-  const savedBlur   = localStorage.getItem('heatmap_blur');
-  if (savedRadius) { document.getElementById('radius').value = savedRadius; document.getElementById('radius-num').value = savedRadius; }
-  if (savedBlur)   { document.getElementById('blur').value   = savedBlur;   document.getElementById('blur-num').value   = savedBlur; }
+  const savedRadius     = localStorage.getItem('heatmap_radius');
+  const savedRadiusDcvr = localStorage.getItem('heatmap_radius_dcvr');
+  const savedBlur       = localStorage.getItem('heatmap_blur');
+  if (savedRadius)     { document.getElementById('radius').value         = savedRadius;     document.getElementById('radius-num').value      = savedRadius; }
+  if (savedRadiusDcvr) { document.getElementById('radius-dcvr').value    = savedRadiusDcvr; document.getElementById('radius-dcvr-num').value = savedRadiusDcvr; }
+  if (savedBlur)       { document.getElementById('blur').value           = savedBlur;       document.getElementById('blur-num').value        = savedBlur; }
 
   // Synchronisation slider ↔ champ numérique
   function syncRadius(val) {
@@ -952,6 +961,13 @@ async function main() {
     document.getElementById('radius').value     = val;
     document.getElementById('radius-num').value = val;
     localStorage.setItem('heatmap_radius', val);
+    buildHeatmap();
+  }
+  function syncRadiusDcvr(val) {
+    val = Math.max(5, Math.min(150, parseInt(val) || 20));
+    document.getElementById('radius-dcvr').value     = val;
+    document.getElementById('radius-dcvr-num').value = val;
+    localStorage.setItem('heatmap_radius_dcvr', val);
     buildHeatmap();
   }
   function syncBlur(val) {
@@ -1103,8 +1119,10 @@ async function main() {
 
   document.getElementById('filter-type').addEventListener('change', buildHeatmap);
   document.getElementById('filter-espece').addEventListener('change', buildHeatmap);
-  document.getElementById('radius').addEventListener('input',  e => syncRadius(e.target.value));
-  document.getElementById('radius-num').addEventListener('change', e => syncRadius(e.target.value));
+  document.getElementById('radius').addEventListener('input',          e => syncRadius(e.target.value));
+  document.getElementById('radius-num').addEventListener('change',      e => syncRadius(e.target.value));
+  document.getElementById('radius-dcvr').addEventListener('input',      e => syncRadiusDcvr(e.target.value));
+  document.getElementById('radius-dcvr-num').addEventListener('change', e => syncRadiusDcvr(e.target.value));
   document.getElementById('blur').addEventListener('input',    e => syncBlur(e.target.value));
   document.getElementById('blur-num').addEventListener('change',   e => syncBlur(e.target.value));
   document.getElementById('mode-heatmap').addEventListener('change', function() {
