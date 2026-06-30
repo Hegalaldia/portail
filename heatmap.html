@@ -665,6 +665,11 @@ function ratioToColor(r) {
   return `rgb(${c[0]},${c[1]},${c[2]})`;
 }
 
+// Ouvre (ou réutilise) un onglet dédié au fichier Google Sheet
+function openSheetRow(url) {
+  window.open(url, 'hegalaldia-sheet');
+}
+
 // Retourne les lignes brutes pour un marqueur donné
 function getAnimauxForPoint(ville, type) {
   if (type === 'DCVR') {
@@ -692,8 +697,8 @@ function makeMarkerPopup(ville, type, animaux) {
       ? `<span style="background:${color};color:#fff;border-radius:8px;padding:1px 6px;font-size:0.7rem;font-weight:700;margin-left:4px">×${a.count}</span>`
       : '';
     const linkBtn = sheetUrl
-      ? `<a href="${sheetUrl}" target="_blank" title="Ouvrir la ligne ${a.rowNum} dans Google Sheets"
-           style="margin-left:auto;color:${color};font-size:0.8rem;text-decoration:none;padding:2px 6px;border:1px solid ${color};border-radius:6px;white-space:nowrap;flex-shrink:0">↗ Fiche</a>`
+      ? `<button onclick="openSheetRow('${sheetUrl}')" title="Aller à la ligne ${a.rowNum} dans Google Sheets"
+           style="margin-left:auto;cursor:pointer;color:${color};font-size:0.8rem;background:none;padding:2px 6px;border:1px solid ${color};border-radius:6px;white-space:nowrap;flex-shrink:0">↗ Fiche</button>`
       : '';
     rows += `
       <div style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid #f0f0f0;font-size:0.82rem">
