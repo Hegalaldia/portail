@@ -700,10 +700,13 @@ function makeMarkerPopup(ville, type, animaux) {
       ? `<button onclick="openSheetRow('${sheetUrl}')" title="Aller à la ligne ${a.rowNum} dans Google Sheets"
            style="margin-left:auto;cursor:pointer;color:${color};font-size:0.8rem;background:none;padding:2px 6px;border:1px solid ${color};border-radius:6px;white-space:nowrap;flex-shrink:0">↗ Fiche</button>`
       : '';
+    const commune = a.lieux || '—';
     rows += `
       <div style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid #f0f0f0;font-size:0.82rem">
         <span style="color:#aaa;font-size:0.72rem;white-space:nowrap;min-width:52px">${a.date || '—'}</span>
-        <span style="font-weight:600;color:#222;flex:1">${a.espece || '—'}${nbBadge}</span>
+        <span style="font-weight:600;color:#222;flex:1">${a.espece || '—'}${nbBadge}<br>
+          <span style="font-weight:400;font-size:0.72rem;color:#888">📍 ${commune}</span>
+        </span>
         ${linkBtn}
       </div>`;
   });
@@ -849,7 +852,7 @@ async function main() {
       const year = dm[3].length === 2 ? '20' + dm[3] : dm[3];
       ts = new Date(`${year}-${dm[2]}-${dm[1]}`).getTime();
     }
-    allRawRows.push({ date, ts, espece, count: n, lieu, type: devenir, rowNum });
+    allRawRows.push({ date, ts, espece, count: n, lieu, lieux, type: devenir, rowNum });
   }
   // Trier par date décroissante
   allRawRows.sort((a, b) => b.ts - a.ts);
