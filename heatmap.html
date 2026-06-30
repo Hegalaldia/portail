@@ -769,15 +769,18 @@ async function main() {
     if (devenir !== 'DCVR' && devenir !== 'Clinique') continue;
     const espece = (r['Espèces'] || '').trim();
     const n      = parseInt(r['Nombre']) || 1;
-    const date   = (r['Date'] || '').trim();       // DD/MM/YYYY
+    const date   = (r['DATE'] || r['Date'] || '').trim(); // JJ/MM/AA ou JJ/MM/AAAA
     const vet    = (r['Vétérinaire(s)'] || '').trim();
     const lieux  = (r['Lieux'] || '').trim();
     const lieu   = devenir === 'Clinique' ? (vet || lieux) : lieux;
     if (!lieu) continue;
-    // Convertir date en timestamp pour tri (DD/MM/YYYY → YYYY-MM-DD)
+    // Convertir date en timestamp — supporte JJ/MM/AA et JJ/MM/AAAA
     let ts = 0;
-    const dm = date.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-    if (dm) ts = new Date(`${dm[3]}-${dm[2]}-${dm[1]}`).getTime();
+    const dm = date.match(/^(\d{2})\/(\d{2})\/(\d{2,4})$/);
+    if (dm) {
+      const year = dm[3].length === 2 ? '20' + dm[3] : dm[3];
+      ts = new Date(`${year}-${dm[2]}-${dm[1]}`).getTime();
+    }
     allRawRows.push({ date, ts, espece, count: n, lieu, type: devenir });
   }
   // Trier par date décroissante
