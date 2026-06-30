@@ -522,8 +522,9 @@ async function drawZone() {
 }
 drawZone();
 
-let allData    = [];  // [{ville, lat, lon, count, espece, type:'DCVR'|'Clinique'}]
-let allRawRows = [];  // [{date, espece, count, lieu, type:'DCVR'|'Clinique'}] — lignes brutes pour les panneaux
+let allData      = [];  // [{ville, lat, lon, count, espece, type:'DCVR'|'Clinique'}]
+let allRawRows   = [];  // [{date, espece, count, lieu, type, rowNum}] — lignes brutes
+let currentSheetId = '';
 
 function setStatus(msg) { document.getElementById('status').textContent = msg; }
 function setLoader(msg) { document.getElementById('loader-msg').textContent = msg; }
@@ -673,50 +674,42 @@ function getAnimauxForPoint(ville, type) {
   }
 }
 
-// Génère le contenu HTML du popup
+// Génère le contenu HTML du popup avec lien vers la ligne du Sheet
 function makeMarkerPopup(ville, type, animaux) {
   const icon  = type === 'DCVR' ? '◆' : '⬤';
   const color = type === 'DCVR' ? '#1e64ff' : '#019939';
-
-  // Regrouper par espèce pour affichage compact
-  const byEspece = {};
-  animaux.forEach(a => {
-    const k = a.espece || '—';
-    if (!byEspece[k]) byEspece[k] = { count: 0, dates: [] };
-    byEspece[k].count += a.count;
-    if (a.date) byEspece[k].dates.push(a.date);
-  });
-
   const total = animaux.reduce((s, a) => s + a.count, 0);
 
+  // Tri par date décroissante (déjà le cas normalement)
+  const sorted = [...animaux].sort((a, b) => b.ts - a.ts);
+
   let rows = '';
-  Object.entries(byEspece)
-    .sort((a, b) => b[1].count - a[1].count)
-    .forEach(([espece, info]) => {
-      const derniere = info.dates[0] || '—'; // déjà triées par date desc
-      rows += `<tr>
-        <td style="padding:4px 8px;font-weight:600;color:#222">${espece}</td>
-        <td style="padding:4px 8px;text-align:center;font-weight:700;color:${color}">${info.count}</td>
-        <td style="padding:4px 8px;color:#999;font-size:0.73rem;white-space:nowrap">${derniere}</td>
-      </tr>`;
-    });
+  sorted.forEach(a => {
+    const sheetUrl = currentSheetId
+      ? `https://docs.google.com/spreadsheets/d/${currentSheetId}/edit#gid=0&range=A${a.rowNum}`
+      : null;
+    const nbBadge = a.count > 1
+      ? `<span style="background:${color};color:#fff;border-radius:8px;padding:1px 6px;font-size:0.7rem;font-weight:700;margin-left:4px">×${a.count}</span>`
+      : '';
+    const linkBtn = sheetUrl
+      ? `<a href="${sheetUrl}" target="_blank" title="Ouvrir la ligne ${a.rowNum} dans Google Sheets"
+           style="margin-left:auto;color:${color};font-size:0.8rem;text-decoration:none;padding:2px 6px;border:1px solid ${color};border-radius:6px;white-space:nowrap;flex-shrink:0">↗ Fiche</a>`
+      : '';
+    rows += `
+      <div style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid #f0f0f0;font-size:0.82rem">
+        <span style="color:#aaa;font-size:0.72rem;white-space:nowrap;min-width:52px">${a.date || '—'}</span>
+        <span style="font-weight:600;color:#222;flex:1">${a.espece || '—'}${nbBadge}</span>
+        ${linkBtn}
+      </div>`;
+  });
 
   return `
-    <div style="font-family:sans-serif;min-width:200px;max-width:280px">
-      <div style="font-weight:700;font-size:0.95rem;color:${color};margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid ${color}">
-        ${icon} ${ville}
-        <span style="float:right;font-size:0.78rem;color:#888;font-weight:400">${total} animal${total>1?'x':''}</span>
+    <div style="font-family:sans-serif;min-width:220px;max-width:320px">
+      <div style="font-weight:700;font-size:0.95rem;color:${color};padding:10px 12px 8px;border-bottom:2px solid ${color};display:flex;align-items:center;justify-content:space-between">
+        <span>${icon} ${ville}</span>
+        <span style="font-size:0.78rem;color:#888;font-weight:400">${total} animal${total>1?'x':''}</span>
       </div>
-      <table style="width:100%;border-collapse:collapse;font-size:0.82rem">
-        <thead>
-          <tr style="font-size:0.72rem;color:#aaa;border-bottom:1px solid #eee">
-            <th style="text-align:left;padding:2px 8px;font-weight:400">Espèce</th>
-            <th style="text-align:center;padding:2px 8px;font-weight:400">Nb</th>
-            <th style="text-align:left;padding:2px 8px;font-weight:400">Dernier</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
+      <div style="max-height:260px;overflow-y:auto">${rows}</div>
     </div>`;
 }
 
@@ -824,11 +817,17 @@ async function main() {
     return;
   }
 
+  // Récupérer le Sheet ID courant pour les liens
+  try {
+    const cfg = await fetch('/api/config').then(r => r.json());
+    currentSheetId = cfg.sheet_id || '';
+  } catch(e) { /* serveur absent */ }
+
   // Collecter les lignes brutes pour les panneaux DCVR / Vétérinaire
   allRawRows = [];
-  for (const r of rows) {
-    const devenir = (r['Devenir'] || '').trim();
-    if (devenir !== 'DCVR' && devenir !== 'Clinique') continue;
+  for (let i = 0; i < rows.length; i++) {
+    const r      = rows[i];
+    const rowNum = i + 2; // +1 header +1 base-1 → ligne Google Sheets
     const espece = (r['Espèces'] || '').trim();
     const n      = parseInt(r['Nombre']) || 1;
     const date   = (r['DATE'] || r['Date'] || '').trim(); // JJ/MM/AA ou JJ/MM/AAAA
@@ -843,7 +842,7 @@ async function main() {
       const year = dm[3].length === 2 ? '20' + dm[3] : dm[3];
       ts = new Date(`${year}-${dm[2]}-${dm[1]}`).getTime();
     }
-    allRawRows.push({ date, ts, espece, count: n, lieu, type: devenir });
+    allRawRows.push({ date, ts, espece, count: n, lieu, type: devenir, rowNum });
   }
   // Trier par date décroissante
   allRawRows.sort((a, b) => b.ts - a.ts);
