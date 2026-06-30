@@ -532,9 +532,10 @@ async function drawZone() {
 }
 drawZone();
 
-let allData      = [];  // [{ville, lat, lon, count, espece, type:'DCVR'|'Clinique'}]
-let allRawRows   = [];  // [{date, espece, count, lieu, type, rowNum}] — lignes brutes
+let allData        = [];  // [{ville, lat, lon, count, espece, type:'DCVR'|'Clinique'}]
+let allRawRows     = [];  // [{date, espece, count, lieu, type, rowNum}] — lignes brutes
 let currentSheetId = '';
+let allVilles      = []; // toutes les communes de l'onglet Ville
 
 function setStatus(msg) { document.getElementById('status').textContent = msg; }
 function setLoader(msg) { document.getElementById('loader-msg').textContent = msg; }
@@ -832,10 +833,14 @@ async function main() {
     return;
   }
 
-  // Récupérer le Sheet ID courant pour les liens
+  // Récupérer config + liste communes en parallèle
   try {
-    const cfg = await fetch('/api/config').then(r => r.json());
+    const [cfg, villes] = await Promise.all([
+      fetch('/api/config').then(r => r.json()),
+      fetch('/api/villes').then(r => r.json()).catch(() => [])
+    ]);
     currentSheetId = cfg.sheet_id || '';
+    allVilles = villes;
   } catch(e) { /* serveur absent */ }
 
   // Collecter les lignes brutes pour les panneaux DCVR / Vétérinaire
@@ -1015,8 +1020,15 @@ async function main() {
     document.getElementById('search-clear').style.display = q ? 'block' : 'none';
     if (q.length < 2) { searchResults.style.display = 'none'; return; }
 
-    const villesData = new Set(allData.map(d => d.ville));
-    const villes = [...new Set([...villesData, ...Object.keys(GEO_PRELOADED)])]
+    const villesAvecData = new Set(allData.map(d => d.ville));
+    // Fusionner : données carte + GEO_PRELOADED + onglet Ville
+    const toutesVilles = [...new Set([
+      ...villesAvecData,
+      ...Object.keys(GEO_PRELOADED),
+      ...allVilles
+    ])];
+
+    const matches = toutesVilles
       .filter(v => v.toLowerCase().includes(q))
       .sort((a, b) => {
         const aStarts = a.toLowerCase().startsWith(q);
@@ -1025,25 +1037,37 @@ async function main() {
         if (!aStarts && bStarts) return 1;
         return a.localeCompare(b, 'fr');
       })
-      .slice(0, 8);
+      .slice(0, 10);
 
-    if (villes.length === 0) { searchResults.style.display = 'none'; return; }
+    if (matches.length === 0) { searchResults.style.display = 'none'; return; }
 
-    villes.forEach(ville => {
+    matches.forEach(ville => {
       const item = document.createElement('div');
       item.className = 'search-item';
       const count = allData.filter(d => d.ville === ville).reduce((s,d) => s+d.count, 0);
-      item.innerHTML = `<svg width="12" height="14" viewBox="0 0 12 14" fill="#019939" style="flex-shrink:0"><path d="M6 0C3.24 0 1 2.24 1 5c0 3.75 5 9 5 9s5-5.25 5-9c0-2.76-2.24-5-5-5zm0 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/></svg> ${ville}${count ? `<span style="margin-left:auto;font-size:0.75rem;color:#019939;font-weight:600">${count} animaux</span>` : ''}`;
-      item.addEventListener('click', () => {
-        const coords = GEO_PRELOADED[ville];
+      const badge = count
+        ? `<span style="margin-left:auto;font-size:0.75rem;color:#019939;font-weight:600">${count} animaux</span>`
+        : `<span style="margin-left:auto;font-size:0.72rem;color:#bbb">aucun signalement</span>`;
+      item.innerHTML = `<svg width="12" height="14" viewBox="0 0 12 14" fill="${count ? '#019939' : '#ccc'}" style="flex-shrink:0"><path d="M6 0C3.24 0 1 2.24 1 5c0 3.75 5 9 5 9s5-5.25 5-9c0-2.76-2.24-5-5-5zm0 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/></svg> ${ville}${badge}`;
+      item.addEventListener('click', async () => {
+        searchInput.value = ville;
+        searchResults.style.display = 'none';
+        document.getElementById('search-clear').style.display = 'block';
+
+        let coords = GEO_PRELOADED[ville];
+        if (!coords) {
+          // Géocoder à la demande
+          setStatus(`Localisation de ${ville}…`);
+          coords = await geocode(ville);
+          setStatus('');
+        }
         if (coords) {
           searchPrevView = { center: map.getCenter(), zoom: map.getZoom() };
           map.setView([coords.lat, coords.lon], 13);
           showVetoPanel(ville, coords.lat, coords.lon);
+        } else {
+          setStatus(`Commune "${ville}" introuvable`);
         }
-        searchInput.value = ville;
-        searchResults.style.display = 'none';
-        document.getElementById('search-clear').style.display = 'block';
       });
       searchResults.appendChild(item);
     });

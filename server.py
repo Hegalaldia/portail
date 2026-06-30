@@ -43,11 +43,14 @@ def set_sheet_id(new_id):
 _cache = {'data': None, 'ts': 0}
 CACHE_TTL = 300  # secondes (5 min)
 
-def fetch_sheet_csv():
-    """Télécharge le CSV depuis Google Sheets."""
-    sheet_id = get_sheet_id()
-    csv_url  = f'https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv'
-    req = urllib.request.Request(csv_url, headers={'User-Agent': 'heatmap-server/1.0'})
+def fetch_csv_tab(sheet_id, sheet_name=None):
+    """Télécharge un onglet CSV depuis Google Sheets."""
+    from urllib.parse import quote
+    if sheet_name:
+        url = f'https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={quote(sheet_name)}'
+    else:
+        url = f'https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv'
+    req = urllib.request.Request(url, headers={'User-Agent': 'heatmap-server/1.0'})
     with urllib.request.urlopen(req, timeout=15) as r:
         return r.read().decode('utf-8')
 
@@ -55,10 +58,30 @@ def get_data():
     now = time.time()
     if _cache['data'] is None or now - _cache['ts'] > CACHE_TTL:
         print('Chargement du Google Sheet...')
-        _cache['data'] = fetch_sheet_csv()
+        _cache['data'] = fetch_csv_tab(get_sheet_id())
         _cache['ts']   = now
         print(f'  OK — {len(_cache["data"].splitlines())} lignes')
     return _cache['data']
+
+_villes_cache = {'data': None, 'ts': 0}
+
+def get_villes():
+    now = time.time()
+    if _villes_cache['data'] is None or now - _villes_cache['ts'] > CACHE_TTL:
+        print('Chargement onglet Ville...')
+        csv = fetch_csv_tab(get_sheet_id(), 'Ville')
+        # Extraire uniquement les noms de communes (colonne "Ville de decouverte")
+        import csv as csvmod, io
+        reader = csvmod.DictReader(io.StringIO(csv))
+        villes = sorted(set(
+            r['Ville de decouverte'].strip()
+            for r in reader
+            if r.get('Ville de decouverte', '').strip()
+        ))
+        _villes_cache['data'] = villes
+        _villes_cache['ts']   = now
+        print(f'  OK — {len(villes)} communes')
+    return _villes_cache['data']
 
 # ── Géocache HTML ──────────────────────────────────────────────────────────────
 HTML_FILE = 'heatmap.html'
@@ -99,6 +122,22 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 body = csv.encode('utf-8')
                 self.send_response(200)
                 self.send_header('Content-Type', 'text/csv; charset=utf-8')
+                self.send_header('Content-Length', len(body))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(502)
+                self.send_header('Content-Type', 'text/plain')
+                self.end_headers()
+                self.wfile.write(str(e).encode())
+
+        elif self.path == '/api/villes':
+            try:
+                villes = get_villes()
+                body = json.dumps(villes, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
                 self.send_header('Content-Length', len(body))
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
