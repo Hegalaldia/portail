@@ -826,14 +826,16 @@ async function main() {
   // Collecter les lignes brutes pour les panneaux DCVR / Vétérinaire
   allRawRows = [];
   for (let i = 0; i < rows.length; i++) {
-    const r      = rows[i];
-    const rowNum = i + 2; // +1 header +1 base-1 → ligne Google Sheets
-    const espece = (r['Espèces'] || '').trim();
-    const n      = parseInt(r['Nombre']) || 1;
-    const date   = (r['DATE'] || r['Date'] || '').trim(); // JJ/MM/AA ou JJ/MM/AAAA
-    const vet    = (r['Vétérinaire(s)'] || '').trim();
-    const lieux  = (r['Lieux'] || '').trim();
-    const lieu   = devenir === 'Clinique' ? (vet || lieux) : lieux;
+    const r       = rows[i];
+    const rowNum  = i + 2; // +1 header +1 base-1 → ligne Google Sheets
+    const devenir = (r['Devenir'] || '').trim();
+    if (devenir !== 'DCVR' && devenir !== 'Clinique') continue;
+    const espece  = (r['Espèces'] || '').trim();
+    const n       = parseInt(r['Nombre']) || 1;
+    const date    = (r['DATE'] || r['Date'] || '').trim();
+    const vet     = (r['Vétérinaire(s)'] || '').trim();
+    const lieux   = (r['Lieux'] || '').trim();
+    const lieu    = devenir === 'Clinique' ? (vet || lieux) : lieux;
     if (!lieu) continue;
     // Convertir date en timestamp — supporte JJ/MM/AA et JJ/MM/AAAA
     let ts = 0;
