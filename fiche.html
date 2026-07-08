@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/png" href="favicon.png">
+<title>Fiche d'accueil — Hegalaldia</title>
+<style>
+  @page { size: A4; margin: 10mm 14mm; }
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .no-print { display: none !important; }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+    font-size: 11.5px;
+    color: #111;
+    background: #fff;
+  }
+
+  /* ── Bouton impression ── */
+  .no-print {
+    text-align: center;
+    padding: 16px;
+    background: #f7f9f5;
+    border-bottom: 1px solid #dbe3dc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+  }
+  .no-print a {
+    font-size: 13px; font-weight: 600; color: #0c3d22; text-decoration: none;
+  }
+  .no-print button {
+    background: #0c3d22; color: #fff; border: none;
+    padding: 10px 24px; border-radius: 999px;
+    font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+
+  /* ── Page ── */
+  .page {
+    max-width: 794px;
+    margin: 0 auto;
+    padding: 20px 24px 28px;
+  }
+
+  /* ── En-tête ── */
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    gap: 12px;
+  }
+  .cachet-box {
+    border: 1px solid #555;
+    width: 320px;
+    min-height: 56px;
+    padding: 6px 8px;
+    font-size: 10px;
+    color: #555;
+  }
+  .logo-block {
+    text-align: right;
+  }
+  .logo-block img {
+    height: 52px;
+  }
+
+  /* ── Titre ── */
+  .titre {
+    background: #0c3d22;
+    color: #fff;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    padding: 10px 0;
+    margin-bottom: 10px;
+    border-radius: 4px;
+  }
+
+  /* ── Intro ── */
+  .intro {
+    font-size: 10.5px;
+    color: #333;
+    line-height: 1.5;
+    margin-bottom: 14px;
+    border-left: 3px solid #0c3d22;
+    padding-left: 10px;
+  }
+  .intro u { font-weight: 700; }
+
+  /* ── Sections ── */
+  .section-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: #0c3d22;
+    text-decoration: underline;
+    margin-bottom: 6px;
+    margin-top: 10px;
+  }
+
+  /* ── Espèce ── */
+  .espece-line {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+  .espece-line .val {
+    font-weight: 700;
+    font-size: 13.5px;
+    color: #0c3d22;
+    border-bottom: 1.5px solid #0c3d22;
+    padding: 0 4px 1px;
+    min-width: 200px;
+    display: inline-block;
+  }
+  .espece-line .placeholder {
+    border-bottom: 1px solid #aaa;
+    min-width: 200px;
+    display: inline-block;
+    color: #aaa;
+    font-style: italic;
+  }
+
+  /* ── Tableau découverte ── */
+  table.decouverte {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 14px;
+  }
+  table.decouverte td {
+    border: 1px solid #555;
+    padding: 7px 10px;
+    vertical-align: top;
+  }
+  table.decouverte .label {
+    font-weight: 700;
+    font-size: 11px;
+    white-space: nowrap;
+    background: #f8f8f8;
+    width: 130px;
+  }
+  table.decouverte .value {
+    font-size: 12px;
+    min-height: 22px;
+  }
+  table.decouverte .value.filled {
+    font-weight: 600;
+    color: #0c3d22;
+  }
+  table.decouverte .header-cell {
+    font-weight: 800;
+    font-size: 11.5px;
+    text-align: center;
+    background: #f0f0f0;
+    border: 1px solid #555;
+    padding: 6px;
+  }
+  .blank { color: #bbb; font-style: italic; }
+
+  /* ── Diagnostic ── */
+  .diag-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .diag-item {
+    font-size: 11.5px;
+  }
+  .diag-item .diag-label {
+    font-weight: 700;
+    font-size: 11px;
+    color: #333;
+    display: inline;
+  }
+  .diag-line {
+    border-bottom: 1px solid #888;
+    display: inline-block;
+    min-width: 100px;
+    margin-left: 4px;
+    vertical-align: bottom;
+  }
+
+  /* État de chair checkboxes */
+  .etat-chair {
+    font-size: 11px;
+    margin-top: 4px;
+    color: #555;
+  }
+  .etat-chair span {
+    margin-right: 8px;
+    border: 1px solid #888;
+    padding: 1px 5px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+
+  /* Grands blocs texte */
+  .text-bloc-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .text-bloc {
+    border: 1px solid #555;
+    padding: 8px 10px;
+    height: 220px;
+    border-radius: 3px;
+  }
+  .text-bloc .bloc-label {
+    font-size: 11px;
+    font-weight: 700;
+    font-style: italic;
+    text-decoration: underline;
+    margin-bottom: 6px;
+    color: #222;
+  }
+  .text-bloc.full {
+    grid-column: 1 / -1;
+    height: 120px;
+  }
+
+  /* ── Numéro de dossier ── */
+  .num-badge {
+    display: inline-block;
+    background: #e8f5e9;
+    color: #0c3d22;
+    font-family: 'Courier New', monospace;
+    font-weight: 800;
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 6px;
+    border: 1px solid #b7d9be;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  /* ── Footer ── */
+  .fiche-footer {
+    margin-top: 18px;
+    padding-top: 10px;
+    border-top: 1px solid #ddd;
+    font-size: 9.5px;
+    color: #aaa;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="no-print">
+  <a href="javascript:window.close()">← Fermer</a>
+  <button onclick="window.print()">🖨️ Imprimer / Enregistrer en PDF</button>
+  <span style="font-size:12px;color:#5b6b5e">Utilisez « Enregistrer en PDF » comme imprimante</span>
+</div>
+
+<div class="page">
+
+  <!-- En-tête -->
+  <div class="top-bar">
+    <div class="cachet-box" id="cachet-text">Clinique vétérinaire<br>(cachet et signature)</div>
+    <div class="logo-block">
+      <img src="LogoHegalaldiaColorCrop.png" alt="Hegalaldia">
+    </div>
+  </div>
+
+  <!-- Titre -->
+  <div class="titre">FICHE D'ACCUEIL ET DE SUIVI</div>
+
+  <!-- Intro -->
+  <div class="intro">
+    Fiche à remplir pour <u>chaque animal</u> pris en charge. Le soin à la faune sauvage étant strictement
+    règlementé, il est nécessaire de fournir le maximum d'informations et de justificatifs. Cela permet
+    également un pré-diagnostic avant l'arrivée de l'animal à l'association.
+  </div>
+
+  <!-- Section 1 -->
+  <div class="section-title">1) Découverte de l'animal</div>
+
+  <!-- Espèce -->
+  <div class="espece-line">
+    <strong>Espèce :</strong>
+    <span id="val-espece" class="val"></span>
+  </div>
+
+  <!-- Tableau -->
+  <table class="decouverte">
+    <tr>
+      <td class="label">Date de<br>découverte :</td>
+      <td class="value" id="val-date-decouverte"></td>
+      <td class="value" rowspan="2" style="vertical-align:top;padding:7px 10px">
+        <div style="font-weight:800;font-size:11.5px;text-align:center;margin-bottom:8px;border-bottom:1px solid #ccc;padding-bottom:5px">Coordonnées du découvreur</div>
+        <div style="line-height:2.2">
+          Nom / Prénom : <span class="diag-line" style="min-width:160px"></span><br>
+          N° de tél : <span id="val-tel" style="font-weight:600;color:#0c3d22"></span><span id="tel-line" class="diag-line" style="min-width:130px;display:none"></span>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td class="label">Commune de<br>découverte :</td>
+      <td class="value" id="val-commune"></td>
+    </tr>
+    <tr>
+      <td class="label">Circonstances de<br>découverte :</td>
+      <td class="value" colspan="2" style="height:50px"></td>
+    </tr>
+    <tr>
+      <td class="label">Soins avant<br>l'accueil :</td>
+      <td class="value" colspan="2" style="height:50px"></td>
+    </tr>
+  </table>
+
+  <!-- Section 2 -->
+  <div class="section-title">2) Diagnostic et soins</div>
+
+  <div style="font-size:12px;margin-bottom:10px">
+    <strong>Date d'accueil sur la clinique vétérinaire :</strong>
+    <span id="val-date-accueil" style="font-weight:600;color:#0c3d22;margin-left:4px"></span>
+    <span id="date-accueil-line" class="diag-line" style="min-width:200px;display:none"></span>
+  </div>
+
+  <div class="diag-grid">
+    <div class="diag-item">
+      <span class="diag-label">Poids :</span>
+      <span class="diag-line" style="min-width:80px"></span>
+      <div class="etat-chair" style="margin-top:6px">
+        <em>Etat de chair</em> (bréchet) :
+        <span>Excellent</span><span>Bon</span><span>Moyen</span><span>Maigre</span><span>Cachexique</span>
+      </div>
+    </div>
+    <div>
+      <div class="diag-item" style="margin-bottom:7px">
+        <span class="diag-label">Température :</span>
+        <span class="diag-line" style="min-width:90px"></span>
+      </div>
+      <div class="diag-item" style="margin-bottom:7px">
+        <span class="diag-label">Déshydratation :</span>
+        <span class="diag-line" style="min-width:90px"></span>
+      </div>
+      <div class="diag-item" style="margin-bottom:7px">
+        <span class="diag-label">Vision oculaire :</span>
+        <span class="diag-line" style="min-width:90px"></span>
+      </div>
+      <div class="diag-item">
+        <span class="diag-label">Parasitisme :</span>
+        <span class="diag-line" style="min-width:90px"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="text-bloc-row">
+    <div class="text-bloc">
+      <div class="bloc-label">Soins réalisés :</div>
+    </div>
+    <div class="text-bloc">
+      <div class="bloc-label">Alimentation :</div>
+    </div>
+    <div class="text-bloc full">
+      <div class="bloc-label">Soins à poursuivre sur le centre de soins : <span style="font-weight:400;font-style:normal;font-size:10px">(faire suivre ordonnance si nécessaire)</span></div>
+    </div>
+  </div>
+
+  <div class="fiche-footer">
+    Hegalaldia — Association départementale pour la sauvegarde de la faune sauvage · <span id="footer-clinic"></span>
+  </div>
+
+</div>
+
+<script>
+function getParam(name) {
+  return new URLSearchParams(window.location.search).get(name) || '';
+}
+
+function filled(el, val, fallbackLine) {
+  if (val) {
+    el.textContent = val;
+    el.classList.add('filled');
+    if (fallbackLine) fallbackLine.style.display = 'none';
+  } else {
+    el.textContent = '';
+    if (fallbackLine) fallbackLine.style.display = 'inline-block';
+  }
+}
+
+(function init() {
+  const species  = getParam('species');
+  const date     = getParam('date');      // date d'accueil clinique = date arrivée
+  const commune  = getParam('commune');
+  const tel      = getParam('tel');
+  const clinic   = getParam('clinic');
+  const num      = getParam('num');
+
+  // Espèce
+  const valEspece = document.getElementById('val-espece');
+  if (species) {
+    valEspece.textContent = species;
+  } else {
+    valEspece.textContent = '';
+    valEspece.className = 'placeholder';
+    valEspece.textContent = 'À préciser';
+  }
+
+  // Date d'accueil (= date arrivée)
+  const valDateAccueil = document.getElementById('val-date-accueil');
+  const dateAccueilLine = document.getElementById('date-accueil-line');
+  filled(valDateAccueil, date, dateAccueilLine);
+
+  // Date de découverte — laissée vierge (non saisie dans le portail)
+
+  // Commune
+  const valCommune = document.getElementById('val-commune');
+  if (commune) {
+    valCommune.textContent = commune;
+    valCommune.classList.add('filled');
+  } else {
+    valCommune.innerHTML = '<span class="blank">À renseigner</span>';
+  }
+
+  // Téléphone : tel (saisi manuellement) ou num (colonne "Numéro" du fichier d'appel = tél découvreur)
+  const valTel  = document.getElementById('val-tel');
+  const telLine = document.getElementById('tel-line');
+  const phone   = tel || num;
+  if (phone) {
+    valTel.textContent = phone;
+    telLine.style.display = 'none';
+  } else {
+    telLine.style.display = 'inline-block';
+  }
+
+  // Cachet clinique
+  if (clinic) {
+    document.getElementById('cachet-text').innerHTML =
+      '<strong style="font-size:11px">' + clinic + '</strong><br><br>(cachet et signature)';
+    document.getElementById('footer-clinic').textContent = clinic;
+  }
+
+  // Titre de l'onglet
+  document.title = species
+    ? 'Fiche — ' + species + (commune ? ' · ' + commune : '')
+    : 'Fiche d\'accueil — Hegalaldia';
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/png" href="favicon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hegalaldia — Portail des cliniques</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1a2e1e;background:#f7f9f5}
+@keyframes hgFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.hg-fade{animation:hgFade .35s ease}
+.hg-cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:860px){.hg-cards-grid{grid-template-columns:1fr}}
+.hg-mobile-nav{display:none}
+@media(max-width:860px){
+  .hg-mobile-nav{display:flex}
+  .hg-dashboard-scroll{padding-bottom:76px}
+}
+.hg-admin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px;align-items:start}
+.hg-header-inner{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.ac-wrap{position:relative}
+.ac-drop{position:absolute;left:0;right:0;top:100%;margin-top:3px;background:#fff;border:1.5px solid #dbe3dc;border-radius:9px;box-shadow:0 4px 16px rgba(0,0,0,.10);z-index:999;overflow:hidden;display:none}
+.ac-item{padding:10px 13px;font-size:13.5px;cursor:pointer;border-bottom:1px solid #f2f5f2}
+.ac-item:last-child{border-bottom:none}
+.ac-item:hover,.ac-item.ac-active{background:#f2f5f2}
+.hg-stats-row{display:flex;gap:12px;flex-wrap:wrap}
+input::placeholder,textarea::placeholder{color:#a3b0a5}
+.hg-clinic-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.hg-page-switcher{position:fixed;bottom:18px;right:18px;z-index:60}
+@media(max-width:640px){
+  .hg-page-content{padding-left:16px!important;padding-right:16px!important}
+  .hg-clinic-header-pad{padding-left:16px!important;padding-right:16px!important}
+  .hg-page-switcher{bottom:18px;right:10px;transform:scale(0.92);transform-origin:bottom right}
+}
+@media(max-width:860px){.hg-page-switcher{bottom:84px}}
+.screen{display:none}
+.screen.active{display:block}
+button:hover{opacity:0.88}
+</style>
+</head>
+<body>
+<div style="min-height:100vh;background:#f7f9f5;position:relative">
+
+<!-- ==================== LOGIN SCREEN ==================== -->
+<div id="screen-login" class="screen active">
+  <div class="hg-fade" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
+    <div style="width:100%;max-width:400px;background:#ffffff;border-radius:14px;box-shadow:0 4px 24px rgba(12,61,34,0.1);padding:40px 36px;text-align:center">
+      <!-- Logo -->
+      <img src="LogoHegalaldiaColorCrop.png" alt="Hegalaldia" style="width:160px;margin:0 auto 16px;display:block">
+      <div style="font-size:22px;font-weight:700;color:#0c3d22;letter-spacing:-0.01em">Hegalaldia</div>
+      <div style="font-size:13px;color:#5b6b5e;margin-top:4px;margin-bottom:32px">Portail des cliniques partenaires</div>
+      <form id="login-form" onsubmit="handleLogin(event)" style="text-align:left">
+        <label style="display:block;font-size:13px;font-weight:600;color:#1a2e1e;margin-bottom:6px">Code clinique</label>
+        <input id="clinic-code-input" type="text" placeholder="Ex. BAY-042" style="width:100%;padding:13px 14px;border-radius:10px;border:1.5px solid #dbe3dc;font-size:15px;color:#1a2e1e;outline:none;margin-bottom:8px" onfocus="this.style.borderColor='#019939'" onblur="this.style.borderColor='#dbe3dc'">
+        <div id="login-error" style="font-size:12.5px;color:#ec6724;margin-bottom:6px;display:none"></div>
+        <button type="submit" style="width:100%;margin-top:10px;padding:14px;border:none;border-radius:999px;background:#0c3d22;color:#ffffff;font-size:15px;font-weight:600;cursor:pointer">Accéder</button>
+      </form>
+      <div style="margin-top:28px;padding-top:20px;border-top:1px solid #eef1ec;font-size:12px;color:#8a9a8d;line-height:1.5">En cas d'urgence vitale, contactez directement le centre Hegalaldia.<br>Assistance disponible 24h/24.</div>
+      <div style="margin-top:14px;font-size:11px;color:#b0b8b2">Codes démo : <span id="demo-codes-toggle" onclick="document.getElementById('demo-codes').style.display=document.getElementById('demo-codes').style.display==='none'?'block':'none'" style="cursor:pointer;text-decoration:underline;color:#5b6b5e">afficher</span><div id="demo-codes" style="display:none;margin-top:6px;text-align:left;line-height:1.8"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== DASHBOARD SCREEN ==================== -->
+<div id="screen-dashboard" class="screen">
+  <div class="hg-fade">
+    <!-- Header -->
+    <div style="background:#0c3d22;padding:20px 32px" class="hg-clinic-header-pad">
+      <div class="hg-header-inner">
+        <div style="display:flex;align-items:center;gap:14px">
+          <img src="LogoHegalaldiaBlancSimpleCrop.png" alt="Hegalaldia" style="height:36px;flex:none">
+          <div>
+            <div id="dash-clinic-name" style="font-size:17px;font-weight:700;color:#ffffff">Clinique du BAB – Anglet</div>
+            <div style="font-size:12.5px;color:#b7cdbc">Code <span id="dash-clinic-code">BAY-042</span> · Jeudi 3 juillet 2026</div>
+          </div>
+        </div>
+        <button onclick="goLogin()" style="background:transparent;border:1px solid rgba(255,255,255,0.24);color:#e7efe8;padding:9px 16px;border-radius:999px;font-size:13px;cursor:pointer">Déconnexion</button>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="hg-dashboard-scroll hg-page-content" style="max-width:1180px;margin:0 auto;padding:28px 32px 60px">
+      <div class="hg-cards-grid">
+
+        <!-- Animaux présents -->
+        <div id="hg-sec-present" style="background:#ffffff;border:1.5px solid #0c3d22;border-radius:14px;padding:20px;box-shadow:0 2px 10px rgba(12,61,34,0.05)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px">
+            <div style="display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#019939" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="16" r="5"/><circle cx="7" cy="7" r="2.1"/><circle cx="12" cy="5" r="2.1"/><circle cx="17" cy="7" r="2.1"/></svg>
+              Animaux présents <span id="present-count" style="color:#5b6b5e;font-weight:500">(3)</span>
+            </div>
+            <button onclick="openModal('present')" style="background:#019939;color:#ffffff;border:none;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">+ Ajouter</button>
+          </div>
+          <div id="present-empty" style="font-size:13.5px;color:#8a9a8d;padding:8px 0;display:none">Aucun animal actuellement.</div>
+          <div id="present-list"></div>
+        </div>
+
+        <!-- Sorties / Décès -->
+        <div id="hg-sec-outcomes" style="background:#f2f2ef;border-radius:14px;padding:20px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px">
+            <div style="display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:#3f4a41">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7a847c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="8 7 17 7 17 16"/></svg>
+              Sorties <span id="outcomes-count" style="color:#7a847c;font-weight:500">(3)</span>
+            </div>
+            <button onclick="openModal('outcome')" style="background:#ffffff;color:#3f4a41;border:1px solid #d8d8d3;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">+ Ajouter</button>
+          </div>
+          <div id="outcomes-empty" style="font-size:13.5px;color:#8a9a8d;padding:8px 0;display:none">Aucune sortie signalée.</div>
+          <div id="outcomes-list"></div>
+        </div>
+
+        <!-- Rapatrieurs en route -->
+        <div id="hg-sec-enroute" style="background:#fff3ec;border-radius:14px;padding:20px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px">
+            <div style="display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ec6724" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="7" width="9" height="6" rx="1.5"/><rect x="2" y="12" width="20" height="6" rx="2"/><circle cx="7" cy="18" r="2.2"/><circle cx="17" cy="18" r="2.2"/></svg>
+              Rapatrieurs en route <span id="enroute-count" style="color:#a3623f;font-weight:500">(1)</span>
+            </div>
+          </div>
+          <div id="enroute-empty" style="font-size:13.5px;color:#a3623f;padding:8px 0;display:none">Aucun rapatriement en cours.</div>
+          <div id="enroute-list"></div>
+        </div>
+
+        <!-- Dépôts prévus -->
+        <div id="hg-sec-depots" style="background:#e8f5e9;border-radius:14px;padding:20px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px">
+            <div style="display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2c6b3a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="1.5"/><line x1="12" y1="8" x2="12" y2="20"/><line x1="4" y1="13" x2="20" y2="13"/></svg>
+              Dépôts prévus <span id="depots-count" style="color:#2c6b3a;font-weight:500">(1)</span>
+            </div>
+            <button onclick="openModal('depot')" style="background:#019939;color:#ffffff;border:none;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">+ Ajouter</button>
+          </div>
+          <div id="depots-empty" style="font-size:13.5px;color:#2c6b3a;padding:8px 0;display:none">Aucun dépôt prévu.</div>
+          <div id="depots-list"></div>
+        </div>
+
+        <!-- Factures -->
+        <div id="hg-sec-factures" style="background:#ffffff;border:1.5px solid #dbe3dc;border-radius:14px;padding:20px 24px;box-shadow:0 2px 10px rgba(12,61,34,0.05);grid-column:1/-1">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:18px">
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1a2e1e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="12" y2="16"/></svg>
+                Factures du mois <span id="factures-count" style="color:#5b6b5e;font-weight:500">(0)</span>
+              </div>
+              <div style="font-size:12.5px;color:#8a9a8d;margin-top:3px">Téléversez vos factures (PDF) liées aux soins de la faune sauvage pour votre reçu fiscal.</div>
+            </div>
+            <label for="facture-upload-input" style="display:inline-flex;align-items:center;gap:7px;background:#0c3d22;color:#ffffff;border:none;padding:11px 20px;border-radius:999px;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap">
+              + Téléverser un PDF
+            </label>
+            <input id="facture-upload-input" type="file" accept="application/pdf" multiple style="display:none" onchange="handleFactureUpload(this)">
+          </div>
+          <div id="factures-empty" style="font-size:13.5px;color:#8a9a8d;padding:4px 0 8px;display:none">Aucune facture ajoutée ce mois-ci.</div>
+          <div id="factures-list"></div>
+        </div>
+
+        <!-- Message à Hegalaldia -->
+        <div id="section-message" style="margin-top:24px;grid-column:1/-1"></div>
+
+      </div>
+    </div>
+
+    <!-- Mobile bottom nav -->
+    <div class="hg-mobile-nav" style="position:fixed;bottom:0;left:0;right:0;background:#ffffff;border-top:1px solid #eef1ec;box-shadow:0 -2px 12px rgba(12,61,34,0.08);padding:8px 6px;z-index:40;justify-content:space-around;align-items:center">
+      <button onclick="scrollToSection('hg-sec-present')" style="background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;color:#019939;font-size:10.5px;font-weight:600;cursor:pointer;padding:4px 6px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#019939" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="16" r="5"/><circle cx="7" cy="7" r="2.1"/><circle cx="12" cy="5" r="2.1"/><circle cx="17" cy="7" r="2.1"/></svg>
+        Présents
+      </button>
+      <button onclick="scrollToSection('hg-sec-outcomes')" style="background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;color:#5b6b5e;font-size:10.5px;font-weight:600;cursor:pointer;padding:4px 6px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5b6b5e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="8 7 17 7 17 16"/></svg>
+        Sorties
+      </button>
+      <button onclick="scrollToSection('hg-sec-enroute')" style="background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;color:#ec6724;font-size:10.5px;font-weight:600;cursor:pointer;padding:4px 6px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ec6724" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="7" width="9" height="6" rx="1.5"/><rect x="2" y="12" width="20" height="6" rx="2"/><circle cx="7" cy="18" r="2.2"/><circle cx="17" cy="18" r="2.2"/></svg>
+        En route
+      </button>
+      <button onclick="scrollToSection('hg-sec-depots');clearDepotAlert()" style="background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;color:#2c6b3a;font-size:10.5px;font-weight:600;cursor:pointer;padding:4px 6px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2c6b3a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="1.5"/><line x1="12" y1="8" x2="12" y2="20"/><line x1="4" y1="13" x2="20" y2="13"/></svg>
+        Dépôts
+      </button>
+      <button onclick="scrollToSection('hg-sec-factures')" style="background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;color:#1a2e1e;font-size:10.5px;font-weight:600;cursor:pointer;padding:4px 6px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a2e1e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="12" y2="16"/></svg>
+        Factures
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ADMIN SCREEN ==================== -->
+<div id="screen-admin" class="screen">
+  <div class="hg-fade">
+    <div style="background:#0c3d22;padding:22px 32px" class="hg-clinic-header-pad">
+      <div class="hg-header-inner">
+        <div style="display:flex;align-items:center;gap:14px">
+          <a href="/index.html" style="display:flex;align-items:center;flex:none" title="Accueil">
+            <img src="LogoHegalaldiaBlancSimpleCrop.png" alt="Hegalaldia" style="height:36px">
+          </a>
+          <div>
+            <div style="font-size:18px;font-weight:700;color:#ffffff">Hegalaldia — Vue centrale</div>
+            <div style="font-size:12.5px;color:#b7cdbc;margin-top:2px">Mis à jour à l'instant</div>
+          </div>
+        </div>
+        <div class="hg-stats-row">
+          <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);color:#ffffff;padding:8px 16px;border-radius:999px;font-size:13px;font-weight:600">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="16" r="5"/><circle cx="7" cy="7" r="2.1"/><circle cx="12" cy="5" r="2.1"/><circle cx="17" cy="7" r="2.1"/></svg>
+            <span id="admin-total-animals">0</span> animaux
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);color:#ffffff;padding:8px 16px;border-radius:999px;font-size:13px;font-weight:600">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20V11a5 5 0 0 1 10 0v9"/><line x1="7" y1="20" x2="17" y2="20"/></svg>
+            <span id="admin-total-deaths">0</span> sorties
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);color:#ffffff;padding:8px 16px;border-radius:999px;font-size:13px;font-weight:600">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="7" width="9" height="6" rx="1.5"/><rect x="2" y="12" width="20" height="6" rx="2"/><circle cx="7" cy="18" r="2.2"/><circle cx="17" cy="18" r="2.2"/></svg>
+            <span id="admin-total-enroute">0</span> en route
+          </div>
+          <a href="/index.html" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);color:#ffffff;padding:8px 16px;border-radius:999px;font-size:13px;font-weight:600;text-decoration:none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Accueil
+          </a>
+        </div>
+      </div>
+    </div>
+    <div style="max-width:1180px;margin:0 auto;padding:28px 32px 60px" class="hg-page-content">
+      <div style="margin-bottom:20px;position:relative;max-width:480px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8a9a8d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:14px;top:50%;transform:translateY(-50%)"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="admin-search" type="text" placeholder="Rechercher une clinique, une espèce, une commune…" oninput="renderAdmin()" style="width:100%;padding:11px 14px 11px 40px;border-radius:999px;border:1.5px solid #dbe3dc;background:#ffffff;font-size:14px;color:#1a2e1e;outline:none" onfocus="this.style.borderColor='#019939'" onblur="this.style.borderColor='#dbe3dc'">
+      </div>
+      <div id="admin-messages-panel"></div>
+      <div id="admin-empty" style="font-size:14px;color:#8a9a8d;padding:20px 0;display:none">Aucun résultat pour cette recherche (clinique, espèce ou commune).</div>
+      <div id="admin-grid" class="hg-admin-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MODAL ==================== -->
+<div id="modal-overlay" onclick="closeModal()" style="display:none;position:fixed;inset:0;background:rgba(12,20,14,0.45);align-items:center;justify-content:center;padding:20px;z-index:50">
+  <div onclick="event.stopPropagation()" style="width:100%;max-width:380px;background:#ffffff;border-radius:14px;padding:26px;box-shadow:0 12px 40px rgba(0,0,0,0.22)">
+    <div id="modal-title" style="font-size:16px;font-weight:700;margin-bottom:18px"></div>
+    <form id="modal-form" onsubmit="submitModal(event)">
+      <!-- Present fields -->
+      <div id="modal-fields-present" style="display:none">
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:5px">Espèce</label>
+          <div class="ac-wrap">
+            <input id="form-species" placeholder="Ex. Hérisson d'Europe" autocomplete="off" oninput="acSearch(this,'ac-drop-species')" onkeydown="acKey(event,'ac-drop-species')" onblur="acBlur('ac-drop-species')" style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid #dbe3dc;font-size:14px;outline:none">
+            <div id="ac-drop-species" class="ac-drop"></div>
+          </div>
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:5px">Commune de découverte</label>
+          <div class="ac-wrap">
+            <input id="form-commune" placeholder="Ex. Bayonne" autocomplete="off" oninput="acVille(this,'ac-drop-commune')" onkeydown="acKey(event,'ac-drop-commune')" onblur="acBlur('ac-drop-commune')" style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid #dbe3dc;font-size:14px;outline:none">
+            <div id="ac-drop-commune" class="ac-drop"></div>
+          </div>
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:5px">Téléphone du découvreur</label>
+          <input id="form-tel" type="tel" placeholder="06 00 00 00 00" maxlength="14" inputmode="numeric" oninput="fmtTel(this)" style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid #dbe3dc;font-size:14px;outline:none">
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:5px">Date d'arrivée</label>
+          <input id="form-date" type="date" style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid #dbe3dc;font-size:14px;outline:none">
+        </div>
+      </div>
+      <!-- Outcome fields -->
+      <div id="modal-fields-outcome" style="display:none">
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:5px">Type de sortie</label>
+          <div style="display:flex;gap:8px">
+            <button type="button" id="btn-relache" onclick="setOutcomeType('relache')" style="flex:1;padding:10px;border-radius:999px;border:1.5px solid #dbe3dc;background:#ffffff;color:#1a2e1e;font-size:13px;font-weight:600;cursor:pointer">Relâché</button>
+            <button type="button" id="btn-deces" onclick="setOutcomeType('deces')" style="flex:1;padding:10px;border-radius:999px;border:1.5px solid #5b6b5e;background:#e3e3df;color:#3f4a41;font-size:13px;font-weight:600;cursor:pointer">Décès</button>
+            <button type="button" id="btn-euthanasie" onclick="setOutcomeType('euthanasie')" style="flex:1;padding:10px;border-radius:999px;border:1.5px solid #dbe3dc;background:#ffffff;color:#1a2e1e;font-size:13px;font-weight:600;cursor:pointer">Euthanasié</button>
+          </div>
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:5px">Espèce</label>
+          <div class="ac-wrap">
+            <input id="form-outcome-species" placeholder="Ex. Martre des pins" autocomplete="off" oninput="acSearch(this,'ac-drop-outcome')" onkeydown="acKey(event,'ac-drop-outcome')" onblur="acBlur('ac-drop-outcome')" style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid #dbe3dc;font-size:14px;outline:none">
+            <div id="ac-drop-outcome" class="ac-drop"></div>
+          </div>
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:5px">Commune de découverte</label>
+          <div class="ac-wrap">
+            <input id="form-outcome-commune" placeholder="Ex. Bayonne" autocomplete="off" oninput="acVille(this,'ac-drop-outcome-commune')" onkeydown="acKey(event,'ac-drop-outcome-commune')" onblur="acBlur('ac-drop-outcome-commune')" style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid #dbe3dc;font-size:14px;outline:none">
+            <div id="ac-drop-outcome-commune" class="ac-drop"></div>
+          </div>
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:5px">Téléphone du découvreur</label>
+          <input id="form-outcome-tel" type="tel" placeholder="06 00 00 00 00" maxlength="14" inputmode="numeric" oninput="fmtTel(this)" style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid #dbe3dc;font-size:14px;outline:none">
+        </div>
+        <div style="margin-bottom:18px">
+          <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:5px">Date</label>
+          <input id="form-outcome-date" type="date" style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid #dbe3dc;font-size:14px;outline:none">
+        </div>
+      </div>
+      <!-- En route fields -->
+      <div id="modal-fields-enroute" style="display:none">
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:5px">Type de trajet</label>
+          <div style="display:flex;gap:8px">
+            <button type="button" id="btn-depose" onclick="setEnrouteType('depose')" style="flex:1;padding:10px;border-radius:999px;border:1.5px solid #ec6724;background:#fff3ec;color:#ec6724;font-size:13.5px;font-weight:600;cursor:pointer">Dépose</button>
+            <button type="button" id="btn-recuperation" onclick="setEnrouteType('recuperation')" style="flex:1;padding:10px;border-radius:999px;border:1.5px solid #dbe3dc;background:#ffffff;color:#1a2e1e;font-size:13.5px;font-weight:600;cursor:pointer">Récupération</button>
+          </div>
+        </div>
+        <div id="enroute-species-field" style="margin-bottom:14px">
+          <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:5px">Animal(aux) apporté(s)</label>
+          <div class="ac-wrap">
+            <input id="form-enroute-species" placeholder="Ex. Chevreuil" autocomplete="off" oninput="acSearch(this,'ac-drop-enroute')" onkeydown="acKey(event,'ac-drop-enroute')" onblur="acBlur('ac-drop-enroute')" style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid #dbe3dc;font-size:14px;outline:none">
+            <div id="ac-drop-enroute" class="ac-drop"></div>
+          </div>
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:5px">Plage horaire</label>
+          <input id="form-timerange" placeholder="Ex. 15h00 – 15h30" style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid #dbe3dc;font-size:14px;outline:none">
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:5px">Rapatrieur</label>
+          <input id="form-rapatrieur" placeholder="Ex. Julien Etcheverry" style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid #dbe3dc;font-size:14px;outline:none">
+        </div>
+        <div style="margin-bottom:18px">
+          <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:5px">Commentaire (optionnel)</label>
+          <textarea id="form-comment" placeholder="Ex. Prévoir une cage XL" style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid #dbe3dc;font-size:14px;outline:none;resize:vertical;min-height:56px;font-family:inherit"></textarea>
+        </div>
+      </div>
+      <!-- Depot fields -->
+      <div id="modal-fields-depot" style="display:none">
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:5px">Espèce</label>
+          <input id="form-depot-species" placeholder="Ex. Renard roux" style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid #dbe3dc;font-size:14px;outline:none">
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:5px">Heure prévue</label>
+          <input id="form-eta" placeholder="Ex. 17h00" style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid #dbe3dc;font-size:14px;outline:none">
+        </div>
+        <div style="margin-bottom:18px">
+          <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:5px">Apporté par</label>
+          <input id="form-contact" placeholder="Ex. Mme Dubois" style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid #dbe3dc;font-size:14px;outline:none">
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button type="button" onclick="closeModal()" style="flex:1;padding:12px;border-radius:999px;border:1.5px solid #dbe3dc;background:#ffffff;color:#1a2e1e;font-size:14px;cursor:pointer">Annuler</button>
+        <button type="submit" style="flex:1;padding:12px;border-radius:999px;border:none;background:#0c3d22;color:#ffffff;font-size:14px;font-weight:600;cursor:pointer">Ajouter</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ==================== PAGE SWITCHER ==================== -->
+<div class="hg-page-switcher" style="background:#ffffff;border:1px dashed #b7cdbc;border-radius:12px;padding:7px;display:flex;flex-direction:column;gap:4px;box-shadow:0 4px 16px rgba(12,61,34,0.15)">
+  <div style="font-size:9.5px;font-weight:600;color:#8a9a8d;text-transform:uppercase;letter-spacing:0.04em;padding:2px 6px">Aperçu des 3 pages</div>
+  <div style="display:flex;gap:4px">
+    <button id="nav-btn-login" onclick="goLogin()" style="padding:7px 12px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:#0c3d22;color:#ffffff">Connexion</button>
+    <button id="nav-btn-dashboard" onclick="goDashboard()" style="padding:7px 12px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:#5b6b5e">Dashboard</button>
+    <button id="nav-btn-admin" onclick="goAdmin()" style="padding:7px 12px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:#5b6b5e">Vue Hegalaldia</button>
+  </div>
+</div>
+
+<script>
+// ==================== STATE ====================
+const state = {
+  screen: 'login',
+  clinicCode: '',
+  clinicName: '',
+  animalsPresent: [],
+  outcomes: [],
+  enRoute: [],
+  depots: [],
+  factures: [],
+  sheetArrived: [],
+  modalType: null,
+  outcomeSourceId: null,
+  formState: 'stable',
+  outcomeType: 'deces',
+  enrouteType: 'depose',
+  adminExpandedIds: [],
+  adminClinics: []
+};
+
+// ==================== CHARGEMENT CLINIQUES PARTENAIRES ====================
+async function loadPartenaires() {
+  try {
+    const r = await fetch('/api/vetos');
+    const vetos = await r.json();
+    const partenaires = vetos.filter(v => v.statut === 'Partenaire' && v.code);
+    state.adminClinics = partenaires.map((v, i) => ({
+      id: i + 1,
+      name: v.nom,
+      ville: v.nom.split('(')[0].trim(),
+      code: v.code,
+      animaux: 0, deces: 0, enRoute: 0, depots: 0,
+      animalsList: [], outcomesList: [], depotsList: []
+    }));
+  } catch(e) {
+    console.error('Impossible de charger les cliniques partenaires', e);
+  }
+}
+
+// ==================== NAVIGATION ====================
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('screen-' + name);
+  if (el) {
+    el.classList.add('active');
+    // re-trigger animation
+    el.querySelector('.hg-fade') && (el.querySelector('.hg-fade').style.animation = 'none',
+      requestAnimationFrame(() => el.querySelector('.hg-fade').style.animation = ''));
+  }
+  state.screen = name;
+  updateNavButtons();
+  if (name === 'dashboard') { renderDashboard(); startEnRouteVetPolling(); stopAdminPolling(); startSyncPolling(); }
+  else if (name === 'admin') { startAdminPolling(); stopEnRouteVetPolling(); stopSyncPolling(); loadAdminMessages(); if (!window._adminMsgInterval) window._adminMsgInterval = setInterval(loadAdminMessages, 30000); }
+  else { stopEnRouteVetPolling(); stopAdminPolling(); stopSyncPolling(); }
+}
+
+function updateNavButtons() {
+  ['login','dashboard','admin'].forEach(n => {
+    const btn = document.getElementById('nav-btn-' + n);
+    if (!btn) return;
+    const active = state.screen === n;
+    btn.style.background = active ? '#0c3d22' : 'transparent';
+    btn.style.color = active ? '#ffffff' : '#5b6b5e';
+  });
+}
+
+function goLogin() { showScreen('login'); }
+function goDashboard() { showScreen('dashboard'); }
+function goAdmin() { showScreen('admin'); startAdminPolling(); }
+
+function handleLogin(e) {
+  e.preventDefault();
+  const code = document.getElementById('clinic-code-input').value.trim();
+  const errEl = document.getElementById('login-error');
+  if (!code) {
+    errEl.textContent = 'Veuillez saisir votre code clinique.';
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+  const codeUp = code.toUpperCase();
+  if (codeUp === 'HEGA-ADMIN') {
+    goAdmin();
+    return;
+  }
+  const match = state.adminClinics.find(v => v.code === codeUp);
+  if (!match) {
+    errEl.textContent = 'Code clinique non reconnu. Vérifiez votre code ou contactez Hegalaldia.';
+    errEl.style.display = 'block';
+    return;
+  }
+  state.clinicCode = codeUp;
+  state.clinicName = match.name;
+  loadClinicState();
+  document.getElementById('dash-clinic-name').textContent = match.name;
+  document.getElementById('dash-clinic-code').textContent = codeUp;
+  goDashboard();
+}
+
+function scrollToSection(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const top = el.getBoundingClientRect().top + window.scrollY - 12;
+  window.scrollTo({ top, behavior: 'smooth' });
+}
+
+// ==================== DASHBOARD RENDER ====================
+function renderDashboard() {
+  renderPresent();
+  renderOutcomes();
+  renderEnRoute();
+  renderDepots();
+  renderFactures();
+  renderMessageBox();
+}
+
+function badgeForState(st) {
+  if (st === 'critique') return { label: 'Critique', bg: '#fff3ec', color: '#ec6724' };
+  return { label: 'Stable', bg: '#e8f5e9', color: '#019939' };
+}
+
+function renderPresent() {
+  const list = state.animalsPresent;
+  document.getElementById('present-count').textContent = '(' + list.length + ')';
+  document.getElementById('present-empty').style.display = list.length === 0 ? 'block' : 'none';
+  const el = document.getElementById('present-list');
+  el.innerHTML = list.map(item => {
+    const numStr = item.num ? `<span style="color:#8a9a8d;font-size:11.5px;margin-left:6px">${esc(item.num)}</span>` : '';
+    const communeStr = item.commune ? ` · ${esc(item.commune)}` : '';
+    const escapedSpecies = esc(item.species).replace(/'/g,"\\'");
+    const escapedNum = esc(item.num||'').replace(/'/g,"\\'");
+    const escapedCommune = esc(item.commune||'').replace(/'/g,"\\'");
+    const escapedTel = esc(item.tel||'').replace(/'/g,"\\'");
+    const telHtml = item.tel ? `<div style="font-size:12.5px;color:#5b6b5e;margin-top:2px">${esc(item.tel)}</div>` : '';
+    const ficheUrl = 'fiche.html?'
+      + 'species=' + encodeURIComponent(item.species || '')
+      + '&date='    + encodeURIComponent(item.arrivalDate || '')
+      + '&commune=' + encodeURIComponent(item.commune || '')
+      + '&tel='     + encodeURIComponent(item.tel || '')
+      + '&num='     + encodeURIComponent(item.num || '')
+      + '&clinic='  + encodeURIComponent(state.clinicName || '');
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #eef1ec;gap:10px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14.5px;font-weight:600">${esc(item.species)}${numStr}</div>
+        <div style="font-size:12.5px;color:#5b6b5e;margin-top:2px">Arrivé le ${esc(item.arrivalDate)}${communeStr}</div>
+        ${telHtml}
+      </div>
+      <div style="display:flex;gap:10px;flex:none;align-items:center">
+        <button onclick="window.open('${ficheUrl}')" title="Imprimer la fiche" style="background:#f2f5f2;border:none;border-radius:7px;padding:6px 10px;font-size:12px;color:#0c3d22;cursor:pointer;display:flex;align-items:center;gap:4px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Fiche
+        </button>
+        <button onclick="openOutcomeFor(${item.id}, '${escapedSpecies}', '${escapedNum}', '${escapedCommune}', '${escapedTel}');" style="background:none;border:none;font-size:12px;color:#8a9a8d;cursor:pointer;text-decoration:underline;padding:0">Sortie</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderOutcomes() {
+  const list = state.outcomes;
+  document.getElementById('outcomes-count').textContent = '(' + list.length + ')';
+  document.getElementById('outcomes-empty').style.display = list.length === 0 ? 'block' : 'none';
+  const styles = {
+    deces: ['Décès', '#e3e3df', '#5b6b5e'],
+    relache: ['Relâché', '#e8f5e9', '#019939'],
+    euthanasie: ['Euthanasié', '#fff3ec', '#ec6724']
+  };
+  const el = document.getElementById('outcomes-list');
+  el.innerHTML = list.map(item => {
+    const st = styles[item.type] || styles.deces;
+    const numStr = item.num ? `<span style="color:#8a9a8d;font-size:11.5px;margin-left:6px">${esc(item.num)}</span>` : '';
+    const communeStr = item.commune ? ` · ${esc(item.commune)}` : '';
+    const telHtml = item.tel ? `<div style="font-size:12px;color:#7a847c;margin-top:2px"><a href="tel:${item.tel.replace(/\s/g,'')}" style="color:#7a847c;text-decoration:none">📞 ${esc(item.tel)}</a></div>` : '';
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #e3e3df;gap:10px">
+      <div>
+        <div style="font-size:14.5px;font-weight:600;color:#3f4a41">${esc(item.species)}${numStr}</div>
+        <div style="font-size:12.5px;color:#7a847c;margin-top:2px">${esc(item.date)}${communeStr}</div>
+        ${telHtml}
+      </div>
+      <span style="font-size:12px;font-weight:700;padding:5px 11px;border-radius:999px;background:${st[1]};color:${st[2]};flex:none">${st[0]}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderEnRoute() {
+  const manual = state.enRoute;
+  const sheet  = state.rapatClinic || [];
+  const total  = manual.length + sheet.length;
+  document.getElementById('enroute-count').textContent = '(' + total + ')';
+  document.getElementById('enroute-empty').style.display = total === 0 ? 'block' : 'none';
+  const el = document.getElementById('enroute-list');
+
+  const now = new Date();
+  const nowMs = now.getHours()*3600000 + now.getMinutes()*60000;
+  const timeMs = t => { if (!t) return null; const [h,m] = (t||'').split(':').map(Number); return h*3600000+m*60000; };
+
+  const roleStyles = {
+    arrivee: { label: '↙ Dépôt',    bg: '#fff3ec', color: '#b84c00', border: '#ffcc80' },
+    depart:  { label: '↗ Départ',   bg: '#e8f5e9', color: '#1b5e20', border: '#a5d6a7' },
+    etape:   { label: '◆ Passage',  bg: '#f3f0ff', color: '#5b3f9a', border: '#c5b8f0' },
+  };
+
+  const sheetHtml = sheet.map(item => {
+    const dep = timeMs(item.heure_depart), arr = timeMs(item.heure_arrivee);
+    const enCours = !item.isTomorrow && dep && arr && nowMs >= dep && nowMs <= arr;
+    const aVenir  = item.isTomorrow || (dep && nowMs < dep) || (!dep && !arr);
+    const timeBg    = enCours ? '#fde2cf' : '#f2f2ef';
+    const timeColor = enCours ? '#ec6724' : '#5b6b5e';
+    const timeLabel = enCours ? 'En cours' : item.isTomorrow ? 'Demain' : 'Aujourd\'hui';
+    const rs = roleStyles[item.role] || roleStyles.etape;
+    const trajet = item.trajet.join(' → ');
+    const heures = (item.heure_depart && item.heure_arrivee) ? `${item.heure_depart} → ${item.heure_arrivee}` : '';
+    return `<div style="padding:12px 0;border-bottom:1px solid #f5dccb">
+      <div style="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:5px">
+            <span style="font-size:14.5px;font-weight:700">${esc(item.prenom)} ${esc(item.nom)}</span>
+            <span style="font-size:11.5px;font-weight:800;padding:3px 10px;border-radius:999px;background:${rs.bg};color:${rs.color};border:1px solid ${rs.border}">${rs.label}</span>
+            <span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;background:${timeBg};color:${timeColor}">${timeLabel}${heures ? ' · '+heures : ''}</span>
+          </div>
+          <div style="font-size:12px;color:#8a9a8d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(trajet)}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const manualHtml = manual.map(item => {
+    const isDepose = item.type === 'depose';
+    const typeBg = isDepose ? '#fde2cf' : '#d7ecdb';
+    const typeColor = isDepose ? '#ec6724' : '#0c3d22';
+    const typeLabel = isDepose ? 'Dépose' : 'Récupération';
+    const speciesLine = isDepose && item.species ? `<div style="font-size:12.5px;color:#a3623f;margin-top:2px">Apporte : ${esc(item.species)}</div>` : '';
+    const commentLine = item.comment ? `<div style="font-size:12.5px;color:#8a5a3d;margin-top:4px;font-style:italic">« ${esc(item.comment)} »</div>` : '';
+    return `<div style="padding:11px 0;border-bottom:1px solid #f5dccb">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="font-size:14.5px;font-weight:600">${esc(item.rapatrieur)}</span>
+            <span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:${typeBg};color:${typeColor}">${typeLabel}</span>
+          </div>
+          <div style="font-size:12.5px;color:#a3623f;margin-top:4px">ETA : ${esc(item.timeRange)}</div>
+          ${speciesLine}${commentLine}
+        </div>
+        <button onclick="confirmDeparture(${item.id})" style="background:none;border:none;font-size:12px;color:#a3623f;cursor:pointer;text-decoration:underline;padding:0;flex:none">Terminé</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = sheetHtml + manualHtml;
+}
+
+function renderDepots() {
+  const manual = state.depots;
+  const allSheet = state.enRouteVet || [];
+
+  // Ne garder que ceux qui viennent vers cette clinique
+  const clinicName = (state.clinicName || '').toLowerCase();
+  const clinicCity = clinicName.split('(')[0].trim();
+  const arrived = state.sheetArrived || [];
+  const sheet = allSheet.filter(b => {
+    const num = b['Numéro'] || '';
+    if (num && arrived.includes(num)) return false;
+    // La colonne peut s'appeler "Vétérinaire(s)" ou "Vétérinaire" dans le CSV
+    const veto = (b['Vétérinaire(s)'] || b['Vétérinaire'] || b['veterinaire'] || '').toLowerCase().trim();
+    if (!veto) return false;
+    return veto === clinicName || veto === clinicCity || clinicName.startsWith(veto) || veto.startsWith(clinicCity);
+  });
+
+  const total  = manual.length + sheet.length;
+  document.getElementById('depots-count').textContent = '(' + total + ')';
+  document.getElementById('depots-empty').style.display = total === 0 ? 'block' : 'none';
+  const el = document.getElementById('depots-list');
+
+  const manualHtml = manual.map(item => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #d3ead6;gap:10px">
+      <div>
+        <div style="font-size:14.5px;font-weight:600">${esc(item.species)}</div>
+        <div style="font-size:12.5px;color:#2c6b3a;margin-top:2px">Prévu ${esc(item.eta)} · ${esc(item.contact)}</div>
+      </div>
+      <button onclick="markArrived(${item.id})" style="background:none;border:none;font-size:12px;color:#2c6b3a;cursor:pointer;text-decoration:underline;padding:0;flex:none">Arrivé</button>
+    </div>`).join('');
+
+  const sheetHtml = sheet.map(b => {
+    // Données depuis le fichier d'appel (Google Sheet principal)
+    const num     = b['Numéro'] || '';
+    const espece  = b['Espèces'] || b['especes'] || '';
+    const lieu    = b['Lieux'] || '';
+    const nb      = b['Nombre'] || '';
+    const rapatrieurs = b['   Rapatrieur(s)'] || b['Rapatrieur(s)'] || '';
+    const numStr  = num ? `<span style="color:#8a9a8d;font-size:11.5px;margin-left:4px">${esc(num)}</span>` : '';
+    const nbStr   = nb && nb !== '1' ? ` × ${esc(nb)}` : '';
+    const lieuStr = lieu ? `<div style="font-size:12px;color:#5b6b5e;margin-top:1px">Trouvé à : ${esc(lieu)}</div>` : '';
+    const rapStr  = rapatrieurs ? `<div style="font-size:12px;color:#5b6b5e;margin-top:1px">Rapatrieur : ${esc(rapatrieurs)}</div>` : '';
+
+    const escapedEspece = esc(espece).replace(/'/g,"\\'");
+    const escapedNum = esc(num).replace(/'/g,"\\'");
+    const escapedLieu = esc(lieu).replace(/'/g,"\\'");
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #d3ead6;gap:10px">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px">
+          <div style="font-size:14.5px;font-weight:700">${esc(espece)}${nbStr}${numStr}</div>
+          <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:#c8e6c9;color:#1b5e20">En route →</span>
+        </div>
+        ${lieuStr}${rapStr}
+      </div>
+      <button onclick="markSheetArrived('${escapedNum}','${escapedEspece}','${escapedLieu}')" style="background:none;border:none;font-size:12px;color:#2c6b3a;cursor:pointer;text-decoration:underline;padding:0;flex:none">Arrivé</button>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = sheetHtml + manualHtml;
+}
+
+function confirmDeparture(id) {
+  state.enRoute = state.enRoute.filter(i => i.id !== id);
+  saveClinicState();
+  renderEnRoute();
+}
+
+function markArrived(id) {
+  const depot = state.depots.find(d => d.id === id);
+  if (!depot) return;
+  state.depots = state.depots.filter(d => d.id !== id);
+  const now = new Date();
+  const months = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  const arrivalDate = now.getDate() + ' ' + months[now.getMonth()];
+  state.animalsPresent.unshift({ id: Date.now(), species: depot.species, arrivalDate });
+  saveClinicState();
+  renderDepots();
+  renderPresent();
+}
+
+function saveClinicState() {
+  const key = 'clinicState_' + (state.clinicCode || 'admin');
+  localStorage.setItem(key, JSON.stringify({
+    sheetArrived:   state.sheetArrived   || [],
+    animalsPresent: state.animalsPresent || [],
+    outcomes:       state.outcomes       || [],
+    depots:         state.depots         || [],
+    enRoute:        state.enRoute        || [],
+    factures:       state.factures       || [],
+  }));
+  pushClinicStats();
+}
+
+function loadClinicState() {
+  const key = 'clinicState_' + (state.clinicCode || 'admin');
+  try {
+    const saved = JSON.parse(localStorage.getItem(key) || '{}');
+    state.sheetArrived   = saved.sheetArrived   || [];
+    state.animalsPresent = saved.animalsPresent  || [];
+    state.outcomes       = saved.outcomes        || [];
+    state.depots         = saved.depots          || [];
+    state.enRoute        = saved.enRoute         || [];
+    state.factures       = saved.factures        || [];
+  } catch(e) {
+    state.sheetArrived = [];
+  }
+}
+
+function markSheetArrived(num, espece, lieu) {
+  const now = new Date();
+  const months = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  const arrivalDate = now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
+  state.animalsPresent.unshift({ id: Date.now(), species: espece, num, commune: lieu || '', arrivalDate });
+  if (!state.sheetArrived) state.sheetArrived = [];
+  state.sheetArrived.push(num);
+  saveClinicState();
+  renderDepots();
+  renderPresent();
+}
+
+// ==================== FACTURES ====================
+function handleFactureUpload(input) {
+  const files = Array.from(input.files);
+  const today = new Date();
+  const months = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  const dateStr = today.getDate() + ' ' + months[today.getMonth()];
+  files.forEach(file => {
+    state.factures.unshift({ id: Date.now() + Math.random(), nom: file.name, date: dateStr });
+  });
+  saveClinicState();
+  input.value = '';
+  renderFactures();
+}
+
+function renderFactures() {
+  const list = state.factures;
+  document.getElementById('factures-count').textContent = '(' + list.length + ')';
+  document.getElementById('factures-empty').style.display = list.length === 0 ? 'block' : 'none';
+
+  const el = document.getElementById('factures-list');
+  el.innerHTML = list.map((f, i) => `
+    <div style="display:flex;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid #eef1ec">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ec6724" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><rect x="4" y="2" width="16" height="20" rx="2"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:700;color:#1a2e1e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(f.nom)}</div>
+        <div style="font-size:12px;color:#8a9a8d;margin-top:2px">Ajoutée le ${esc(f.date)}</div>
+      </div>
+      <button onclick="retireFacture(${i})" style="background:none;border:none;font-size:13px;color:#8a9a8d;cursor:pointer;text-decoration:underline;padding:0;flex:none">Retirer</button>
+    </div>
+  `).join('');
+}
+
+function retireFacture(i) {
+  state.factures.splice(i, 1);
+  saveClinicState();
+  renderFactures();
+}
+
+// ==================== MESSAGING ====================
+function renderMessageBox() {
+  const el = document.getElementById('section-message');
+  if (!el) return;
+  el.innerHTML = `
+    <div style="background:#fff;border-radius:16px;border:1.5px solid #e4ece5;padding:24px;box-shadow:0 2px 8px rgba(12,61,34,0.06)">
+      <div style="font-size:15px;font-weight:800;color:#0c3d22;margin-bottom:6px">✉️ Message à Hegalaldia</div>
+      <div style="font-size:13px;color:#6b7f6e;margin-bottom:14px">Posez une question ou signalez une information à l'équipe Hegalaldia.</div>
+      <textarea id="msg-text" placeholder="Votre message…" style="width:100%;border:1.5px solid #dbe3dc;border-radius:10px;padding:12px;font-size:14px;font-family:inherit;resize:vertical;min-height:90px;outline:none;color:#1a2e1e" onfocus="this.style.borderColor='#019939'" onblur="this.style.borderColor='#dbe3dc'"></textarea>
+      <div style="margin-top:10px;display:flex;align-items:center;gap:12px">
+        <button onclick="sendMessage()" style="background:#0c3d22;color:#fff;border:none;border-radius:999px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer">Envoyer</button>
+        <span id="msg-status" style="font-size:13px;color:#6b7f6e"></span>
+      </div>
+    </div>`;
+}
+
+async function sendMessage() {
+  const text = (document.getElementById('msg-text') || {}).value || '';
+  if (!text.trim()) return;
+  const status = document.getElementById('msg-status');
+  status.textContent = 'Envoi…';
+  try {
+    const now = new Date();
+    const ts = now.toLocaleDateString('fr-FR') + ' à ' + now.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+    const r = await fetch('/api/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        clinic_code: state.clinicCode,
+        clinic_name: state.clinicName,
+        text: text.trim(),
+        timestamp: ts
+      })
+    });
+    if (r.ok) {
+      document.getElementById('msg-text').value = '';
+      status.style.color = '#019939';
+      status.textContent = '✓ Message envoyé';
+      setTimeout(() => { if(status) status.textContent = ''; }, 3000);
+    } else {
+      status.style.color = '#e74c3c';
+      status.textContent = 'Erreur lors de l\'envoi';
+    }
+  } catch(e) {
+    status.style.color = '#e74c3c';
+    status.textContent = 'Erreur réseau';
+  }
+}
+
+async function loadAdminMessages() {
+  const el = document.getElementById('admin-messages-panel');
+  if (!el) return;
+  try {
+    const r = await fetch('/api/messages');
+    const msgs = await r.json();
+    const unread = msgs.filter(m => !m.read).length;
+    el.innerHTML = `
+      <div style="background:#fff;border-radius:16px;border:1.5px solid #e4ece5;padding:20px 24px;box-shadow:0 2px 8px rgba(12,61,34,0.06);margin-bottom:24px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:${msgs.length ? '16px' : '0'}">
+          <span style="font-size:15px;font-weight:800;color:#0c3d22">✉️ Messages des cliniques</span>
+          ${unread > 0 ? `<span style="background:#e74c3c;color:#fff;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:700">${unread} non lu${unread>1?'s':''}</span>` : '<span style="font-size:13px;color:#9aaa9d">Aucun message non lu</span>'}
+        </div>
+        ${msgs.length === 0 ? '<div style="font-size:13px;color:#9aaa9d">Aucun message reçu.</div>' : ''}
+        ${msgs.map(m => `
+          <div id="msg-${m.id}" style="border-left:3px solid ${m.read ? '#dbe3dc' : '#019939'};padding:10px 14px;margin-bottom:10px;background:${m.read ? '#fafafa' : '#f0faf4'};border-radius:0 8px 8px 0">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+              <span style="font-weight:700;font-size:13px;color:#1a2e1e">${m.clinic_name || m.clinic_code}</span>
+              <span style="font-size:11px;color:#9aaa9d">${m.timestamp}</span>
+              ${!m.read ? '<span style="background:#e8f5e9;color:#0c3d22;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:700">Nouveau</span>' : ''}
+            </div>
+            <div style="font-size:13px;color:#3a4a3c;line-height:1.5;white-space:pre-wrap">${m.text}</div>
+            ${!m.read ? `<button onclick="markRead('${m.id}')" style="margin-top:8px;background:none;border:1px solid #dbe3dc;border-radius:999px;padding:4px 12px;font-size:12px;color:#5b6b5e;cursor:pointer">✓ Marquer comme lu</button>` : ''}
+          </div>`).join('')}
+      </div>`;
+  } catch(e) {
+    el.innerHTML = '';
+  }
+}
+
+async function markRead(id) {
+  await fetch('/api/messages/read', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({id})
+  });
+  loadAdminMessages();
+}
+
+// ==================== MODAL ====================
+const modalTitles = {
+  present: 'Signaler un animal présent',
+  outcome: 'Signaler une sortie',
+  enroute: 'Signaler un rapatriement',
+  depot: 'Signaler un dépôt prévu'
+};
+
+function openModal(type) {
+  state.modalType = type;
+  state.outcomeSourceId = null;
+  state.formState = 'stable';
+  state.outcomeType = 'deces';
+  state.enrouteType = 'depose';
+  document.getElementById('modal-title').textContent = modalTitles[type] || '';
+  ['present','outcome','enroute','depot'].forEach(t => {
+    document.getElementById('modal-fields-' + t).style.display = t === type ? 'block' : 'none';
+  });
+  // Reset fields
+  const todayISO = new Date().toISOString().slice(0,10);
+  ['form-species','form-commune','form-tel','form-outcome-species','form-outcome-commune','form-outcome-tel',
+   'form-enroute-species','form-timerange','form-rapatrieur','form-comment',
+   'form-depot-species','form-eta','form-contact'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  // Dates : valeur par défaut = aujourd'hui
+  const fdDate = document.getElementById('form-date');
+  if (fdDate) fdDate.value = todayISO;
+  const foDate = document.getElementById('form-outcome-date');
+  if (foDate) foDate.value = todayISO;
+  if (type === 'outcome') updateOutcomeButtons();
+  if (type === 'enroute') { updateEnrouteButtons(); updateEnrouteSpeciesField(); }
+  const overlay = document.getElementById('modal-overlay');
+  overlay.style.display = 'flex';
+}
+
+function openOutcomeFor(id, species, num, commune, tel) {
+  state.outcomeSourceId = id;
+  state.outcomeSourceNum = num || '';
+  openModal('outcome');
+  document.getElementById('form-outcome-species').value = species;
+  document.getElementById('form-outcome-commune').value = commune || '';
+  document.getElementById('form-outcome-tel').value = tel || '';
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').style.display = 'none';
+  state.modalType = null;
+}
+
+
+function setOutcomeType(t) {
+  state.outcomeType = t;
+  updateOutcomeButtons();
+}
+function updateOutcomeButtons() {
+  const types = ['relache','deces','euthanasie'];
+  const activeStyles = {
+    relache: ['#019939','#e8f5e9','#019939'],
+    deces: ['#5b6b5e','#e3e3df','#3f4a41'],
+    euthanasie: ['#ec6724','#fff3ec','#ec6724']
+  };
+  types.forEach(t => {
+    const btn = document.getElementById('btn-' + t);
+    const active = state.outcomeType === t;
+    const [border, bg, color] = activeStyles[t];
+    btn.style.cssText = `flex:1;padding:10px;border-radius:999px;border:1.5px solid ${active ? border : '#dbe3dc'};background:${active ? bg : '#ffffff'};color:${active ? color : '#1a2e1e'};font-size:13px;font-weight:600;cursor:pointer`;
+  });
+}
+
+function setEnrouteType(t) {
+  state.enrouteType = t;
+  updateEnrouteButtons();
+  updateEnrouteSpeciesField();
+}
+function updateEnrouteButtons() {
+  const isDepose = state.enrouteType === 'depose';
+  document.getElementById('btn-depose').style.cssText = `flex:1;padding:10px;border-radius:999px;border:1.5px solid ${isDepose ? '#ec6724' : '#dbe3dc'};background:${isDepose ? '#fff3ec' : '#ffffff'};color:${isDepose ? '#ec6724' : '#1a2e1e'};font-size:13.5px;font-weight:600;cursor:pointer`;
+  document.getElementById('btn-recuperation').style.cssText = `flex:1;padding:10px;border-radius:999px;border:1.5px solid ${!isDepose ? '#0c3d22' : '#dbe3dc'};background:${!isDepose ? '#d7ecdb' : '#ffffff'};color:${!isDepose ? '#0c3d22' : '#1a2e1e'};font-size:13.5px;font-weight:600;cursor:pointer`;
+}
+function updateEnrouteSpeciesField() {
+  document.getElementById('enroute-species-field').style.display = state.enrouteType === 'depose' ? 'block' : 'none';
+}
+
+
+// ==================== AUTOCOMPLETE ESPÈCES ====================
+let _acTimer = null;
+async function _acFetch(endpoint, q, input, dropId) {
+  const drop = document.getElementById(dropId);
+  if (!q) { drop.style.display = 'none'; drop.innerHTML = ''; return; }
+  clearTimeout(_acTimer);
+  _acTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`${endpoint}?q=` + encodeURIComponent(q));
+      const list = await res.json();
+      if (!list.length) { drop.style.display = 'none'; return; }
+      drop.innerHTML = list.map(e => `<div class="ac-item" data-val="${e.replace(/"/g,'&quot;')}" onmousedown="acPick(this,'${input.id}','${dropId}')">${e}</div>`).join('');
+      drop.style.display = 'block';
+    } catch(e) {}
+  }, 180);
+}
+function acSearch(input, dropId) { _acFetch('/api/especes', input.value.trim(), input, dropId); }
+function acVille(input, dropId)  { _acFetch('/api/villes',  input.value.trim(), input, dropId); }
+function acPick(item, inputId, dropId) {
+  document.getElementById(inputId).value = item.dataset.val;
+  document.getElementById(dropId).style.display = 'none';
+}
+function acBlur(dropId) {
+  setTimeout(() => { const d = document.getElementById(dropId); if(d) d.style.display = 'none'; }, 200);
+}
+function acKey(e, dropId) {
+  const drop = document.getElementById(dropId);
+  const items = drop.querySelectorAll('.ac-item');
+  if (!items.length) return;
+  let idx = Array.from(items).findIndex(i => i.classList.contains('ac-active'));
+  if (e.key === 'ArrowDown') { e.preventDefault(); idx = Math.min(idx+1, items.length-1); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); idx = Math.max(idx-1, 0); }
+  else if (e.key === 'Enter' && idx >= 0) { e.preventDefault(); items[idx].dispatchEvent(new MouseEvent('mousedown')); return; }
+  else if (e.key === 'Escape') { drop.style.display = 'none'; return; }
+  else return;
+  items.forEach((i,n) => i.classList.toggle('ac-active', n === idx));
+  items[idx]?.scrollIntoView({block:'nearest'});
+}
+
+function fmtTel(input) {
+  const digits = input.value.replace(/\D/g, '').slice(0, 10);
+  input.value = digits.replace(/(\d{2})(?=\d)/g, '$1 ').trim();
+}
+
+function isoToFr(val) {
+  if (!val) return '';
+  const months = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  const [y,m,d] = val.split('-').map(Number);
+  if (!d || !m) return val;
+  return d + ' ' + months[m-1] + ' ' + y;
+}
+
+function submitModal(e) {
+  e.preventDefault();
+  const type = state.modalType;
+  const id = Date.now();
+  if (type === 'present') {
+    const species = document.getElementById('form-species').value.trim() || 'Espèce non précisée';
+    const commune = document.getElementById('form-commune').value.trim();
+    const tel = document.getElementById('form-tel').value.trim();
+    const date = isoToFr(document.getElementById('form-date').value) || isoToFr(new Date().toISOString().slice(0,10));
+    state.animalsPresent.unshift({ id, species, commune, tel, arrivalDate: date });
+    saveClinicState(); renderPresent();
+  } else if (type === 'outcome') {
+    const species = document.getElementById('form-outcome-species').value.trim() || 'Espèce non précisée';
+    const commune = document.getElementById('form-outcome-commune').value.trim();
+    const tel = document.getElementById('form-outcome-tel').value.trim();
+    const date = isoToFr(document.getElementById('form-outcome-date').value) || isoToFr(new Date().toISOString().slice(0,10));
+    const num = state.outcomeSourceNum || '';
+    state.outcomes.unshift({ id, species, commune, tel, num, date, type: state.outcomeType });
+    if (state.outcomeSourceId) {
+      state.animalsPresent = state.animalsPresent.filter(a => a.id !== state.outcomeSourceId);
+      state.outcomeSourceId = null;
+      state.outcomeSourceNum = '';
+    }
+    saveClinicState(); renderOutcomes(); renderPresent();
+  } else if (type === 'enroute') {
+    const isDepose = state.enrouteType === 'depose';
+    const species = isDepose ? (document.getElementById('form-enroute-species').value.trim() || 'Espèce non précisée') : '';
+    const timeRange = document.getElementById('form-timerange').value.trim() || 'À préciser';
+    const rapatrieur = document.getElementById('form-rapatrieur').value.trim() || 'Non assigné';
+    const comment = document.getElementById('form-comment').value.trim();
+    state.enRoute.unshift({ id, type: state.enrouteType, species, timeRange, rapatrieur, comment });
+    saveClinicState(); renderEnRoute();
+  } else if (type === 'depot') {
+    const species = document.getElementById('form-depot-species').value.trim() || 'Espèce non précisée';
+    const eta = document.getElementById('form-eta').value.trim() || 'À préciser';
+    const contact = document.getElementById('form-contact').value.trim() || 'Particulier';
+    state.depots.unshift({ id, species, eta, contact });
+    saveClinicState(); renderDepots();
+  }
+  closeModal();
+}
+
+// ==================== ADMIN RENDER ====================
+function adminRow(ccode, liste, id, mainHtml, subHtml) {
+  return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f2f2ef;gap:8px">'
+    + '<div><div style="font-size:13.5px;font-weight:600">' + mainHtml + '</div>'
+    + '<div style="font-size:11.5px;color:#5b6b5e;margin-top:1px">' + subHtml + '</div></div>'
+    + '<button onclick="event.stopPropagation();adminDeleteItem(\'' + ccode + '\',\'' + liste + '\',' + id + ')" style="background:none;border:none;font-size:18px;line-height:1;color:#c8ccc8;cursor:pointer;padding:0 2px;flex:none">×</button>'
+    + '</div>';
+}
+function adminSection(title, rows) {
+  return '<div style="margin-top:14px;padding-top:14px;border-top:1px solid #eef1ec">'
+    + '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#8a9a8d;margin-bottom:8px">' + title + '</div>'
+    + (rows.length ? rows.join('') : '<div style="font-size:13px;color:#b0b8b2;padding:4px 0">Aucun.</div>')
+    + '</div>';
+}
+
+function _highlight(str, q) {
+  if (!q || !str) return esc(str);
+  const idx = str.toLowerCase().indexOf(q);
+  if (idx < 0) return esc(str);
+  return esc(str.slice(0, idx))
+    + '<mark style="background:#fff3a3;border-radius:3px;padding:0 1px">' + esc(str.slice(idx, idx + q.length)) + '</mark>'
+    + esc(str.slice(idx + q.length));
+}
+
+function _clinicMatchesAnimal(c, q) {
+  if (!q) return false;
+  const lists = [c.animalsList || [], c.outcomesList || [], c.depotsList || []];
+  return lists.some(list => list.some(a =>
+    (a.species && a.species.toLowerCase().includes(q)) ||
+    (a.commune && a.commune.toLowerCase().includes(q))
+  ));
+}
+
+function renderAdmin() {
+  const q = (document.getElementById('admin-search') || {value:''}).value.trim().toLowerCase();
+
+  // Clinics matched by name/ville OR by animal content
+  const clinics = state.adminClinics.filter(c => {
+    if (!q) return true;
+    if (c.name.toLowerCase().includes(q) || c.ville.toLowerCase().includes(q)) return true;
+    return _clinicMatchesAnimal(c, q);
+  }).sort((a, b) => b.animaux - a.animaux);
+
+  const totalAnimals = state.adminClinics.reduce((s,c) => s + c.animaux, 0);
+  const totalDeaths = state.adminClinics.reduce((s,c) => s + c.deces, 0);
+  const totalEnRoute = state.adminClinics.reduce((s,c) => s + c.enRoute, 0);
+  document.getElementById('admin-total-animals').textContent = totalAnimals;
+  document.getElementById('admin-total-deaths').textContent = totalDeaths;
+  document.getElementById('admin-total-enroute').textContent = totalEnRoute;
+
+  const emptyEl = document.getElementById('admin-empty');
+  emptyEl.style.display = clinics.length === 0 ? 'block' : 'none';
+
+  const grid = document.getElementById('admin-grid');
+  grid.innerHTML = clinics.map(c => {
+    const statusColor = '#019939';
+    const statusLabel = 'RAS';
+    const matchesAnimal = q && _clinicMatchesAnimal(c, q);
+    const isExpanded = state.adminExpandedIds.includes(c.id) || matchesAnimal;
+    const shadow = isExpanded ? '0 8px 28px rgba(12,61,34,0.16)' : '0 2px 10px rgba(12,61,34,0.05)';
+
+    const ccode = c.code || '';
+    const animalsList  = c.animalsList  || [];
+    const outcomesList = c.outcomesList || [];
+    const depotsList   = c.depotsList   || [];
+    const outcomeLabels = {relache:'Relâché', deces:'Décès', euthanasie:'Euthanasié'};
+
+    // Filtre les listes sur la recherche animale
+    const filteredAnimals  = matchesAnimal ? animalsList.filter(a =>
+      (a.species && a.species.toLowerCase().includes(q)) || (a.commune && a.commune.toLowerCase().includes(q))
+    ) : animalsList;
+    const filteredOutcomes = matchesAnimal ? outcomesList.filter(o =>
+      (o.species && o.species.toLowerCase().includes(q)) || (o.commune && o.commune.toLowerCase().includes(q))
+    ) : outcomesList;
+    const filteredDepots   = matchesAnimal ? depotsList.filter(d =>
+      (d.species && d.species.toLowerCase().includes(q))
+    ) : depotsList;
+
+    const syncPending = '<div style="font-size:12px;color:#b0b8b2;padding:4px 0;font-style:italic">En attente de synchronisation… (la clinique doit recharger sa page)</div>';
+    const expandedBlock = isExpanded ? (
+      adminSection('Animaux présents', (matchesAnimal ? filteredAnimals : animalsList).length ? (matchesAnimal ? filteredAnimals : animalsList).map(function(a) {
+        return adminRow(ccode, 'animalsList', a.id,
+          _highlight(a.species, q) + (a.num ? ' <span style="color:#8a9a8d;font-size:11px">' + esc(a.num) + '</span>' : ''),
+          'Arrivé le ' + esc(a.arrivalDate) + (a.commune ? ' · ' + _highlight(a.commune, q) : ''));
+      }) : (c.animaux > 0 ? [syncPending] : [])) +
+      adminSection('Sorties', (matchesAnimal ? filteredOutcomes : outcomesList).length ? (matchesAnimal ? filteredOutcomes : outcomesList).map(function(o) {
+        return adminRow(ccode, 'outcomesList', o.id,
+          _highlight(o.species, q) + (o.num ? ' <span style="color:#8a9a8d;font-size:11px">' + esc(o.num) + '</span>' : ''),
+          esc(o.date) + (o.commune ? ' · ' + _highlight(o.commune, q) : '') + ' · ' + (outcomeLabels[o.type] || o.type));
+      }) : (c.deces > 0 ? [syncPending] : [])) +
+      adminSection('Dépôts attendus', (matchesAnimal ? filteredDepots : depotsList).map(function(d) {
+        if (d.fromSheet) {
+          return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f2f2ef;gap:8px">'
+            + '<div><div style="font-size:13.5px;font-weight:600">' + esc(d.species) + ' <span style="font-size:11px;color:#8a9a8d;font-family:monospace">' + esc(d.contact) + '</span></div>'
+            + '<div style="font-size:11.5px;color:#5b6b5e;margin-top:1px">Dépôt particulier · Google Sheet</div></div>'
+            + '<span style="font-size:11px;color:#b0b8b2;font-style:italic">Sheet</span>'
+            + '</div>';
+        }
+        return adminRow(ccode, 'depotsList', d.id, esc(d.species), esc(d.eta) + ' · ' + esc(d.contact));
+      }))
+    ) : '';
+
+    return `<div onclick="toggleClinic(${c.id})" style="background:#ffffff;border-radius:14px;padding:20px;cursor:pointer;transition:box-shadow .15s ease;box-shadow:${shadow}">
+      <div class="hg-clinic-card-head">
+        <div>
+          <div style="font-size:15px;font-weight:700">${esc(c.name)}</div>
+          <div style="font-size:12px;color:#8a9a8d;margin-top:3px">Code <span style="font-family:monospace;color:#5b6b5e">${esc(c.code||'')}</span>${c.lastSeen ? ' · ' + ((() => { const diff = Math.floor((Date.now() - c.lastSeen)/60000); if (diff < 2) return '<span style="color:#019939">en ligne</span>'; if (diff < 60) return 'il y a ' + diff + ' min'; if (diff < 1440) return 'il y a ' + Math.floor(diff/60) + 'h'; return 'il y a ' + Math.floor(diff/1440) + 'j'; })()) : ' · <span style="color:#c0c8c2">jamais connectée</span>'}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex:none">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="width:8px;height:8px;border-radius:50%;background:${statusColor};display:inline-block"></span>
+            <span style="font-size:12px;font-weight:600;color:${statusColor}">${statusLabel}</span>
+          </div>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8a9a8d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s ease;transform:rotate(${isExpanded ? '180' : '0'}deg)"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="display:flex;align-items:center;gap:5px;background:#e8f5e9;color:#019939;padding:6px 12px;border-radius:10px;font-size:12.5px;font-weight:600">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#019939" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="16" r="5"/><circle cx="7" cy="7" r="2.1"/><circle cx="12" cy="5" r="2.1"/><circle cx="17" cy="7" r="2.1"/></svg>
+          ${c.animaux} animaux
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;background:#f2f2ef;color:#5b6b5e;padding:6px 12px;border-radius:10px;font-size:12.5px;font-weight:600">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b6b5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20V11a5 5 0 0 1 10 0v9"/><line x1="7" y1="20" x2="17" y2="20"/></svg>
+          ${c.deces} sorties
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;background:#fff3ec;color:#ec6724;padding:6px 12px;border-radius:10px;font-size:12.5px;font-weight:600">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ec6724" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="7" width="9" height="6" rx="1.5"/><rect x="2" y="12" width="20" height="6" rx="2"/><circle cx="7" cy="18" r="2.2"/><circle cx="17" cy="18" r="2.2"/></svg>
+          ${c.enRoute} en route
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;background:#e8f5e9;color:#2c6b3a;padding:6px 12px;border-radius:10px;font-size:12.5px;font-weight:600">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2c6b3a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="1.5"/><line x1="12" y1="8" x2="12" y2="20"/><line x1="4" y1="13" x2="20" y2="13"/></svg>
+          ${c.depots} dépôts attendus
+        </div>
+      </div>
+      ${expandedBlock}
+    </div>`;
+  }).join('');
+}
+
+async function adminDeleteItem(code, liste, id) {
+  const labels = { animalsList: 'cet animal', outcomesList: 'cette sortie', depotsList: 'ce dépôt' };
+  if (!confirm('Supprimer ' + (labels[liste] || 'cet élément') + ' ? Cette action est irréversible.')) return;
+  try {
+    await fetch('/api/clinic-stats/delete-item', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, liste, id })
+    });
+    await fetchAdminData();
+  } catch(e) {}
+}
+
+function toggleClinic(id) {
+  if (state.adminExpandedIds.includes(id)) {
+    state.adminExpandedIds = state.adminExpandedIds.filter(x => x !== id);
+  } else {
+    state.adminExpandedIds.push(id);
+  }
+  renderAdmin();
+}
+
+// ==================== UTILS ====================
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ==================== EN ROUTE VÉTÉRINAIRE ====================
+// Parse CSV simple (gère les guillemets)
+function parseCSV(text) {
+  const lines = text.split('\n').filter(l => l.trim());
+  if (!lines.length) return [];
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = [], line = lines[i];
+    let cur = '', inQ = false;
+    for (let c = 0; c < line.length; c++) {
+      if (line[c] === '"') { inQ = !inQ; }
+      else if (line[c] === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+      else cur += line[c];
+    }
+    cols.push(cur.trim());
+    const obj = {};
+    headers.forEach((h, idx) => { obj[h] = (cols[idx] || '').replace(/^"|"$/g, '').trim(); });
+    rows.push(obj);
+  }
+  return rows;
+}
+
+let _lastDepotCount = null;
+let _newDepotAlert  = 0;
+
+function _updateTabTitle() {
+  document.title = _newDepotAlert > 0
+    ? `(${_newDepotAlert}) Hegalaldia`
+    : 'Hegalaldia';
+}
+
+function clearDepotAlert() {
+  _newDepotAlert = 0;
+  _updateTabTitle();
+}
+
+async function fetchEnRouteVet() {
+  try {
+    const r = await fetch('/api/data');
+    if (!r.ok) return;
+    const csvText = await r.text();
+    const data = parseCSV(csvText);
+
+    // Lignes avec Devenir = "En route Vétérinaire" pour cette clinique
+    const filtered = data.filter(row => {
+      const d = (row['Devenir'] || '').toLowerCase();
+      if (!d.includes('en route v')) return false;
+      if (!state.clinicName) return false;
+      const veto = row['Vétérinaire(s)'] || row['Vétérinaire'] || '';
+      const v = veto.toLowerCase().trim();
+      const cn = state.clinicName.toLowerCase();
+      const city = cn.split('(')[0].trim();
+      return v === cn || v === city || cn.startsWith(v) || v.startsWith(city);
+    });
+
+    const prevCount = _lastDepotCount;
+    _lastDepotCount = filtered.length;
+
+    // Nouvelle entrée détectée (et pas la première fois qu'on charge)
+    if (prevCount !== null && filtered.length > prevCount) {
+      const diff = filtered.length - prevCount;
+      _newDepotAlert += diff;
+      _updateTabTitle();
+    }
+
+    state.enRouteVet = data.filter(row => {
+      const d = (row['Devenir'] || '').toLowerCase();
+      return d.includes('en route v');
+    });
+
+    if (state.screen === 'dashboard') { renderDepots(); renderEnRoute(); }
+  } catch(e) { /* silencieux */ }
+}
+
+// ==================== ADMIN POLLING ====================
+async function fetchAdminData() {
+  try {
+    const r = await fetch('/api/data');
+    if (!r.ok) return;
+    const csvText = await r.text();
+    const data = parseCSV(csvText);
+
+    // Lignes "En route Vétérinaire"
+    const enRouteRows = data.filter(row => (row['Devenir']||'').toLowerCase().includes('en route v'));
+
+    const matchClinic = (veto, clinicNom) => {
+      const v = veto.toLowerCase().trim();
+      const cn = clinicNom.toLowerCase();
+      const city = cn.split('(')[0].trim();
+      return v === cn || v === city || cn.startsWith(v) || v.startsWith(city);
+    };
+
+    const now = new Date();
+    // Récupérer les stats poussées par les cliniques
+    let clinicStatsMap = {};
+    try {
+      const sr = await fetch('/api/clinic-stats');
+      clinicStatsMap = await sr.json();
+    } catch(e) {}
+
+    state.adminClinics = state.adminClinics.map(c => {
+      const stats = clinicStatsMap[c.code] || {};
+      const arrived = stats.sheetArrived || [];
+      const sheetDepotRows = enRouteRows.filter(row => {
+        const veto = row['Vétérinaire(s)'] || row['Vétérinaire'] || '';
+        if (!veto || !matchClinic(veto, c.name)) return false;
+        const num = (row['Numéro'] || '').trim();
+        return !num || !arrived.includes(num);
+      });
+      const sheetDepotsList = sheetDepotRows.map(row => ({
+        id:      'sheet_' + (row['Numéro'] || Math.random()),
+        species: (row['Espèces'] || row['Espèce'] || row['Espece'] || 'Espèce non précisée').trim(),
+        eta:     'Dépôt particulier',
+        contact: (row['Numéro'] || '').trim(),
+        fromSheet: true,
+      }));
+      return {
+        ...c,
+        enRoute:      stats.enRoute      ?? 0,
+        animaux:      stats.animaux      ?? c.animaux,
+        deces:        stats.deces        ?? c.deces,
+        depots:       (stats.depots ?? 0) + sheetDepotRows.length,
+        lastSeen:     stats.lastSeen     ?? 0,
+        animalsList:  stats.animalsList  || [],
+        outcomesList: stats.outcomesList || [],
+        depotsList:   [...(stats.depotsList || []), ...sheetDepotsList],
+      };
+    });
+
+    // Totaux header
+    const totalAnimals  = state.adminClinics.reduce((s,c) => s + c.animaux, 0);
+    const totalDeaths   = state.adminClinics.reduce((s,c) => s + c.deces, 0);
+    const totalEnRoute  = state.adminClinics.reduce((s,c) => s + c.enRoute, 0);
+    document.getElementById('admin-total-animals').textContent  = totalAnimals;
+    document.getElementById('admin-total-deaths').textContent   = totalDeaths;
+    document.getElementById('admin-total-enroute').textContent  = totalEnRoute;
+
+    // Mettre à jour l'heure de refresh
+    const months = ['jan','fév','mar','avr','mai','jun','jul','aoû','sep','oct','nov','déc'];
+    const h = String(now.getHours()).padStart(2,'0'), mn = String(now.getMinutes()).padStart(2,'0');
+    const updateEl = document.querySelector('#screen-admin [style*="Mis à jour"]');
+    if (updateEl) updateEl.textContent = `Mis à jour à ${h}:${mn}`;
+
+    if (state.screen === 'admin') renderAdmin();
+  } catch(e) { /* silencieux */ }
+}
+
+let _adminInterval = null;
+function startAdminPolling() {
+  fetchAdminData();
+  if (_adminInterval) clearInterval(_adminInterval);
+  _adminInterval = setInterval(fetchAdminData, 60000);
+}
+function stopAdminPolling() {
+  if (_adminInterval) { clearInterval(_adminInterval); _adminInterval = null; }
+}
+
+let _enRouteVetInterval = null;
+function startEnRouteVetPolling() {
+  fetchEnRouteVet();
+  if (_enRouteVetInterval) clearInterval(_enRouteVetInterval);
+  _enRouteVetInterval = setInterval(fetchEnRouteVet, 60000);
+}
+function stopEnRouteVetPolling() {
+  if (_enRouteVetInterval) { clearInterval(_enRouteVetInterval); _enRouteVetInterval = null; }
+}
+
+// ==================== SYNC STATS CLINIQUE → SERVEUR ====================
+let _syncInterval = null;
+
+async function syncClinicStats() {
+  if (!state.clinicCode) return;
+  try {
+    // 1. Récupérer l'état serveur pour détecter les suppressions admin
+    const sr = await fetch('/api/clinic-stats');
+    const allStats = await sr.json();
+    const serverStats = allStats[state.clinicCode];
+    if (serverStats) {
+      // Appliquer les suppressions : garder seulement les ids présents côté serveur
+      const serverAnimalIds   = new Set((serverStats.animalsList  || []).map(a => a.id));
+      const serverOutcomeIds  = new Set((serverStats.outcomesList || []).map(o => o.id));
+      const serverDepotIds    = new Set((serverStats.depotsList   || []).map(d => d.id));
+      // Si le serveur a déjà des listes (pas vide = pas en attente de 1ère sync)
+      if (serverStats.animalsList  !== undefined) state.animalsPresent = state.animalsPresent.filter(a => serverAnimalIds.has(a.id));
+      if (serverStats.outcomesList !== undefined) state.outcomes       = state.outcomes.filter(o => serverOutcomeIds.has(o.id));
+      if (serverStats.depotsList   !== undefined) state.depots         = state.depots.filter(d => serverDepotIds.has(d.id));
+      saveClinicStateLocal();
+      if (state.screen === 'dashboard') { renderPresent(); renderOutcomes(); renderDepots(); }
+    }
+    // 2. Pousser l'état local vers le serveur
+    await fetch('/api/clinic-stats', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code:         state.clinicCode,
+        lastSeen:     Date.now(),
+        animaux:      state.animalsPresent.length,
+        deces:        state.outcomes.length,
+        depots:       state.depots.length,
+        enRoute:      state.enRoute.length,
+        sheetArrived: state.sheetArrived || [],
+        animalsList:  state.animalsPresent.map(a => ({ id: a.id, species: a.species, num: a.num||'', commune: a.commune||'', arrivalDate: a.arrivalDate })),
+        outcomesList: state.outcomes.map(o => ({ id: o.id, species: o.species, num: o.num||'', commune: o.commune||'', date: o.date, type: o.type })),
+        depotsList:   state.depots.map(d => ({ id: d.id, species: d.species, eta: d.eta||'', contact: d.contact||'' })),
+      })
+    });
+  } catch(e) {}
+}
+
+// Alias pour les appels directs (ajout/modif locaux → push immédiat sans pull)
+async function pushClinicStats() { await syncClinicStats(); }
+
+// Sauvegarde localStorage uniquement (sans sync serveur)
+function saveClinicStateLocal() {
+  const key = 'clinicState_' + (state.clinicCode || 'admin');
+  localStorage.setItem(key, JSON.stringify({
+    sheetArrived:   state.sheetArrived   || [],
+    animalsPresent: state.animalsPresent || [],
+    outcomes:       state.outcomes       || [],
+    depots:         state.depots         || [],
+    enRoute:        state.enRoute        || [],
+    factures:       state.factures       || [],
+  }));
+}
+
+function startSyncPolling() {
+  syncClinicStats();
+  if (_syncInterval) clearInterval(_syncInterval);
+  _syncInterval = setInterval(syncClinicStats, 30000);
+}
+function stopSyncPolling() {
+  if (_syncInterval) { clearInterval(_syncInterval); _syncInterval = null; }
+}
+
+// Effacer l'alerte si l'utilisateur revient sur l'onglet et est déjà sur les dépôts
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && state.screen === 'dashboard') {
+    const sec = document.getElementById('hg-sec-depots');
+    if (sec) {
+      const rect = sec.getBoundingClientRect();
+      if (rect.top < window.innerHeight && rect.bottom > 0) clearDepotAlert();
+    }
+  }
+});
+
+// ── Rechargement auto si page inactive longtemps ──────────────────────────────
+(function() {
+  const INACTIVITY_MS = 30 * 60 * 1000; // 30 min sans interaction
+  let _lastActivity = Date.now();
+  let _reloadBanner = null;
+
+  function _resetActivity() { _lastActivity = Date.now(); _hideBanner(); }
+  ['mousemove','keydown','click','scroll','touchstart'].forEach(ev =>
+    document.addEventListener(ev, _resetActivity, { passive: true })
+  );
+
+  function _showBanner() {
+    if (_reloadBanner) return;
+    _reloadBanner = document.createElement('div');
+    _reloadBanner.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a2e1e;color:#fff;border-radius:12px;padding:12px 20px;font-size:13px;font-weight:600;z-index:9999;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,0.3)';
+    _reloadBanner.innerHTML = '🔄 Page inactive depuis 30 min  <button onclick="location.reload()" style="background:#019939;color:#fff;border:none;border-radius:999px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer">Actualiser</button><button onclick="this.parentElement.remove()" style="background:none;border:none;color:#aaa;font-size:18px;cursor:pointer;line-height:1;margin-left:4px">✕</button>';
+    document.body.appendChild(_reloadBanner);
+  }
+
+  function _hideBanner() {
+    if (_reloadBanner) { _reloadBanner.remove(); _reloadBanner = null; }
+  }
+
+  // Vérifier chaque minute si inactif
+  setInterval(() => {
+    if (!document.hidden && Date.now() - _lastActivity > INACTIVITY_MS) _showBanner();
+  }, 60 * 1000);
+
+  // Si l'utilisateur revient sur l'onglet après longue absence → rechargement auto silencieux
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && Date.now() - _lastActivity > INACTIVITY_MS) location.reload();
+  });
+})();
+
+// ==================== INIT ====================
+(async () => {
+  await loadPartenaires();
+  renderDashboard();
+  // Populate demo codes list
+  const demoEl = document.getElementById('demo-codes');
+  if (demoEl) {
+    demoEl.innerHTML = state.adminClinics.map(v =>
+      `<span style="display:inline-block;background:#f2f5f2;border-radius:5px;padding:1px 7px;margin:1px 2px;font-family:monospace;color:#3a5a3e">${v.code}</span>`
+    ).join('') + `<span style="display:inline-block;background:#0c3d22;border-radius:5px;padding:1px 7px;margin:1px 2px;font-family:monospace;color:#fff">HEGA-ADMIN</span>`;
+  }
+})();
+</script>
+</body>
+</html>

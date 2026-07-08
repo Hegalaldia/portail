@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/png" href="favicon.png">
+<title>Codes d'accès — Portail Hegalaldia</title>
+<style>
+  @page { size: A4; margin: 20mm 18mm; }
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .no-print { display: none !important; }
+    .page-break { page-break-before: always; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: #fff; color: #1a2e1e; }
+
+  /* Print button */
+  .no-print {
+    text-align: center; padding: 20px;
+    background: #f7f9f5; border-bottom: 1px solid #dbe3dc;
+  }
+  .no-print button {
+    background: #0c3d22; color: #fff; border: none;
+    padding: 12px 28px; border-radius: 999px; font-size: 15px;
+    font-weight: 700; cursor: pointer;
+  }
+
+  .page { max-width: 794px; margin: 0 auto; padding: 32px 36px; }
+
+  /* Header */
+  .header { display: flex; align-items: center; gap: 18px; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 2.5px solid #0c3d22; }
+  .logo { flex: none; }
+  .header-text h1 { margin: 0; font-size: 22px; font-weight: 800; color: #0c3d22; }
+  .header-text p  { margin: 3px 0 0; font-size: 13px; color: #5b6b5e; }
+
+  .doc-date { font-size: 12px; color: #8a9a8d; margin-left: auto; text-align: right; flex: none; }
+
+  /* Section title */
+  .section-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #5b6b5e; margin: 28px 0 12px; }
+
+  /* Admin card */
+  .admin-card {
+    background: #0c3d22; border-radius: 12px; padding: 18px 22px;
+    display: flex; align-items: center; gap: 16px; margin-bottom: 16px;
+  }
+  .admin-card .label { flex: 1; }
+  .admin-card .label-title { font-size: 15px; font-weight: 800; color: #fff; }
+  .admin-card .label-sub  { font-size: 12px; color: #b7cdbc; margin-top: 3px; }
+  .admin-card .code-box { background: #fff; border-radius: 8px; padding: 10px 20px; font-family: 'Courier New', monospace; font-size: 20px; font-weight: 800; color: #0c3d22; letter-spacing: 0.06em; flex: none; }
+
+  /* Clinic table */
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: #f2f5f2; }
+  thead th { padding: 10px 14px; text-align: left; font-size: 11.5px; font-weight: 700; color: #5b6b5e; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1.5px solid #dbe3dc; }
+  tbody tr { border-bottom: 1px solid #eef1ec; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody td { padding: 11px 14px; font-size: 13.5px; vertical-align: middle; }
+  .clinic-name { font-weight: 700; color: #1a2e1e; }
+  .clinic-ville { font-size: 12px; color: #8a9a8d; margin-top: 2px; }
+  .code-pill { display: inline-block; background: #e8f5e9; color: #0c3d22; font-family: 'Courier New', monospace; font-weight: 800; font-size: 13px; padding: 5px 13px; border-radius: 7px; letter-spacing: 0.05em; border: 1.5px solid #c5e0ca; }
+
+  /* URL box */
+  .url-box { background: #f2f5f2; border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; }
+  .url-box .url-label { font-size: 11px; font-weight: 700; color: #5b6b5e; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
+  .url-box .url-value { font-family: 'Courier New', monospace; font-size: 14px; font-weight: 700; color: #0c3d22; }
+
+  /* Footer */
+  .footer { margin-top: 36px; padding-top: 16px; border-top: 1px solid #eef1ec; font-size: 11px; color: #a0a8a2; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="no-print">
+  <a href="/index.html" style="margin-right:20px;font-size:13px;font-weight:600;color:#0c3d22;text-decoration:none">← Accueil</a>
+  <button onclick="window.print()">🖨️ Imprimer / Enregistrer en PDF</button>
+  <span style="margin-left:16px;font-size:13px;color:#5b6b5e">Utilisez « Enregistrer en PDF » comme imprimante</span>
+</div>
+
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <img src="LogoHegalaldiaColorCrop.png" alt="Hegalaldia" style="height:56px">
+    </div>
+    <div class="header-text">
+      <h1>Hegalaldia</h1>
+      <p>Codes d'accès — Portail des cliniques partenaires</p>
+    </div>
+    <div class="doc-date">
+      Document confidentiel<br>
+      <span id="doc-date"></span>
+    </div>
+  </div>
+
+  <!-- URL -->
+  <div class="section-title">Adresse du portail</div>
+  <div class="url-box">
+    <div class="url-label">URL d'accès (réseau local Hegalaldia)</div>
+    <div class="url-value">http://192.168.1.55:8080/cliniques.html</div>
+  </div>
+
+  <!-- Admin code -->
+  <div class="section-title">Vue centrale Hegalaldia (administrateur)</div>
+  <div class="admin-card">
+    <div class="label">
+      <div class="label-title">Accès administrateur — Vue toutes cliniques</div>
+      <div class="label-sub">Permet de voir l'ensemble des cliniques partenaires et leurs données en temps réel</div>
+    </div>
+    <div class="code-box">HEGA-ADMIN</div>
+  </div>
+
+  <!-- Clinic codes -->
+  <div class="section-title">Codes d'accès — Cliniques partenaires</div>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Clinique</th>
+        <th>Ville</th>
+        <th>Code d'accès</th>
+      </tr>
+    </thead>
+    <tbody id="clinic-rows"></tbody>
+  </table>
+
+  <!-- Instructions -->
+  <div class="section-title" style="margin-top:32px">Instructions de connexion</div>
+  <ol style="font-size:13px;color:#3a4a3c;line-height:1.9;padding-left:20px;margin:0">
+    <li>Ouvrir un navigateur et accéder à l'adresse du portail ci-dessus</li>
+    <li>Saisir le code d'accès correspondant à votre clinique</li>
+    <li>Cliquer sur <strong>Accéder</strong></li>
+    <li>Le tableau de bord de votre clinique s'affiche — vous pouvez signaler des animaux présents, des sorties, des rapatrieurs en route, des dépôts prévus et téléverser vos factures</li>
+  </ol>
+
+  <div class="footer">
+    Document confidentiel — Hegalaldia · Ne pas diffuser en dehors des cliniques partenaires
+  </div>
+
+</div>
+
+<script>
+// Liste de secours si le serveur est inaccessible
+const FALLBACK_CLINICS = [
+  { nom: "Amou (Bio'vet)",                              code: "AMO-012" },
+  { nom: "Arudy (Les Crestadous)",                      code: "ARU-010" },
+  { nom: "Billère (Caillard)",                          code: "BIL-008" },
+  { nom: "Labenne (Ker Guilhem)",                       code: "LAB-011" },
+  { nom: "Lembeye (Vic-Bilh)",                          code: "LEM-007" },
+  { nom: "Lourdes (Biscaye)",                           code: "LRD-006" },
+  { nom: "Oloron (Haut Bearn)",                         code: "OLO-013" },
+  { nom: "Oloron (Porte d'Aspe)",                       code: "OLO-005" },
+  { nom: "Orthez (Gaston Pheobus)",                     code: "ORT-004" },
+  { nom: "Peyrehorade (Bio'vet)",                       code: "PEY-003" },
+  { nom: "Saint-Pée-sur-Nivelle (Arche des 4 pattes)", code: "SPE-002" },
+  { nom: "Tardets-Sorholus (Saison)",                   code: "TAR-913" },
+  { nom: "Ustaritz (Errobia)",                          code: "UST-001" },
+].map(v => ({ ...v, ville: v.nom.split('(')[0].trim() }));
+
+(async () => {
+  // Charger les cliniques partenaires depuis le serveur
+  let clinics = [];
+  try {
+    const r = await fetch('http://192.168.1.55:8080/api/vetos');
+    const vetos = await r.json();
+    clinics = vetos
+      .filter(v => v.statut === 'Partenaire' && v.code)
+      .map(v => ({
+        nom:   v.nom,
+        ville: v.nom.split('(')[0].trim(),
+        code:  v.code,
+      }));
+  } catch(e) {
+    // Serveur inaccessible : utiliser la liste de secours
+    clinics = FALLBACK_CLINICS;
+  }
+
+  const tbody = document.getElementById('clinic-rows');
+  tbody.innerHTML = clinics.map((c, i) => {
+    const ville    = c.nom.split('(')[0].trim();
+    const clinique = c.nom.includes('(') ? c.nom.split('(')[1].replace(')', '').trim() : c.nom;
+    return `
+    <tr>
+      <td style="color:#8a9a8d;font-size:12px">${String(i+1).padStart(2,'0')}</td>
+      <td><div class="clinic-name">${clinique}</div></td>
+      <td><div style="font-size:13px;color:#5b6b5e">${ville}</div></td>
+      <td><span class="code-pill">${c.code}</span></td>
+    </tr>`;
+  }).join('');
+
+  // Date du jour
+  const months = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  const d = new Date();
+  document.getElementById('doc-date').textContent = d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+})();
+</script>
+<script src="/auth.js"></script>
+</body>
+</html>

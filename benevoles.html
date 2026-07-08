@@ -1,0 +1,4048 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bénévoles — Hegalaldia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f0e8;
+      color: #1a1a1a;
+      min-height: 100vh;
+    }
+
+    /* ══════════════════
+       HEADER / NAV
+    ══════════════════ */
+    header {
+      background: #0c3d22;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      height: 56px;
+      position: sticky; top: 0; z-index: 300;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none; color: #fff;
+    }
+    .logo-sq {
+      width: 32px; height: 32px; background: #1a5c35;
+      border-radius: 6px; display: flex; align-items: center;
+      justify-content: center; font-weight: 800; font-size: 1rem;
+      letter-spacing: -0.02em;
+    }
+    .logo-name { font-weight: 700; font-size: 0.95rem; letter-spacing: 0.08em; text-transform: uppercase; }
+    nav { display: flex; gap: 4px; }
+    nav a {
+      color: rgba(255,255,255,0.72); font-size: 0.85rem; font-weight: 500;
+      text-decoration: none; padding: 6px 14px; border-radius: 20px;
+      transition: all 0.15s; white-space: nowrap;
+    }
+    nav a:hover { color: #fff; background: rgba(255,255,255,0.1); }
+    nav a.active { color: #fff; background: rgba(255,255,255,0.18); font-weight: 600; }
+    nav a.ext { opacity: 0.55; }
+    nav a.ext:hover { opacity: 0.9; }
+
+    /* ══════════════════
+       SECTIONS
+    ══════════════════ */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ══════════════════
+       HERO
+    ══════════════════ */
+    .hero {
+      background: linear-gradient(135deg, #0c3d22 0%, #015e26 100%);
+      padding: 28px 28px 26px;
+      color: #fff;
+    }
+    .hero-top {
+      position: relative;
+      margin-bottom: 12px;
+    }
+    .hero-label {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: #74c69d;
+      margin-bottom: 6px;
+    }
+    .hero-count {
+      font-size: 2.2rem; font-weight: 800; line-height: 1;
+      color: #fff;
+    }
+    .btn-add-hero {
+      background: #e8825a; color: #fff; border: none;
+      padding: 11px 20px; border-radius: 8px; font-size: 0.88rem;
+      font-weight: 700; cursor: pointer; white-space: nowrap;
+      transition: background 0.15s; display: flex; align-items: center; gap: 6px;
+      flex-shrink: 0;
+    }
+    .btn-add-hero:hover { background: #d4714a; }
+    .hero-searches { display: flex; gap: 10px; margin-bottom: 14px; max-width: 560px; flex-wrap: wrap; }
+    .hero-search {
+      display: flex; align-items: center; gap: 10px;
+      background: #fff; border-radius: 10px; padding: 10px 16px;
+      flex: 1; min-width: 180px;
+    }
+    .hero-search svg { flex-shrink: 0; color: #aaa; }
+    .hero-search input {
+      border: none; outline: none; font-size: 0.9rem; color: #333;
+      flex: 1; background: transparent; width: 0;
+    }
+    .hero-search input::placeholder { color: #aaa; }
+    .hero-search-status { font-size: 0.72rem; color: #aaa; white-space: nowrap; flex-shrink: 0; }
+    .filter-pills { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .pill {
+      padding: 6px 14px; border-radius: 20px; font-size: 0.81rem;
+      font-weight: 600; cursor: pointer; border: 1.5px solid rgba(255,255,255,0.3);
+      color: rgba(255,255,255,0.8); background: transparent; transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .pill:hover { border-color: rgba(255,255,255,0.6); color: #fff; }
+    .pill.active { background: #fff; color: #0c3d22; border-color: #fff; }
+    .tpill {
+      padding: 5px 11px; border-radius: 20px; font-size: 0.78rem; font-weight: 600;
+      cursor: pointer; border: 1.5px solid transparent;
+      color: var(--c); background: var(--bg);
+      transition: all 0.12s; white-space: nowrap;
+    }
+    .tpill:hover { filter: brightness(0.93); }
+    .tpill.active { border-color: var(--c); box-shadow: 0 0 0 2px color-mix(in srgb, var(--c) 20%, transparent); }
+
+    /* ══════════════════
+       STATS
+    ══════════════════ */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 16px; padding: 20px 28px;
+    }
+    .stat-card {
+      background: #fff; border-radius: 12px; padding: 18px 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    }
+    .stat-card.dark { background: #0c3d22; }
+    .stat-num { font-size: 1.8rem; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+    .stat-num.green { color: #2d9a5f; }
+    .stat-num.orange { color: #e8825a; }
+    .stat-num.white-g { color: #52b788; }
+    .stat-card.dark .stat-num { color: #52b788; }
+    .stat-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #999; }
+    .stat-card.dark .stat-label { color: rgba(255,255,255,0.55); }
+
+    /* ══════════════════
+       SECTION BODY
+    ══════════════════ */
+    .body-wrap { padding: 0 28px 40px; }
+
+    /* Rapatriements récents */
+    .section-title {
+      font-size: 1rem; font-weight: 700; color: #1a1a1a;
+      margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
+    }
+    .section-title .dot { width:8px; height:8px; border-radius:50%; background:#e8825a; flex-shrink:0; }
+    .section-title .sub { font-size: 0.8rem; font-weight: 400; color: #aaa; }
+    .rapat-wrapper { position: relative; margin-bottom: 28px; overflow: visible; }
+    .rapat-scroll { display: flex; align-items: flex-start; gap: 12px; overflow-x: auto; padding-bottom: 4px; scroll-behavior: smooth; scrollbar-width: none; }
+    .rapat-scroll::-webkit-scrollbar { display: none; }
+    .rapat-arrow {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 34px; height: 34px; border-radius: 50%;
+      background: #fff; border: 1px solid #e0ddd8;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; color: #555; z-index: 10;
+      transition: all 0.15s; user-select: none;
+    }
+    .rapat-arrow:hover { background: #0c3d22; color: #fff; border-color: #0c3d22; }
+    .rapat-arrow.disabled { opacity: 0.25; pointer-events: none; }
+    .rapat-arrow-left  { left: -17px; }
+    .rapat-arrow-right { right: -17px; }
+    .rapat-card { position: relative;
+      background: #fff; border-radius: 10px; padding: 14px 16px;
+      width: 210px; flex-shrink: 0; border-left: 3px solid #e8825a;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      cursor: pointer; overflow: hidden; position: relative;
+    }
+    .rapat-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.13); }
+    .rapat-card.en-cours { border-left-color: #2d9e5e; background: #f0faf4; }
+    .rapat-card.en-cours .rapat-meta span:first-child { color: #1b7a40; }
+    .rapat-card.en-cours .rapat-more { color: #2d9e5e; }
+    .rapat-card.a-confirmer { border-left-color: #f59e0b; background: #fffbeb; }
+    .rapat-card.a-confirmer .rapat-meta span:first-child { color: #b45309; }
+    .rapat-card.confirme-oui { border-left-color: #2d9e5e; }
+    .rapat-card.confirme-non { border-left-color: #e05252; }
+    .confirm-zone { margin-top: 10px; padding-top: 9px; border-top: 1px solid #f0ede8; }
+    .confirm-label { font-size: 0.68rem; color: #b45309; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+    .confirm-btns { display: flex; gap: 6px; }
+    .confirm-btn { flex: 1; padding: 5px 0; border-radius: 7px; font-size: 0.75rem; font-weight: 700; cursor: pointer; border: 1.5px solid; transition: background .15s; }
+    .confirm-btn.oui { border-color: #2d9e5e; color: #1b7a40; background: #f0faf4; }
+    .confirm-btn.oui:hover { background: #2d9e5e; color: #fff; }
+    .confirm-btn.non { border-color: #e05252; color: #c0392b; background: #fff5f5; }
+    .confirm-btn.non:hover { background: #e05252; color: #fff; }
+    .confirm-status { font-size: 0.75rem; font-weight: 700; margin-top: 8px; padding: 5px 8px; border-radius: 7px; text-align: center; }
+    .confirm-status.oui { background: #e8f5e9; color: #1b7a40; }
+    .confirm-status.non { background: #fdecea; color: #c0392b; }
+    @keyframes livePulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(0.65); }
+    }
+    .live-dot {
+      width: 9px; height: 9px; border-radius: 50%;
+      background: #e8825a;
+      animation: livePulse 2s ease-in-out infinite;
+    }
+    .rapat-meta { font-size: 0.7rem; font-weight: 600; color: #e8825a; margin-bottom: 4px;
+      display: flex; justify-content: space-between; }
+    .rapat-meta span:last-child { color: #bbb; font-weight: 400; }
+    .rapat-route-short { font-size: 0.88rem; font-weight: 700; color: #1a1a1a; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rapat-route-full { font-size: 0.82rem; color: #333; overflow: hidden; height: 0; opacity: 0; margin-top: 4px; }
+    .rapat-more { font-size: 0.68rem; color: #e8825a; margin-top: 2px; overflow: hidden; }
+    .rapat-extra { font-size: 0.68rem; color: #888; margin-top: 2px; overflow: hidden; }
+    .rapat-name { font-size: 0.77rem; color: #888; letter-spacing: 0.04em; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rapat-name .rapat-nom { text-transform: uppercase; }
+    .rapat-name .rapat-prenom { text-transform: capitalize; }
+
+    /* ══════════════════
+       BÉNÉVOLES HEADER ROW
+    ══════════════════ */
+    .benev-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 10px;
+    }
+    .benev-title { font-size: 1rem; font-weight: 700; }
+    .benev-title span { color: #aaa; font-weight: 400; }
+    .btn-export {
+      display: flex; align-items: center; gap: 7px;
+      padding: 7px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+      border: 1.5px solid #0c3d22; border-radius: 8px;
+      background: #fff; color: #0c3d22; transition: all 0.15s; white-space: nowrap;
+    }
+    .btn-export:hover { background: #0c3d22; color: #fff; }
+    .btn-export svg { flex-shrink: 0; }
+    .btn-export.loading { opacity: 0.6; pointer-events: none; }
+    .btn-archive-mgr {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 13px; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+      border: 1.5px solid #d0cac2; border-radius: 8px;
+      background: #fff; color: #666; transition: all 0.15s; white-space: nowrap;
+    }
+    .btn-archive-mgr:hover { border-color: #888; color: #333; }
+
+    /* ── Modale archivage ── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+      z-index: 1000; display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal-box {
+      background: #fff; border-radius: 16px; width: 480px; max-width: calc(100vw - 32px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      transform: translateY(20px); transition: transform 0.25s;
+      overflow: hidden;
+    }
+    .modal-overlay.open .modal-box { transform: translateY(0); }
+    .modal-header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 20px 24px 16px; border-bottom: 1px solid #f0ede8;
+    }
+    .modal-header-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: #fff3ec; display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; flex-shrink: 0;
+    }
+    .modal-header-title { font-size: 1rem; font-weight: 700; }
+    .modal-header-sub { font-size: 0.8rem; color: #888; margin-top: 2px; }
+    .modal-close {
+      margin-left: auto; background: none; border: none; font-size: 1.2rem;
+      color: #aaa; cursor: pointer; padding: 4px;
+    }
+    .modal-close:hover { color: #333; }
+    .modal-body { padding: 20px 24px; }
+    .modal-disclaimer {
+      background: #fff8ec; border: 1.5px solid #ffd080; border-radius: 10px;
+      padding: 13px 15px; font-size: 0.82rem; color: #7a5500; line-height: 1.6;
+      margin-bottom: 18px;
+    }
+    .modal-disclaimer strong { display: block; margin-bottom: 4px; font-size: 0.85rem; }
+    .modal-disclaimer ul { padding-left: 18px; margin-top: 4px; }
+    .modal-disclaimer li { margin-bottom: 3px; }
+    .modal-field { margin-bottom: 16px; }
+    .modal-field label { display: block; font-size: 0.82rem; font-weight: 600; color: #444; margin-bottom: 6px; }
+    .modal-field select {
+      width: 100%; padding: 9px 12px; border: 1.5px solid #d8d4ce;
+      border-radius: 9px; font-size: 0.9rem; background: #fff; cursor: pointer;
+    }
+    .modal-field select:focus { outline: none; border-color: #0c3d22; }
+    .modal-confirm-check {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 0.82rem; color: #444; line-height: 1.5; cursor: pointer;
+      margin-bottom: 18px;
+    }
+    .modal-confirm-check input { margin-top: 2px; flex-shrink: 0; accent-color: #dc3c1e; }
+    .modal-actions { display: flex; gap: 10px; }
+    .modal-btn {
+      flex: 1; padding: 10px; border-radius: 9px; font-size: 0.88rem;
+      font-weight: 600; cursor: pointer; border: none; transition: all 0.15s;
+    }
+    .modal-btn.cancel { background: #f0ede8; color: #555; }
+    .modal-btn.cancel:hover { background: #e4e0da; }
+    .modal-btn.delete {
+      background: #dc3c1e; color: #fff;
+    }
+    .modal-btn.delete:hover { background: #b83018; }
+    .modal-btn.delete:disabled { background: #e0a090; cursor: not-allowed; }
+    .modal-btn.loading { opacity: 0.6; pointer-events: none; }
+    .view-toggle { display: flex; border: 1px solid #e0ddd8; border-radius: 8px; overflow: hidden; }
+    .view-btn {
+      padding: 7px 16px; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+      border: none; background: #fff; color: #888; transition: all 0.15s;
+    }
+    .view-btn.active { background: #0c3d22; color: #fff; }
+
+    /* ══════════════════
+       CARTES GRID
+    ══════════════════ */
+    .cards-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+    }
+    @media(max-width:1100px) { .cards-grid { grid-template-columns: repeat(3,1fr); } }
+    @media(max-width:780px)  { .cards-grid { grid-template-columns: repeat(2,1fr); } }
+    @media(max-width:480px)  { .cards-grid { grid-template-columns: 1fr; } }
+
+    .benev-card {
+      background: #fff; border-radius: 12px; padding: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+      position: relative; cursor: default;
+      transition: box-shadow 0.15s;
+    }
+    .benev-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.11); }
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+    .card-nom { font-size: 0.92rem; font-weight: 800; text-transform: uppercase; color: #1a1a1a; line-height: 1.2; }
+    .card-prenom { font-size: 0.82rem; color: #888; margin-top: 1px; }
+    .badge-role {
+      padding: 3px 9px; border-radius: 12px; font-size: 0.71rem;
+      font-weight: 700; white-space: nowrap; flex-shrink: 0; margin-left: 6px;
+    }
+    .badge-centre    { background: #dbeafe; color: #1d4ed8; }
+    .badge-rapatrieur { background: #fde8df; color: #c05621; }
+    .badge-autre     { background: #f0f0f0; color: #555; }
+    .badge-former    { background: #fef3c7; color: #92400e; }
+    .badge-admin     { background: #eef0ec; color: #46544a; font-weight: 700; letter-spacing: 0.03em; }
+    .badge-ca        { background: #e8eef3; color: #2f4a63; font-weight: 700; letter-spacing: 0.03em; }
+    .badge-veteran   { background: #f5f0e8; color: #7a5c2e; font-weight: 700; letter-spacing: 0.03em; }
+    .card-info { font-size: 0.76rem; color: #888; }
+    .card-info-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+    .tel-link { cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+    .tel-link:hover { color: #019939; }
+    .tel-copy-icon { width: 12px; height: 12px; opacity: 0.4; flex-shrink: 0; }
+    .tel-link:hover .tel-copy-icon { opacity: 0.8; }
+    .card-info-label { font-size: 0.67rem; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; color: #bbb; white-space: nowrap; flex-shrink: 0; }
+    .card-info-val { color: #333; font-size: 0.79rem; }
+    .rayon-pill {
+      display: inline-block; padding: 1px 7px; border-radius: 10px;
+      background: #f0f0f0; font-size: 0.69rem; font-weight: 600; color: #666; margin-left: 4px;
+    }
+    .card-comment {
+      margin-top: 8px; padding-top: 8px; border-top: 1px solid #f0ede8;
+      font-size: 0.76rem; color: #999; font-style: italic;
+      border-left: 2px solid #e8825a; padding-left: 8px; margin-left: -2px;
+    }
+    .card-date {
+      margin-top: 8px; font-size: 0.72rem; color: #bbb;
+    }
+    .card-last-rapat {
+      margin-top: 10px; padding: 8px 11px; border-radius: 9px;
+      background: #f5f0eb; border-left: 3px solid #d8c8b8;
+    }
+    .card-last-rapat.recent {
+      background: #fff3ec; border-left-color: #ec6724;
+    }
+    .card-last-rapat-meta {
+      display: flex; align-items: center; gap: 7px; margin-bottom: 3px;
+    }
+    .card-last-rapat-date {
+      font-size: 0.75rem; font-weight: 700; color: #888;
+    }
+    .card-last-rapat.recent .card-last-rapat-date { color: #c4521a; }
+    .card-last-rapat-badge {
+      font-size: 0.62rem; font-weight: 800; letter-spacing: 0.06em;
+      text-transform: uppercase; background: #ec6724; color: #fff;
+      padding: 1px 6px; border-radius: 4px;
+    }
+    .card-last-rapat-route {
+      font-size: 0.78rem; font-weight: 600; color: #555;
+    }
+    .card-last-rapat.recent .card-last-rapat-route { color: #c4521a; }
+    .card-icons {
+      display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; padding-top: 9px;
+      border-top: 1px solid #f0ede8;
+    }
+    .card-icon {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #f5f2ee; border-radius: 6px; padding: 3px 7px;
+      font-size: 0.7rem; font-weight: 600; color: #666;
+    }
+    .card-icon svg { flex-shrink: 0; }
+
+    /* ══════════════════
+       TABLE VIEW
+    ══════════════════ */
+    #table-wrap { overflow-x: auto; display: none; }
+    table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    thead th {
+      background: #f5f0e8; color: #999; padding: 12px 16px;
+      text-align: left; font-size: 0.68rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap;
+      cursor: pointer; user-select: none; border-bottom: 1px solid #ede9e0;
+    }
+    thead th:hover { color: #555; }
+    thead th .sa { opacity: 0.35; margin-left: 4px; }
+    thead th.sorted .sa { opacity: 1; color: #0c3d22; }
+    tbody tr { border-bottom: 1px solid #f0ede8; transition: background 0.1s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #faf8f5; }
+    td { padding: 14px 16px; vertical-align: middle; }
+
+    /* Cellule bénévole */
+    .td-nom { font-size: 0.88rem; font-weight: 800; text-transform: uppercase; color: #1a1a1a; line-height: 1.2; }
+    .td-sub { font-size: 0.78rem; color: #aaa; margin-top: 2px; }
+
+    /* Téléphone */
+    .td-tel { font-size: 0.85rem; color: #333; letter-spacing: 0.03em; white-space: nowrap; }
+
+    /* Rayon pill dans tableau */
+    .rayon-pill-t {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 3px 10px; border-radius: 20px;
+      background: #f0ede8; font-size: 0.76rem; font-weight: 600; color: #666;
+    }
+    .empty-dash { color: #ccc; font-size: 1rem; }
+
+    /* Info temporaire */
+    .td-info-box {
+      background: #faf8f5; border-left: 3px solid #e8825a;
+      border-radius: 0 6px 6px 0; padding: 8px 12px;
+      font-size: 0.79rem; color: #555; max-width: 260px; line-height: 1.45;
+    }
+
+    /* Dernier rapatriement */
+    .td-rapat-card {
+      background: #f5f0e8; border-radius: 8px; padding: 8px 12px;
+      font-size: 0.79rem; min-width: 150px; display: inline-block;
+    }
+    .td-rapat-date {
+      font-size: 0.72rem; font-weight: 700; color: #888; margin-bottom: 2px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .badge-recent {
+      background: #e8825a; color: #fff; font-size: 0.62rem; font-weight: 800;
+      padding: 1px 6px; border-radius: 4px; letter-spacing: 0.06em;
+    }
+    .td-rapat-route { font-size: 0.82rem; font-weight: 700; color: #1a1a1a; }
+
+    /* ══════════════════
+       EMPTY
+    ══════════════════ */
+    #empty { text-align: center; padding: 60px 20px; color: #bbb; font-size: 0.95rem; display: none; }
+
+    /* ══════════════════
+       PANNEAU DÉTAIL
+    ══════════════════ */
+    #detail-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+      z-index: 500; backdrop-filter: blur(2px);
+    }
+    #detail-overlay.open { display: block; }
+    #detail-panel {
+      position: fixed; top: 0; right: 0; bottom: 0; width: 480px; max-width: 100vw;
+      background: #fff; z-index: 501; overflow-y: auto;
+      box-shadow: -4px 0 40px rgba(0,0,0,0.18);
+      transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    #detail-panel.open { transform: translateX(0); }
+    /* ── Panneau détail — Hanken Grotesk design ── */
+    #detail-panel { font-family: 'Hanken Grotesk', -apple-system, sans-serif; }
+    .dp-header {
+      background: linear-gradient(155deg, #017a2f 0%, #019939 55%, #04b347 100%);
+      padding: 26px 30px 30px; color: #fff; position: sticky; top: 0; z-index: 10;
+    }
+    .dp-header-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+    .dp-close {
+      width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0;
+      background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.28);
+      color: #fff; font-size: 1.1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: background 0.15s;
+    }
+    .dp-close:hover { background: rgba(255,255,255,0.28); }
+    .dp-edit-btn-new {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(255,255,255,0.16); color: #fff;
+      border: 1px solid rgba(255,255,255,0.28); padding: 9px 16px;
+      border-radius: 11px; font-family: inherit; font-size: 0.87rem; font-weight: 700;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .dp-edit-btn-new:hover { background: rgba(255,255,255,0.26); }
+    .dp-nom { font-size: 2rem; font-weight: 800; letter-spacing: -0.01em; line-height: 1.05; }
+    .dp-prenom { margin-top: 3px; font-size: 1.05rem; font-weight: 500; color: #d6f3e0; }
+    .dp-badges { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 18px; }
+    .dp-badge-white {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(255,255,255,0.95); color: #017a2f;
+      padding: 6px 14px; border-radius: 999px; font-size: 0.87rem; font-weight: 700;
+    }
+    .dp-badge-white .dot { width: 8px; height: 8px; border-radius: 999px; background: #019939; }
+    .dp-badge-orange {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: #ec6724; color: #fff;
+      padding: 6px 14px; border-radius: 999px; font-size: 0.87rem; font-weight: 700;
+    }
+    .dp-badge-orange .dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(255,255,255,0.7); }
+    .dp-badge-formation {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(255,255,255,0.15); color: #fff;
+      padding: 6px 14px; border-radius: 999px; font-size: 0.87rem; font-weight: 600;
+    }
+    .dp-badge-admin {
+      display: inline-flex; align-items: center;
+      background: #eef0ec; color: #46544a;
+      padding: 6px 14px; border-radius: 999px; font-size: 0.87rem; font-weight: 700;
+    }
+    .dp-badge-ca {
+      display: inline-flex; align-items: center;
+      background: #e8eef3; color: #2f4a63;
+      padding: 6px 14px; border-radius: 999px; font-size: 0.87rem; font-weight: 700;
+    }
+    .dp-depuis { margin-top: 16px; font-size: 0.84rem; font-weight: 500; color: #c8ecd6; }
+    .dp-body { padding: 8px 30px 40px; }
+    .dp-section { padding-top: 26px; }
+    .dp-section-head {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+    }
+    .dp-section-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.16em;
+      text-transform: uppercase; color: #019939; white-space: nowrap;
+    }
+    .dp-section-line { flex: 1; height: 1px; background: #e6eae0; }
+    .dp-dl {
+      margin: 0; display: grid;
+      grid-template-columns: 118px 1fr; row-gap: 13px; column-gap: 18px; align-items: baseline;
+    }
+    .dp-dl dt {
+      font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em;
+      text-transform: uppercase; color: #8a9990;
+    }
+    .dp-dl dd { margin: 0; font-size: 1.06rem; font-weight: 500; color: #14241a; }
+    .dp-dl dd.mono { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+    .dp-dl dd.bold { font-weight: 600; }
+    .dp-urg-card {
+      background: #f7f9f5; border: 1px solid #eaeee4; border-radius: 14px; padding: 16px 18px;
+    }
+    .dp-urg-card .dp-dl { grid-template-columns: 100px 1fr; row-gap: 11px; }
+    .dp-urg-card .dp-dl dd { font-size: 1.03rem; }
+    .dp-comment {
+      background: #f7f9f5; border-left: 3px solid #e8825a;
+      border-radius: 0 10px 10px 0; padding: 12px 16px;
+      font-size: 0.9rem; color: #3a3a3a; line-height: 1.6;
+    }
+    .dp-veh-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .dp-veh-card { border: 1px solid #eaeee4; border-radius: 14px; overflow: hidden; }
+    .dp-veh-head {
+      background: #f4f6f1; padding: 9px 15px;
+      font-size: 0.78rem; font-weight: 800; letter-spacing: 0.04em;
+      text-transform: uppercase; color: #46544a;
+    }
+    .dp-veh-body { padding: 14px 15px; }
+    .dp-veh-body .dp-dl { grid-template-columns: auto 1fr; row-gap: 10px; column-gap: 14px; }
+    .dp-veh-body .dp-dl dd { font-size: 0.97rem; }
+    .dp-chk-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 2px; }
+    .dp-chk-tag {
+      padding: 6px 14px; border-radius: 999px; font-size: 0.9rem; font-weight: 700;
+      background: #f0f0f0; color: #555;
+    }
+    .dp-chk-tag.green { background: #e7f4ec; color: #017a2f; }
+    .dp-chk-tag.orange { background: #fdede3; color: #c4521a; }
+    .dp-rapat-list { display: flex; flex-direction: column; gap: 8px; }
+    .dp-rapat-item {
+      background: #f7f9f5; border-radius: 12px; padding: 12px 14px;
+      border-left: 3px solid #e8825a; position: relative;
+    }
+    .dp-rapat-item .rapat-del-btn {
+      position: absolute; right: 8px; top: 8px;
+      background: none; border: none; color: transparent;
+      font-size: 0.85rem; cursor: pointer; padding: 2px 6px;
+      border-radius: 5px; transition: color 0.15s, background 0.15s; line-height: 1;
+    }
+    .dp-rapat-item:hover .rapat-del-btn { color: rgba(180,60,60,0.45); }
+    .dp-rapat-item .rapat-del-btn:hover { color: #c0392b !important; background: rgba(192,57,43,0.1); }
+    .dp-rapat-date { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; font-weight: 700; color: #e8825a; margin-bottom: 5px; }
+    .dp-rapat-route { font-size: 0.9rem; color: #14241a; line-height: 1.6; }
+    .dp-rapat-route .stop { display: flex; align-items: center; gap: 6px; }
+    .dp-rapat-route .stop-dot { color: #e8825a; font-weight: 700; width: 14px; text-align: center; flex-shrink: 0; }
+    .dp-empty { color: #bbb; font-size: 0.9rem; font-style: italic; }
+    .dp-adhesion-ok {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: #e7f4ec; color: #017a2f; padding: 4px 13px 4px 9px;
+      border-radius: 999px; font-size: 0.93rem; font-weight: 700;
+    }
+    .dp-adhesion-ok .check {
+      width: 18px; height: 18px; border-radius: 999px; background: #019939; color: #fff;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; font-weight: 800;
+    }
+
+    /* ══════════════════
+       PAGE AJOUTER
+    ══════════════════ */
+    .add-page { max-width: 960px; margin: 0 auto; padding: 26px 30px 38px; }
+    .add-card { background: #fff; border: 1px solid #ebeee7; border-radius: 18px; padding: 30px 34px 34px; }
+
+    .f-section-label {
+      font-size: 13px; font-weight: 800; letter-spacing: .06em;
+      text-transform: uppercase; color: #ec6724; margin-bottom: 14px;
+    }
+    .f-section-label span { font-size: 12px; color: #8a9990; font-weight: 400; text-transform: none; letter-spacing: 0; margin-left: 8px; }
+    .f-sep { border: none; border-top: 1px solid #f0f2ec; margin: 26px 0; }
+    .frow { display: grid; gap: 18px; margin-bottom: 22px; }
+    .frow.c2 { grid-template-columns: 1fr 1fr; }
+    .frow.c3 { grid-template-columns: 1fr 1fr 1fr; }
+    .frow.c14 { grid-template-columns: 1.4fr 1fr; }
+    .frow.c141 { grid-template-columns: 1.4fr 1fr 1fr; }
+    @media(max-width:600px) { .frow.c2,.frow.c3,.frow.c14,.frow.c141 { grid-template-columns: 1fr; } }
+    .fg label {
+      display: block; font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: #5d6b60; margin-bottom: 8px;
+    }
+    .fg input, .fg select, .fg textarea {
+      width: 100%; height: 46px; padding: 0 14px;
+      border: 1px solid #d9e0d5; border-radius: 11px;
+      background: #fff; font-family: inherit; font-size: 14.5px;
+      color: #14241a; outline: none; transition: border-color .15s, box-shadow .15s;
+    }
+    .fg input:focus, .fg select:focus, .fg textarea:focus {
+      border-color: #019939; box-shadow: 0 0 0 3px rgba(1,153,57,.12);
+    }
+    .fg textarea { height: auto; min-height: 120px; padding: 13px 14px; resize: vertical; line-height: 1.5; }
+    .fg input[style*="Mono"], .fg input.mono { font-family: 'JetBrains Mono', monospace; font-size: 14px; }
+
+    /* Type cards */
+    .type-cards { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 26px; }
+    .type-card {
+      padding: 14px 18px; border: 1.5px solid #e3e8df; border-radius: 13px;
+      background: #fff; cursor: pointer; text-align: left;
+      font-family: inherit; transition: all .15s; min-width: 160px;
+    }
+    .type-card:hover { border-color: #b5d4c0; background: #f7f9f5; }
+    .type-card.selected-centre    { border-color: #019939; background: #f0faf4; }
+    .type-card.selected-rapatrieur{ border-color: #ec6724; background: #fff8f2; }
+    .type-card.selected-autre     { border-color: #8a9990; background: #f7f9f5; }
+    .type-card-top { display: flex; align-items: center; gap: 9px; margin-bottom: 5px; }
+    .type-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+    .type-label { font-size: 15px; font-weight: 800; color: #14241a; }
+    .type-desc  { font-size: 12.5px; color: #6b7a6e; }
+
+    /* Formation checkboxes */
+    .formation-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 30px; }
+    .chk-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border: 1.5px solid #e3e8df; border-radius: 10px;
+      cursor: pointer; transition: all .15s; user-select: none;
+    }
+    .chk-item:hover { border-color: #b5d4c0; }
+    .chk-item.checked { border-color: #019939; background: #f0faf4; }
+    .chk-box {
+      width: 20px; height: 20px; border-radius: 6px;
+      border: 2px solid #d9e0d5; background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: all .15s;
+    }
+    .chk-item.checked .chk-box { background: #019939; border-color: #019939; }
+    .chk-check { color: #fff; font-size: 13px; font-weight: 800; opacity: 0; }
+    .chk-item.checked .chk-check { opacity: 1; }
+    .chk-label { font-size: 14px; font-weight: 600; color: #2f3d33; }
+
+    /* Section box */
+    .f-box { padding: 22px 22px 24px; border-radius: 14px; margin-bottom: 22px; }
+    .f-box.gray { background: #f7f9f5; border: 1px solid #ebeee7; }
+    .f-box.green { background: #e7f4ec; border: 1px solid #b9e0c6; }
+    .f-box-title { font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 16px; }
+    .f-box.gray  .f-box-title { color: #ec6724; }
+    .f-box.green .f-box-title { color: #017a2f; display: flex; align-items: center; gap: 8px; }
+
+    /* Action buttons */
+    .btn-save {
+      display: inline-flex; align-items: center; gap: 9px;
+      background: #019939; color: #fff; border: 0;
+      padding: 14px 26px; border-radius: 12px; font-family: inherit;
+      font-size: 15px; font-weight: 700; cursor: pointer; transition: background .15s;
+    }
+    .btn-save:hover { background: #017a2f; }
+    .btn-save:disabled { background: #aaa; cursor: not-allowed; }
+    .btn-draft {
+      display: inline-flex; align-items: center; gap: 9px;
+      background: #fff; color: #c4521a; border: 1.5px solid #ec6724;
+      padding: 14px 22px; border-radius: 12px; font-family: inherit;
+      font-size: 15px; font-weight: 700; cursor: pointer; transition: background .15s;
+    }
+    .btn-draft:hover { background: #fdf3ec; }
+    .btn-cancel-form {
+      margin-left: auto; background: #f1f3ee; color: #5d6b60;
+      border: 1px solid #e3e8df; padding: 14px 24px; border-radius: 12px;
+      font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-cancel-form:hover { background: #e9ece5; }
+    #form-result {
+      margin-top: 16px; padding: 14px 18px; border-radius: 13px;
+      font-size: 14.5px; font-weight: 600; display: none;
+      display: none; align-items: center; gap: 11px;
+    }
+    #form-result.success { background: #e7f4ec; border: 1px solid #b9e0c6; color: #0c3d22; display: flex; }
+    #form-result.error   { background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; display: flex; }
+
+    /* ══════════════════
+       PAGE BROUILLONS
+    ══════════════════ */
+    .brouillons-page { padding: 26px 30px 38px; }
+    .drafts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+    .draft-card {
+      border: 1px solid #ebeee7; border-radius: 15px; padding: 18px;
+      background: #fff; display: flex; flex-direction: column; gap: 13px;
+    }
+    .draft-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .draft-name { font-size: 16px; font-weight: 800; color: #14241a; }
+    .draft-date { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #8a9990; margin-top: 3px; }
+    .draft-badge-pill {
+      flex-shrink: 0; font-size: 10.5px; font-weight: 800; letter-spacing: .04em;
+      text-transform: uppercase; color: #c4521a; background: #fdf3ec;
+      border: 1px solid #f4d3bd; padding: 4px 9px; border-radius: 7px;
+    }
+    .draft-types { display: flex; gap: 6px; flex-wrap: wrap; }
+    .draft-type-tag { font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 7px; }
+    .draft-sep { height: 1px; background: #f0f2ec; }
+    .draft-info { display: flex; flex-direction: column; gap: 7px; }
+    .draft-info-row { display: flex; align-items: center; gap: 9px; }
+    .draft-info-lbl { font-size: 11px; color: #a4b0a7; width: 62px; text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
+    .draft-info-val { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #2f3d33; }
+    .draft-info-val.commune { font-family: inherit; font-size: 13.5px; font-weight: 600; }
+    .draft-actions { display: flex; gap: 9px; margin-top: 2px; }
+    .btn-reprendre {
+      flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      background: #019939; color: #fff; border: 0; padding: 11px 14px;
+      border-radius: 10px; font-family: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-reprendre:hover { background: #017a2f; }
+    .btn-supprimer {
+      background: #fff; color: #b23b2e; border: 1px solid #e8d6d3;
+      padding: 11px 14px; border-radius: 10px; font-family: inherit;
+      font-size: 13.5px; font-weight: 600; cursor: pointer; transition: background .15s;
+    }
+    .btn-supprimer:hover { background: #fbf0ee; }
+    .drafts-empty {
+      padding: 70px 30px; text-align: center;
+      background: #fff; border: 1px dashed #d9e0d5; border-radius: 16px;
+    }
+    .drafts-empty-title { font-size: 17px; font-weight: 700; color: #46544a; margin-bottom: 6px; }
+    .drafts-empty-sub { margin: 0 0 20px; font-size: 14px; color: #8a9990; }
+    .btn-start {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: #ec6724; color: #fff; border: 0; padding: 12px 20px;
+      border-radius: 11px; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-start:hover { background: #d4571a; }
+
+    /* ══════════════════
+       FORM — SECTIONS CONDITIONNELLES
+    ══════════════════ */
+    .f-box.orange { background: #fff8f2; border: 1px solid #f4d3bd; }
+    .f-box.orange .f-box-title { color: #c4521a; display: flex; align-items: center; gap: 8px; }
+    .f-box.green  .f-box-title { display: flex; align-items: center; gap: 8px; }
+
+    /* Checkboxes compactes en grille */
+    .chk-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chk-item.sm { padding: 7px 11px; }
+    .chk-item.sm .chk-box { width: 16px; height: 16px; border-radius: 4px; }
+    .chk-item.sm .chk-check { font-size: 11px; }
+    .chk-item.sm .chk-label { font-size: 13px; }
+
+    /* Checkboxes pleine largeur empilées */
+    .chk-stack { display: flex; flex-direction: column; gap: 8px; }
+    .chk-stack .chk-item { width: 100%; padding: 13px 16px; }
+    .chk-stack .chk-label { font-size: 14.5px; }
+
+    /* Point coloré dans les titres de section */
+    .title-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    /* Sous-détail caisses */
+    .caisses-detail {
+      background: #fff3ec; border: 1px solid #f4d3bd; border-radius: 10px;
+      padding: 14px 16px; margin-top: 2px;
+    }
+
+    /* Label secondaire dans f-box */
+    .f-sub-label {
+      font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+      color: #a4b0a7; margin-bottom: 10px; margin-top: 16px;
+    }
+
+    /* Grille 2 colonnes pour compétences */
+    .chk-2col {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    }
+    @media(max-width:600px) { .chk-2col { grid-template-columns: 1fr; } }
+
+    /* ── Bannière archivage annuel ── */
+    .archive-banner {
+      display: flex; align-items: flex-start; gap: 16px;
+      background: linear-gradient(135deg, #1a3a2a 0%, #0c3d22 100%);
+      border: 1.5px solid #2d6a42;
+      border-radius: 14px; padding: 18px 20px;
+      margin: 0 0 20px 0; color: #fff; position: relative;
+    }
+    .archive-banner-icon {
+      font-size: 2rem; flex-shrink: 0; line-height: 1; margin-top: 2px;
+    }
+    .archive-banner-body { flex: 1; min-width: 0; }
+    .archive-banner-title {
+      font-size: 1rem; font-weight: 700; margin-bottom: 4px;
+    }
+    .archive-banner-sub {
+      font-size: 0.83rem; color: #a8d5b5; margin-bottom: 14px; line-height: 1.5;
+    }
+    .archive-banner-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .archive-btn {
+      display: flex; align-items: center; gap: 7px;
+      padding: 9px 16px; border-radius: 9px; font-size: 0.83rem;
+      font-weight: 600; cursor: pointer; border: none; transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .archive-btn.primary {
+      background: #019939; color: #fff;
+    }
+    .archive-btn.primary:hover { background: #017a2f; }
+    .archive-btn.secondary {
+      background: rgba(255,255,255,0.12); color: #fff;
+      border: 1.5px solid rgba(255,255,255,0.25);
+    }
+    .archive-btn.secondary:hover { background: rgba(255,255,255,0.2); }
+    .archive-btn.danger {
+      background: rgba(220,80,60,0.18); color: #ff9b8a;
+      border: 1.5px solid rgba(220,80,60,0.3);
+    }
+    .archive-btn.danger:hover { background: rgba(220,80,60,0.3); }
+    .archive-btn.ghost {
+      background: transparent; color: rgba(255,255,255,0.45);
+      font-size: 0.78rem; padding: 4px 0; border: none; text-decoration: underline;
+    }
+    .archive-btn.ghost:hover { color: #fff; }
+    .archive-btn.loading { opacity: 0.55; pointer-events: none; }
+    .archive-banner-close {
+      position: absolute; top: 12px; right: 14px;
+      background: none; border: none; color: rgba(255,255,255,0.4);
+      font-size: 1.1rem; cursor: pointer; line-height: 1; padding: 2px 4px;
+    }
+    .archive-banner-close:hover { color: #fff; }
+
+    .btn-rapat-hero {
+      background: #0c3d22 !important;
+    }
+    .btn-rapat-hero:hover { background: #015e26 !important; }
+
+    .trajet-line {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+      position: relative;
+    }
+    .trajet-dot {
+      width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
+    }
+    /* Étape fantôme (pointillé) */
+    .trajet-ville.phantom {
+      border-style: dashed !important;
+      border-color: #e8d96a !important;
+      background: #fffef0 !important;
+      color: #888;
+    }
+    .trajet-ville.phantom::placeholder { color: #bbb; }
+    /* Autocomplete trajet */
+    .trajet-wrap { flex: 1; position: relative; }
+    .trajet-ac-dropdown {
+      display: none; position: absolute; top: 100%; left: 0; right: 0;
+      background: #fff; border: 1.5px solid #d8d4ce; border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.12); z-index: 200;
+      max-height: 220px; overflow-y: auto; margin-top: 3px;
+    }
+    .trajet-ac-dropdown.open { display: block; }
+    .trajet-ac-group {
+      padding: 6px 12px 3px; font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase; color: #aaa;
+      border-top: 1px solid #f0ede8;
+    }
+    .trajet-ac-group:first-child { border-top: none; }
+    .trajet-ac-item {
+      padding: 8px 14px; cursor: pointer; font-size: 0.88rem;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .trajet-ac-item:hover { background: #f7f9f5; }
+    .trajet-ac-item .ac-badge {
+      font-size: 0.68rem; font-weight: 700; padding: 2px 6px; border-radius: 5px;
+      flex-shrink: 0;
+    }
+    .ac-badge.veto {
+      background: #fff3ec; color: #ec6724;
+    }
+    .ac-badge.partenaire {
+      background: #e6f5ec; color: #019939;
+    }
+    .btn-add-etape {
+      background: none; border: none; color: #0c3d22; font-size: 0.82rem;
+      font-weight: 600; cursor: pointer; padding: 4px 0; text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .btn-add-etape:hover { color: #019939; }
+    .date-item {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .date-item + .date-item { margin-top: 8px; }
+
+
+@media (max-width: 768px) {
+  /* Header */
+  header { padding: 0 14px; height: 52px; }
+  nav { gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  nav a { font-size: 0.72rem; padding: 6px 10px; white-space: nowrap; }
+
+  /* Hero */
+  .hero { padding: 16px 14px 12px; }
+  .hero-top { margin-bottom: 8px; }
+  .hero-label { font-size: 0.65rem; }
+  .hero-count { font-size: 1.6rem; }
+
+  /* Hide heatmap preview on mobile */
+  #hero-top-right { display: none !important; }
+
+  /* Buttons */
+  .btn-add-hero { font-size: 0.78rem; padding: 8px 12px; }
+
+  /* Search bars */
+  .hero-searches { flex-direction: column; gap: 8px; max-width: 100%; }
+  .hero-search { width: 100%; }
+
+  /* Filter tags */
+  .filter-bar, .role-tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+  .role-tab { white-space: nowrap; }
+
+  /* Cards grid */
+  .cards-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+
+  /* Table view — hide on mobile, force cards */
+  .view-table { display: none !important; }
+
+  /* Detail panel */
+  #detail-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 0 !important;
+    right: 0 !important;
+  }
+
+  /* benev-header */
+  .benev-header { flex-wrap: wrap; gap: 8px; }
+  .benev-title { font-size: 0.85rem; }
+
+  /* Birthday banner */
+  #birthday-banner { font-size: 0.7rem; padding: 3px 8px; }
+
+  /* Form page */
+  .add-page { padding: 16px 14px 30px; }
+  .frow.c2, .frow.c3, .frow.c14 { grid-template-columns: 1fr !important; }
+  .f-row { flex-direction: column; }
+
+  /* Rapat form */
+  #page-rapat-add .hero { padding: 12px 14px; }
+
+  /* Stats bar */
+  .stats-bar { flex-wrap: wrap; gap: 8px; }
+
+  /* Brouillons */
+  .brouillons-page { padding: 14px; }
+}
+
+@media (max-width: 480px) {
+  .cards-grid { grid-template-columns: 1fr !important; }
+  nav a.ext { display: none; }
+}
+
+  </style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<header>
+  <a class="logo" href="#">
+    <div class="logo-sq">H</div>
+    <span class="logo-name">Hegalaldia</span>
+  </a>
+  <nav>
+    <a href="#" class="nav-link active" data-page="page-liste">Liste des bénévoles</a>
+    <a href="#" class="nav-link" data-page="page-ajouter">Ajouter un bénévole</a>
+    <a href="#" class="nav-link" data-page="page-rapat-add">Rapatriement</a>
+    <a href="#" class="nav-link" data-page="page-brouillons">Brouillons <span id="draft-badge" style="display:none;background:#e8825a;color:#fff;border-radius:10px;padding:1px 7px;font-size:0.72rem;margin-left:3px"></span></a>
+    <a href="/index.html" class="nav-link ext">Accueil</a>
+    <a href="https://hegalaldia.org" target="_blank" class="nav-link ext">Site de l'association</a>
+  </nav>
+</header>
+
+<!-- ══════════════════════════════
+     PAGE LISTE
+══════════════════════════════ -->
+<div id="page-liste" class="page active">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-top">
+      <div>
+        <div class="hero-label">Annuaire interne</div>
+        <div class="hero-count" id="hero-count">… bénévoles</div>
+      </div>
+      <div id="hero-top-right" style="display:flex;flex-direction:column;gap:8px;align-items:stretch;position:absolute;top:0;right:0;">
+        <div style="display:flex;gap:10px;">
+          <button class="btn-add-hero btn-rapat-hero" onclick="goPage('page-rapat-add')">+ Rapatriement</button>
+          <button class="btn-add-hero" onclick="goPage('page-ajouter')">+ Ajouter un bénévole</button>
+        </div>
+        <a href="http://192.168.1.55:8080/heatmap.html" target="_blank" title="Ouvrir la heatmap" style="display:block;border-radius:10px;overflow:hidden;position:relative;height:110px;text-decoration:none;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.22);cursor:pointer;transition:filter 0.2s;" onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter=''">
+          <img src="/heatmap-preview.png" style="width:100%;height:100%;object-fit:cover;object-position:center center;display:block;pointer-events:none;">
+          <div style="position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:flex-start;padding:6px 8px;background:linear-gradient(to top,rgba(0,0,0,0.35) 0%,transparent 60%);">
+            <span style="color:#fff;font-size:0.75rem;font-weight:700;letter-spacing:0.04em;display:flex;align-items:center;gap:4px;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+              Heatmap
+            </span>
+          </div>
+        </a>
+      </div>
+    </div>
+    <div class="hero-searches">
+      <div class="hero-search">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="6.5" cy="6.5" r="5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/>
+        </svg>
+        <input id="search" type="text" placeholder="Nom, prénom, téléphone…">
+      </div>
+      <div class="hero-search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/>
+        </svg>
+        <input id="search-commune" type="text" placeholder="Ville ou commune…">
+        <span class="hero-search-status" id="commune-search-status"></span>
+      </div>
+    </div>
+    <div class="filter-pills">
+      <button class="pill active" data-role="tous">Tous <span id="cnt-tous"></span></button>
+      <button class="pill" data-role="centre">Sur centre <span id="cnt-centre"></span></button>
+      <button class="pill" data-role="rapatrieur">Rapatrieurs <span id="cnt-rapatrieur"></span></button>
+      <button class="pill" data-role="autre">Autres <span id="cnt-autre"></span></button>
+      <div style="position:relative;" id="tag-picker-wrap">
+        <button id="tag-picker-btn" onclick="toggleTagPicker()" style="padding:6px 14px;border-radius:20px;font-size:0.81rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(255,255,255,0.3);color:rgba(255,255,255,0.8);background:transparent;white-space:nowrap;display:flex;align-items:center;gap:6px;transition:all 0.15s">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+          <span id="tag-picker-label">Filtrer par tag</span>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" id="tag-picker-chevron"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div id="tag-picker-panel" style="display:none;position:absolute;top:calc(100% + 8px);left:0;z-index:200;background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(12,61,34,0.18);padding:16px;min-width:300px;max-width:380px;">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast succès ajout/modif -->
+  <div id="liste-toast" style="display:none;margin:16px 24px 0;padding:13px 18px;background:#e8f5e9;border:1.5px solid #a5d6a7;border-radius:12px;color:#1b5e20;font-size:0.9rem;font-weight:600;align-items:center;gap:10px;">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    <span id="liste-toast-msg"></span>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-num" id="stat-total">—</div>
+      <div class="stat-label">Total bénévoles</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num green" id="stat-centre">—</div>
+      <div class="stat-label">Sur centre</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num orange" id="stat-rapat">—</div>
+      <div class="stat-label">Rapatrieurs</div>
+    </div>
+    <div class="stat-card dark">
+      <div class="stat-num" id="stat-rapat-mois">—</div>
+      <div class="stat-label">Rapat. ce mois</div>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="body-wrap">
+
+    <!-- Rapatriements récents -->
+    <div id="rapat-section" style="display:none; margin-bottom:8px;">
+      <div class="section-title">
+        <span class="dot"></span>
+        Rapatriements récents
+        <span class="sub" id="rapat-sub"></span>
+      </div>
+      <div class="rapat-wrapper">
+        <button class="rapat-arrow rapat-arrow-left disabled" id="rapat-prev">&#8592;</button>
+        <div class="rapat-scroll" id="rapat-scroll"></div>
+        <button class="rapat-arrow rapat-arrow-right" id="rapat-next">&#8594;</button>
+      </div>
+    </div>
+
+    <!-- Bannière archivage annuel -->
+    <div id="archive-banner" class="archive-banner" style="display:none;">
+      <div class="archive-banner-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#74c69d">
+          <polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5" rx="1"/>
+          <line x1="10" y1="12" x2="14" y2="12"/>
+        </svg>
+      </div>
+      <div class="archive-banner-body">
+        <div class="archive-banner-title" id="archive-banner-title">Archiver les rapatriements <span id="archive-year-label"></span></div>
+        <div class="archive-banner-sub">
+          Une nouvelle année a commencé ! Vous pouvez télécharger le récapitulatif XLS de l'année précédente,
+          puis nettoyer les rapatriements archivés pour alléger la base.
+        </div>
+        <div class="archive-banner-actions">
+          <button class="archive-btn primary" id="archive-btn-dl" onclick="archiveDownload()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Télécharger XLS <span id="archive-year-btn"></span>
+          </button>
+          <button class="archive-btn danger" id="archive-btn-clear" onclick="archiveClear()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+              <path d="M10 11v6"/><path d="M14 11v6"/>
+            </svg>
+            Supprimer les rapat. <span id="archive-year-clear"></span>
+          </button>
+          <button class="archive-btn ghost" onclick="archiveDismiss()">Ne plus afficher ce message</button>
+        </div>
+      </div>
+      <button class="archive-banner-close" onclick="archiveDismiss()" title="Fermer">✕</button>
+    </div>
+
+    <!-- Tous les bénévoles -->
+    <div class="benev-header">
+      <div class="benev-title">Tous les bénévoles <span id="benev-count-label">(…)</span></div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div id="birthday-banner" style="display:none;background:#fff;border:1.5px solid #019939;border-radius:8px;padding:7px 13px;align-items:center;gap:6px;font-size:0.82rem;font-weight:600;color:#2d6a40;width:fit-content;white-space:nowrap;"></div>
+        <button class="btn-archive-mgr" onclick="openArchiveModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5" rx="1"/>
+            <line x1="10" y1="12" x2="14" y2="12"/>
+          </svg>
+          Archiver
+        </button>
+        <button class="btn-export" id="btn-export" onclick="exportXLS()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Exporter XLS
+        </button>
+        <div class="view-toggle">
+          <button class="view-btn" id="btn-tableau" onclick="setView('table')">Tableau</button>
+          <button class="view-btn active" id="btn-cartes" onclick="setView('cards')">Cartes</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cards-grid" id="cards-grid"></div>
+    <div id="table-wrap">
+      <table id="table">
+        <thead>
+          <tr>
+            <th data-col="nom">Bénévole <span class="sa">↕</span></th>
+            <th>Téléphone</th>
+            <th data-col="commune">Commune <span class="sa">↕</span></th>
+            <th>Rayon</th>
+            <th>Information temporaire</th>
+            <th data-col="rapat">Dernier rapatriement <span class="sa">↕</span></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div id="empty">Aucun bénévole trouvé.</div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     PAGE AJOUTER
+══════════════════════════════ -->
+<div id="page-ajouter" class="page" style="background:#f7f9f5; min-height:calc(100vh - 56px);">
+  <div class="hero">
+    <div class="hero-label">Nouvelle fiche</div>
+    <div class="hero-count" style="font-size:2rem; margin-bottom:8px;">Ajouter un bénévole</div>
+    <div style="font-size:0.9rem; color:rgba(255,255,255,0.75);">Renseignez les informations du nouveau bénévole, puis enregistrez la fiche.</div>
+  </div>
+  <div class="add-page">
+    <div id="form-saved-banner" style="display:none; align-items:center; gap:11px; margin-bottom:20px; padding:14px 18px; background:#e7f4ec; border:1px solid #b9e0c6; border-radius:13px;">
+      <span style="width:24px;height:24px;border-radius:999px;background:#019939;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0;">✓</span>
+      <span id="form-saved-text" style="font-size:14.5px;font-weight:600;color:#0c3d22;"></span>
+    </div>
+    <div class="add-card">
+      <form id="add-form">
+
+        <!-- ── Type de bénévole ── -->
+        <div class="f-section-label">Type de bénévole <span>plusieurs choix possibles</span></div>
+        <div class="type-cards" style="margin-bottom:20px;">
+          <button type="button" class="type-card" data-type="centre" onclick="toggleTypeCard(this)">
+            <div class="type-card-top"><span class="type-dot" style="background:#019939;"></span><span class="type-label">Sur centre</span></div>
+            <div class="type-desc">Présence sur le site de soins</div>
+          </button>
+          <button type="button" class="type-card" data-type="rapatrieur" onclick="toggleTypeCard(this)">
+            <div class="type-card-top"><span class="type-dot" style="background:#ec6724;"></span><span class="type-label">Rapatrieur</span></div>
+            <div class="type-desc">Transport d'animaux sauvages</div>
+          </button>
+          <button type="button" class="type-card" data-type="autre" onclick="toggleTypeCard(this)">
+            <div class="type-card-top"><span class="type-dot" style="background:#8a9990;"></span><span class="type-label">Autre bénévole</span></div>
+            <div class="type-desc">Autre type d'activité</div>
+          </button>
+        </div>
+
+        <!-- ── Formation (dynamique) ── -->
+        <div id="section-formation" style="display:none;">
+          <div class="f-section-label">Formation</div>
+          <div class="formation-row" id="formation-chks" style="margin-bottom:22px;"></div>
+        </div>
+
+        <hr class="f-sep">
+
+        <!-- ── Identité ── -->
+        <div class="frow c3">
+          <div class="fg"><label>Nom de famille</label><input type="text" name="nom" autocomplete="off"></div>
+          <div class="fg"><label>Prénom</label><input type="text" name="prenom" autocomplete="off"></div>
+          <div class="fg"><label>Date de naissance</label><input type="text" name="naissance" placeholder="JJ/MM/AAAA" autocomplete="off" maxlength="10" inputmode="numeric" oninput="fmtDateNaissance(this)"></div>
+        </div>
+
+        <!-- ── Contact ── -->
+        <div class="frow c2">
+          <div class="fg"><label>Email</label><input type="email" name="email" placeholder="prenom.nom@exemple.fr"></div>
+          <div class="fg"><label>Adresse</label><input type="text" name="adresse" autocomplete="off"></div>
+        </div>
+        <div class="frow c3">
+          <div class="fg"><label>Téléphone 1</label><input type="text" name="telephone" placeholder="06 00 00 00 00" class="mono" maxlength="14" inputmode="numeric" oninput="fmtTelephone(this)"></div>
+          <div class="fg"><label>Téléphone 2</label><input type="text" name="telephone2" placeholder="—" class="mono" maxlength="14" inputmode="numeric" oninput="fmtTelephone(this)"></div>
+        </div>
+        <div class="frow c14" style="margin-bottom:22px;">
+          <div class="fg" style="position:relative;">
+            <label>Commune d'habitation</label>
+            <input type="text" name="commune" id="commune-input" placeholder="Rechercher une ville…" autocomplete="off" oninput="communeAcSearch(this)" onblur="setTimeout(()=>document.getElementById('commune-ac-drop').style.display='none',200)">
+            <div id="commune-ac-drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid #d8d4ce;border-radius:9px;z-index:200;box-shadow:0 4px 16px rgba(0,0,0,0.1);max-height:220px;overflow-y:auto;margin-top:4px;"></div>
+          </div>
+        </div>
+
+        <!-- ── Urgence (toujours visible) ── -->
+        <div class="f-box gray" style="margin-bottom:26px;">
+          <div class="f-box-title">Personne à prévenir en cas d'urgence</div>
+          <div class="frow c3" style="margin-bottom:0;">
+            <div class="fg"><label>Nom</label><input type="text" name="urg_nom" autocomplete="off"></div>
+            <div class="fg"><label>Prénom</label><input type="text" name="urg_prenom" autocomplete="off"></div>
+            <div class="fg"><label>Téléphone</label><input type="text" name="urg_tel" placeholder="06 00 00 00 00" class="mono" maxlength="14" inputmode="numeric" oninput="fmtTelephone(this)"></div>
+          </div>
+        </div>
+
+        <!-- ── Gouvernance (toujours visible) ── -->
+        <div class="f-box gray" style="margin-bottom:14px;">
+          <div class="f-box-title">Gouvernance</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:0;">
+            <div class="chk-item" data-chk="ca" onclick="toggleChk(this)">
+              <span class="chk-box"><span class="chk-check">✓</span></span>
+              <span class="chk-label">Membre du CA</span>
+            </div>
+            <div class="chk-item" data-chk="veteran" onclick="toggleChk(this);toggleVeteran()">
+              <span class="chk-box"><span class="chk-check">✓</span></span>
+              <span class="chk-label">Vétéran</span>
+            </div>
+          </div>
+          <div id="veteran-sub" style="display:none;flex-wrap:wrap;gap:8px;margin-top:8px;">
+            <div class="chk-item" data-chk="anc_sc" onclick="toggleChk(this)">
+              <span class="chk-box"><span class="chk-check">✓</span></span>
+              <span class="chk-label">Ancien SC</span>
+            </div>
+            <div class="chk-item" data-chk="anc_salarie" onclick="toggleChk(this)">
+              <span class="chk-box"><span class="chk-check">✓</span></span>
+              <span class="chk-label">Ancien Salarié</span>
+            </div>
+            <div class="chk-item" data-chk="anc_ca" onclick="toggleChk(this)">
+              <span class="chk-box"><span class="chk-check">✓</span></span>
+              <span class="chk-label">Ancien CA</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ SECTION SUR CENTRE ══ -->
+        <div id="section-centre" style="display:none;">
+          <div class="f-box green" style="margin-bottom:14px;">
+            <div class="f-box-title">
+              <span class="title-dot" style="background:#019939;"></span>
+              Informations bénévole en soin
+            </div>
+            <div class="chk-stack" style="margin-bottom:16px;">
+              <div class="chk-item" data-chk="adhesion" onclick="toggleChk(this)">
+                <span class="chk-box"><span class="chk-check">✓</span></span>
+                <span class="chk-label">Adhésion de l'année réglée</span>
+              </div>
+            </div>
+            <div class="fg" style="margin-bottom:14px;">
+              <label>1er jour de bénévolat</label>
+              <input type="date" name="premier_jour" style="max-width:220px;padding:8px 12px;border:1.5px solid #d8d4ce;border-radius:9px;font-size:0.9rem;color:#1a1a1a;">
+            </div>
+            <div class="fg" style="margin-bottom:0;">
+              <label>Disponibilités</label>
+              <textarea name="disponibilites" placeholder="Jours et créneaux de disponibilité…" style="min-height:100px;"></textarea>
+            </div>
+          </div>
+          <div class="f-section-label" style="margin-bottom:12px;">Compétences en soin</div>
+          <div class="chk-2col" style="margin-bottom:22px;">
+            <div class="chk-item" data-chk="comp_menage"     onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Ménage intérieur/extérieur et stocks</span></div>
+            <div class="chk-item" data-chk="comp_oisillons"  onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Nourrissage oisillons</span></div>
+            <div class="chk-item" data-chk="comp_marins"     onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Oiseaux marins</span></div>
+            <div class="chk-item" data-chk="comp_vautour"    onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Formée capture vautour</span></div>
+            <div class="chk-item" data-chk="comp_exterieurs" onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Préparation extérieurs</span></div>
+            <div class="chk-item" data-chk="comp_heris"      onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Tétées hérissons</span></div>
+          </div>
+        </div>
+
+        <!-- ══ SECTION RAPATRIEUR ══ -->
+        <div id="section-rapatrieur" style="display:none;">
+          <div class="f-box orange" style="margin-bottom:14px;">
+            <div class="f-box-title" style="display:flex;align-items:center;justify-content:space-between;">
+              Véhicule(s)
+              <button type="button" onclick="addVehiculeRow()" style="font-size:0.78rem;padding:3px 10px;background:#ec6724;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">+ Ajouter</button>
+            </div>
+            <div id="vehicules-list" style="display:flex;flex-direction:column;gap:12px;"></div>
+          </div>
+          <div class="f-box orange" style="margin-bottom:22px;">
+            <div class="f-box-title">
+              <span class="title-dot" style="background:#ec6724;"></span>
+              Informations bénévole rapatrieur
+            </div>
+            <div class="chk-stack" style="margin-bottom:16px;">
+              <div class="chk-item" data-chk="caisses" onclick="toggleCaisses(this)">
+                <span class="chk-box"><span class="chk-check">✓</span></span>
+                <span class="chk-label">Dispose de caisses de transport</span>
+              </div>
+              <div id="section-caisses-detail" class="caisses-detail" style="display:none;">
+                <div class="frow c2" style="margin-bottom:0;">
+                  <div class="fg"><label>Nombre</label><input type="number" name="caisses_nb" min="1" placeholder="ex : 2"></div>
+                  <div class="fg"><label>Taille(s)</label><input type="text" name="caisses_taille" placeholder="ex : S, M, L…"></div>
+                </div>
+              </div>
+              <div class="chk-item" data-chk="comp_vautour" onclick="toggleChk(this)">
+                <span class="chk-box"><span class="chk-check">✓</span></span>
+                <span class="chk-label">Formée capture vautour</span>
+              </div>
+              <div class="chk-item" data-chk="gants" onclick="toggleChk(this)">
+                <span class="chk-box"><span class="chk-check">✓</span></span>
+                <span class="chk-label">Gants de contention</span>
+              </div>
+              <div class="chk-item" data-chk="garde_domicile" onclick="toggleChk(this)">
+                <span class="chk-box"><span class="chk-check">✓</span></span>
+                <span class="chk-label">Accepte de garder l'animal à domicile si besoin</span>
+              </div>
+              <div class="chk-item" data-chk="recu_fiscal" onclick="toggleChk(this)">
+                <span class="chk-box"><span class="chk-check">✓</span></span>
+                <span class="chk-label">Souhaite un reçu fiscal</span>
+              </div>
+            </div>
+            <div class="f-sub-label">Rayon d'action</div>
+            <div style="margin-bottom:14px;">
+              <label style="font-size:0.8rem;color:#5a6b60;font-weight:600;display:block;margin-bottom:6px;">Rayon d'intervention (km)</label>
+              <input type="number" name="rayon" placeholder="ex : 20" min="0" max="999" style="width:130px;padding:8px 12px;border:1.5px solid #d8d4ce;border-radius:9px;font-size:0.9rem;">
+            </div>
+            <div class="chk-grid">
+              <div class="chk-item sm" data-chk="zone_pb"     onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Pays Basque</span></div>
+              <div class="chk-item sm" data-chk="zone_bearn"  onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Béarn</span></div>
+              <div class="chk-item sm" data-chk="zone_landes" onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Landes</span></div>
+              <div class="chk-item sm" data-chk="zone_hp"     onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Hautes-Pyrénées</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ SECTION AUTRE ══ -->
+        <div id="section-autre" style="display:none;">
+          <div class="f-box gray" style="margin-bottom:22px;">
+            <div class="f-box-title" style="color:#46544a;">Activités</div>
+            <div class="chk-grid">
+              <div class="chk-item sm" data-chk="act_caddie"        onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Opération Caddie</span></div>
+              <div class="chk-item sm" data-chk="act_papier_cadeau" onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Papiers Cadeaux</span></div>
+              <div class="chk-item sm" data-chk="act_espaces_verts" onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Espaces verts</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Compétences générales (toujours visible) ── -->
+        <div class="f-box gray" style="margin-bottom:22px;">
+          <div class="f-box-title" style="color:#46544a;">Compétences générales</div>
+          <div class="chk-grid" style="margin-bottom:16px;">
+            <div class="chk-item sm" data-chk="comp_brico"   onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Bricolage</span></div>
+            <div class="chk-item sm" data-chk="comp_info"    onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Notions informatiques</span></div>
+            <div class="chk-item sm" data-chk="comp_commu"   onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Communication / réseaux</span></div>
+            <div class="chk-item sm" data-chk="comp_compta"  onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Comptabilité</span></div>
+            <div class="chk-item sm" data-chk="comp_photo"   onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Photographie</span></div>
+            <div class="chk-item sm" data-chk="comp_couture" onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Couture</span></div>
+          </div>
+          <div class="fg" style="margin-bottom:0;">
+            <label>Autres compétences</label>
+            <input type="text" name="autres_competences" placeholder="Décrivez librement…">
+          </div>
+        </div>
+
+        <!-- ── Commentaires (toujours visible) ── -->
+        <div class="fg" style="margin-bottom:30px;">
+          <label>Commentaires</label>
+          <textarea name="commentaire" placeholder="Disponibilités, contraintes, informations temporaires…"></textarea>
+        </div>
+
+        <!-- ── Actions ── -->
+        <div style="display:flex; gap:12px; align-items:center; padding-top:18px; border-top:1px solid #f0f2ec; flex-wrap:wrap;">
+          <button type="submit" class="btn-save" id="btn-submit"><span style="font-size:18px;line-height:0;">✓</span> Enregistrer la fiche</button>
+          <button type="button" class="btn-draft" onclick="saveDraft()">Enregistrer en brouillon</button>
+          <button type="button" class="btn-cancel-form" onclick="goPage('page-liste')">Annuler</button>
+          <button type="button" id="btn-delete-benev" style="display:none;margin-left:auto;padding:9px 16px;background:#fff;border:1.5px solid #e0a090;border-radius:8px;color:#c0392b;font-size:0.85rem;font-weight:600;cursor:pointer;" onmouseover="this.style.background='#fdf0ee'" onmouseout="this.style.background='#fff'" onclick="confirmDeleteBenevole()">Supprimer ce bénévole</button>
+        </div>
+        <div id="form-result"></div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     PAGE BROUILLONS
+══════════════════════════════ -->
+<div id="page-brouillons" class="page" style="background:#f7f9f5; min-height:calc(100vh - 56px);">
+  <div class="hero">
+    <div class="hero-top" style="margin-bottom:8px;">
+      <div>
+        <div class="hero-label">Fiches en attente</div>
+        <div class="hero-count" style="font-size:2rem; margin-bottom:8px;">Brouillons</div>
+        <div style="font-size:0.9rem; color:rgba(255,255,255,0.75);">Fiches commencées et non finalisées, reprenez-les quand vous voulez.</div>
+      </div>
+      <button class="btn-add-hero" onclick="goPage('page-ajouter')">+ Nouvelle fiche</button>
+    </div>
+  </div>
+  <div class="brouillons-page">
+    <div id="drafts-grid" class="drafts-grid"></div>
+    <div id="drafts-empty" class="drafts-empty" style="display:none;">
+      <div class="drafts-empty-title">Aucun brouillon</div>
+      <p class="drafts-empty-sub">Les fiches enregistrées en brouillon apparaîtront ici.</p>
+      <button class="btn-start" onclick="goPage('page-ajouter')"><span style="font-size:18px;line-height:0;">+</span> Commencer une fiche</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     PAGE RAPATRIEMENT
+══════════════════════════════ -->
+<div id="page-rapat-add" class="page" style="background:#f7f9f5; min-height:calc(100vh - 56px);">
+  <!-- Hero identique au style page-ajouter -->
+  <div class="hero">
+    <div class="hero-top" style="margin-bottom:8px;">
+      <div>
+        <div class="hero-label">Nouveau rapatriement</div>
+        <div class="hero-count">Saisie d'un trajet</div>
+      </div>
+    </div>
+  </div>
+
+  <form id="rapat-form" onsubmit="submitRapat(event)" style="max-width:640px;margin:28px auto;padding:0 16px 40px;">
+
+    <!-- Section bénévole -->
+    <div class="f-section-label">Bénévole rapatrieur</div>
+    <div class="f-box" style="border:1.5px solid #d8d4ce;border-radius:12px;padding:18px 20px;background:#fff;margin-bottom:20px;">
+      <!-- Champ recherche avec autocomplete -->
+      <div class="fg">
+        <label>Rechercher un bénévole</label>
+        <div style="position:relative;">
+          <input type="text" id="rapat-benev-search" placeholder="Nom ou prénom…" autocomplete="off"
+            oninput="searchBenevRapat(this.value)"
+            style="width:100%;padding:10px 14px;border:1.5px solid #d8d4ce;border-radius:9px;font-size:0.9rem;">
+          <div id="rapat-benev-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid #d8d4ce;border-radius:9px;z-index:100;box-shadow:0 4px 16px rgba(0,0,0,0.1);max-height:220px;overflow-y:auto;margin-top:4px;"></div>
+        </div>
+        <input type="hidden" id="rapat-benev-id">
+        <div id="rapat-benev-selected" style="display:none;margin-top:10px;padding:10px 14px;background:#e8f5e9;border-radius:9px;font-size:0.88rem;font-weight:600;color:#0c3d22;align-items:center;justify-content:space-between;"></div>
+      </div>
+    </div>
+
+    <!-- Section dates -->
+    <div class="f-section-label">Date(s) du rapatriement</div>
+    <div class="f-box" style="border:1.5px solid #d8d4ce;border-radius:12px;padding:18px 20px;background:#fff;margin-bottom:20px;">
+      <div id="rapat-dates-list">
+        <div class="date-item">
+          <input type="date" class="rapat-date-input" style="flex:1;padding:9px 12px;border:1.5px solid #d8d4ce;border-radius:9px;font-size:0.9rem;">
+        </div>
+      </div>
+      <button type="button" class="btn-add-etape" onclick="addRapatDate()" style="margin-top:10px;">+ Ajouter une autre date (trajet sur plusieurs jours)</button>
+
+      <div class="f-row" style="margin-top:16px;">
+        <div class="fg">
+          <label>Heure de départ</label>
+          <input type="time" id="rapat-heure-depart" style="width:100%;padding:9px 12px;border:1.5px solid #d8d4ce;border-radius:9px;font-size:0.9rem;">
+        </div>
+        <div class="fg">
+          <label>Heure d'arrivée</label>
+          <input type="time" id="rapat-heure-arrivee" style="width:100%;padding:9px 12px;border:1.5px solid #d8d4ce;border-radius:9px;font-size:0.9rem;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Section trajet -->
+    <div class="f-section-label">Trajet</div>
+    <div class="f-box" style="border:1.5px solid #d8d4ce;border-radius:12px;padding:18px 20px;background:#fff;margin-bottom:20px;">
+      <div id="rapat-trajet-list">
+        <!-- Départ -->
+        <div class="trajet-line" data-role="depart">
+          <div class="trajet-dot" style="background:#019939;"></div>
+          <div class="trajet-wrap">
+            <input type="text" class="trajet-ville" placeholder="Ville ou clinique vétérinaire de départ"
+              style="width:100%;padding:9px 12px;border:1.5px solid #d8d4ce;border-radius:9px;font-size:0.9rem;"
+              autocomplete="off" data-ac="tac_depart"
+              oninput="trajetAcSearch(this)" onfocus="trajetAcSearch(this)" onblur="trajetAcHide(this);scheduleDistanceCalc()">
+            <div class="trajet-ac-dropdown" id="tac_depart"></div>
+          </div>
+          <div style="width:28px;"></div>
+        </div>
+        <!-- Étape fantôme initiale -->
+        <div class="trajet-line" data-role="etape">
+          <div class="trajet-dot" style="background:#c8b800;"></div>
+          <div class="trajet-wrap">
+            <input type="text" class="trajet-ville phantom" placeholder="Étape (ville ou clinique vétérinaire)"
+              style="width:100%;padding:9px 12px;border:1.5px solid #d8d4ce;border-radius:9px;font-size:0.9rem;"
+              autocomplete="off" data-ac="tac_etape0"
+              oninput="onEtapeInput(this);trajetAcSearch(this)" onfocus="trajetAcSearch(this)" onblur="trajetAcHide(this);scheduleDistanceCalc()">
+            <div class="trajet-ac-dropdown" id="tac_etape0"></div>
+          </div>
+          <button type="button" onclick="removeEtape(this)" style="background:none;border:none;color:#ccc;font-size:1rem;cursor:pointer;padding:4px 6px;width:28px;flex-shrink:0;" title="Supprimer l'étape">✕</button>
+        </div>
+        <!-- Arrivée -->
+        <div class="trajet-line" data-role="arrivee">
+          <div class="trajet-dot" style="background:#ec6724;"></div>
+          <div class="trajet-wrap">
+            <input type="text" class="trajet-ville" placeholder="Ville ou clinique vétérinaire d'arrivée"
+              style="width:100%;padding:9px 12px;border:1.5px solid #d8d4ce;border-radius:9px;font-size:0.9rem;"
+              autocomplete="off" data-ac="tac_arrivee"
+              oninput="trajetAcSearch(this)" onfocus="trajetAcSearch(this)" onblur="trajetAcHide(this);scheduleDistanceCalc()">
+            <div class="trajet-ac-dropdown" id="tac_arrivee"></div>
+          </div>
+          <div style="width:28px;"></div>
+        </div>
+      </div>
+      <!-- Distance calculée -->
+      <div id="rapat-distance-row" style="display:none;margin-top:14px;padding:10px 14px;background:#f0faf4;border-radius:9px;border:1px solid #b8e0c4;display:flex;align-items:center;gap:10px;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#019939" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12h18M3 6h18M3 18h18"/>
+        </svg>
+        <span style="font-size:0.88rem;color:#2d6a42;">Distance estimée : <strong id="rapat-distance-val">—</strong></span>
+        <span id="rapat-distance-spin" style="display:none;font-size:0.78rem;color:#aaa;margin-left:4px;">calcul en cours…</span>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="f-section-label">Notes</div>
+    <div class="fg" style="margin-bottom:28px;">
+      <textarea id="rapat-notes" rows="3" placeholder="Commentaires, animal transporté, conditions particulières…"
+        style="width:100%;padding:10px 14px;border:1.5px solid #d8d4ce;border-radius:9px;font-size:0.9rem;resize:vertical;"></textarea>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button type="submit" class="btn-save" id="rapat-submit-btn">
+        <span style="font-size:18px;line-height:0;">✓</span> Enregistrer le rapatriement
+      </button>
+      <button type="button" class="btn-cancel-form" onclick="goPage('page-liste')">Annuler</button>
+    </div>
+  </form>
+</div>
+
+<script>
+// ════════════════════════════
+//  Navigation
+// ════════════════════════════
+// ── Bannière archivage annuel ────────────────────────────────────────────────
+(function initArchiveBanner() {
+  const now       = new Date();
+  const month     = now.getMonth(); // 0 = janvier
+  const prevYear  = now.getFullYear() - 1;
+  const key       = `archive_dismissed_${prevYear}`;
+
+  if (month !== 0) return;                      // Seulement en janvier
+  if (localStorage.getItem(key) === '1') return; // Déjà fermé
+
+  const banner = document.getElementById('archive-banner');
+  document.getElementById('archive-year-label').textContent = prevYear;
+  document.getElementById('archive-year-btn').textContent   = prevYear;
+  document.getElementById('archive-year-clear').textContent = prevYear;
+  banner.style.display = '';
+  banner._prevYear = prevYear;
+  banner._key      = key;
+})();
+
+function archiveDownload() {
+  const banner  = document.getElementById('archive-banner');
+  const year    = banner._prevYear;
+  const btn     = document.getElementById('archive-btn-dl');
+  btn.classList.add('loading');
+  btn.textContent = 'Génération…';
+  fetch(`/api/benevoles/export-xls?year=${year}`)
+    .then(r => { if (!r.ok) return r.text().then(t => { throw new Error(t); }); return r.blob(); })
+    .then(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `benevoles_rapatriements_${year}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    })
+    .catch(err => alert('Erreur export : ' + err.message))
+    .finally(() => {
+      btn.classList.remove('loading');
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Télécharger XLS ${year}`;
+    });
+}
+
+function archiveClear() {
+  const banner = document.getElementById('archive-banner');
+  const year   = banner._prevYear;
+  if (!confirm(`Supprimer tous les rapatriements de ${year} de la base ?\nCette action est irréversible (pensez à télécharger le XLS avant).`)) return;
+  const btn = document.getElementById('archive-btn-clear');
+  btn.classList.add('loading');
+  btn.textContent = 'Suppression…';
+  fetch('/api/benevoles/clear-rapatriements', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ year })
+  })
+    .then(r => r.json())
+    .then(d => {
+      alert(`${d.cleared} rapatriements de ${year} supprimés.`);
+      archiveDismiss();
+      loadData(); // Recharge la liste
+    })
+    .catch(err => alert('Erreur : ' + err.message))
+    .finally(() => {
+      btn.classList.remove('loading');
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg> Supprimer les rapat. ${year}`;
+    });
+}
+
+function archiveDismiss() {
+  const banner = document.getElementById('archive-banner');
+  localStorage.setItem(banner._key, '1');
+  banner.style.display = 'none';
+}
+
+// ── Modale archivage ────────────────────────────────────────────────────────
+function openArchiveModal() {
+  // Peuple le sélecteur d'années (année courante - 1 jusqu'à 2020)
+  const sel     = document.getElementById('archive-modal-year');
+  const curYear = new Date().getFullYear();
+  sel.innerHTML = '';
+  for (let y = curYear - 1; y >= 2020; y--) {
+    const opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y;
+    sel.appendChild(opt);
+  }
+  document.getElementById('archive-modal-confirm').checked = false;
+  document.getElementById('archive-modal-delete-btn').disabled = true;
+  document.getElementById('archive-modal').classList.add('open');
+}
+
+function closeArchiveModal() {
+  document.getElementById('archive-modal').classList.remove('open');
+}
+
+function handleArchiveOverlayClick(e) {
+  if (e.target === document.getElementById('archive-modal')) closeArchiveModal();
+}
+
+function updateArchiveDeleteBtn() {
+  const checked = document.getElementById('archive-modal-confirm').checked;
+  document.getElementById('archive-modal-delete-btn').disabled = !checked;
+}
+
+function archiveModalDownload() {
+  const year = document.getElementById('archive-modal-year').value;
+  fetch(`/api/benevoles/export-xls?year=${year}`)
+    .then(r => { if (!r.ok) return r.text().then(t => { throw new Error(t); }); return r.blob(); })
+    .then(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `benevoles_rapatriements_${year}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    })
+    .catch(err => alert('Erreur export : ' + err.message));
+}
+
+function archiveModalDelete() {
+  const year = parseInt(document.getElementById('archive-modal-year').value);
+  const btn  = document.getElementById('archive-modal-delete-btn');
+  btn.classList.add('loading');
+  btn.textContent = 'Suppression en cours…';
+  fetch('/api/benevoles/clear-rapatriements', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ year })
+  })
+    .then(r => r.json())
+    .then(d => {
+      closeArchiveModal();
+      alert(`${d.cleared} rapatriement${d.cleared > 1 ? 's' : ''} de ${year} supprimé${d.cleared > 1 ? 's' : ''}.`);
+      loadData();
+    })
+    .catch(err => alert('Erreur : ' + err.message))
+    .finally(() => {
+      btn.classList.remove('loading');
+      btn.textContent = 'Supprimer les rapatriements';
+      btn.disabled = true;
+      document.getElementById('archive-modal-confirm').checked = false;
+    });
+}
+
+function exportXLS() {
+  const btn = document.getElementById('btn-export');
+  btn.classList.add('loading');
+  btn.textContent = 'Génération…';
+  fetch('/api/benevoles/export-xls')
+    .then(r => {
+      if (!r.ok) return r.text().then(t => { throw new Error(t); });
+      return r.blob();
+    })
+    .then(blob => {
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      const date = new Date().toISOString().slice(0, 10);
+      a.href     = url;
+      a.download = `benevoles_${date}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    })
+    .catch(err => alert('Erreur export : ' + err.message))
+    .finally(() => {
+      btn.classList.remove('loading');
+      btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exporter XLS`;
+    });
+}
+
+function goPage(id, opts = {}) {
+  // Si on navigue vers la page d'ajout sans passer par startEdit,
+  // on remet le formulaire à zéro (sauf si opts.keepEdit = true)
+  if (id === 'page-ajouter' && !opts.keepEdit) {
+    editingBenev = null;
+    const form = document.getElementById('add-form');
+    if (form) form.reset();
+    // Remettre les type-cards à zéro (non gérées par form.reset)
+    document.querySelectorAll('.type-card').forEach(c => {
+      c.classList.remove('selected-centre','selected-rapatrieur','selected-autre');
+    });
+    const sectionRapat = document.getElementById('section-rapatrieur');
+    if (sectionRapat) sectionRapat.style.display = 'none';
+    document.getElementById('btn-delete-benev').style.display = 'none';
+    document.getElementById('btn-submit').innerHTML = '<span style="font-size:18px;line-height:0;">✓</span> Enregistrer la fiche';
+    // Réinitialiser la liste des véhicules (1 ligne vide)
+    renderVehicules([]);
+    // Nouvelle session de brouillon
+    newDraftSession();
+    // Remettre le titre du hero
+    const heroLabel = document.querySelector('#page-ajouter .hero-label');
+    if (heroLabel) heroLabel.textContent = 'Nouvelle fiche';
+  }
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-link').forEach(a => {
+    a.classList.toggle('active', a.dataset.page === id);
+  });
+  window.scrollTo(0, 0);
+  if (id === 'page-brouillons') renderDrafts();
+}
+document.querySelectorAll('.nav-link[data-page]').forEach(a => {
+  a.addEventListener('click', e => { e.preventDefault(); goPage(a.dataset.page); });
+});
+
+// ════════════════════════════
+//  Logo (depuis heatmap.html)
+// ════════════════════════════
+fetch('heatmap.html').then(r=>r.text()).then(html=>{
+  const m = html.match(/src="(data:image\/[^"]+)"/);
+  if (m) {
+    const logoSq = document.querySelector('.logo-sq');
+    const logoName = document.querySelector('.logo-name');
+    const img = document.createElement('img');
+    img.src = m[1];
+    img.style.cssText = 'height:28px;width:auto;display:block;';
+    logoSq.style.cssText = 'background:transparent;width:auto;height:auto;border-radius:0;padding:0;';
+    logoSq.innerHTML = '';
+    logoSq.appendChild(img);
+    if (logoName) logoName.style.display = 'none';
+  }
+}).catch(()=>{});
+
+// ════════════════════════════
+//  Données
+// ════════════════════════════
+let allData = [];
+let editingBenev = null;
+let activeRole = 'tous';
+let activeTag = '';
+let sortCol = 'nom', sortAsc = true;
+let currentView = 'cards';
+
+function parseDate(s) {
+  s = (s||'').trim();
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if (!m) return null;
+  const year = m[3].length === 2 ? 2000 + parseInt(m[3]) : parseInt(m[3]);
+  return new Date(year, parseInt(m[2])-1, parseInt(m[1]));
+}
+
+async function loadData() {
+  try {
+    const r = await fetch('/api/benevoles');
+    allData = await r.json();
+  } catch(e) { allData = []; }
+  computeStats();
+  render();
+  geocodeAllCommunes(); // en arrière-plan, sans bloquer
+}
+
+// ── Géocodage des communes bénévoles pour la recherche par proximité ──
+const COMMUNE_COORDS_KEY = 'benev_commune_coords_v2';
+let communeCoords = (() => {
+  try { return JSON.parse(localStorage.getItem(COMMUNE_COORDS_KEY) || '{}'); } catch(e) { return {}; }
+})();
+const PRIORITY_DEPTS_SEARCH = ['64','65','40'];
+
+async function geocodeCommune(nom) {
+  if (communeCoords[nom]) return communeCoords[nom];
+  try {
+    const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+    for (const dept of PRIORITY_DEPTS_SEARCH) {
+      const r = await fetch(`https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(nom)}&codeDepartement=${dept}&fields=nom,centre&limit=3`);
+      const d = await r.json();
+      const match = d.find(x => norm(x.nom) === norm(nom));
+      if (match) {
+        const [lon, lat] = match.centre.coordinates;
+        communeCoords[nom] = { lat, lon };
+        localStorage.setItem(COMMUNE_COORDS_KEY, JSON.stringify(communeCoords));
+        return { lat, lon };
+      }
+    }
+    // Fallback national
+    const r = await fetch(`https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(nom)}&fields=nom,centre&boost=population&limit=3`);
+    const d = await r.json();
+    if (d.length) {
+      const [lon, lat] = d[0].centre.coordinates;
+      communeCoords[nom] = { lat, lon };
+      localStorage.setItem(COMMUNE_COORDS_KEY, JSON.stringify(communeCoords));
+      return { lat, lon };
+    }
+  } catch(e) {}
+  return null;
+}
+
+async function geocodeAllCommunes() {
+  const unique = [...new Set(allData.map(b => b.commune).filter(Boolean))];
+  const toFetch = unique.filter(c => !communeCoords[c]);
+  for (const c of toFetch) {
+    await geocodeCommune(c);
+    await new Promise(r => setTimeout(r, 50)); // throttle API
+  }
+}
+
+function haversineKm(lat1, lon1, lat2, lon2) {
+  const R = 6371, dLat = (lat2-lat1)*Math.PI/180, dLon = (lon2-lon1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function computeStats() {
+  const total = allData.length;
+  const centre = allData.filter(b => b.roles.includes('centre')).length;
+  const rapat = allData.filter(b => b.roles.includes('rapatrieur')).length;
+
+  document.getElementById('hero-count').textContent = `${total} bénévole${total!==1?'s':''}`;
+
+  // Anniversaires du jour
+  const todayD = new Date(), todayDay = todayD.getDate(), todayMon = todayD.getMonth()+1;
+  const birthdayToday = allData.filter(b => {
+    if (!b.naissance) return false;
+    const m = b.naissance.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    return m && parseInt(m[1]) === todayDay && parseInt(m[2]) === todayMon;
+  });
+  const banner = document.getElementById('birthday-banner');
+  if (birthdayToday.length > 0) {
+    const names = birthdayToday.map(b => {
+      const m = b.naissance.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      const age = todayD.getFullYear() - parseInt(m[3]);
+      return `<strong>${esc(b.prenom)} ${esc(b.nom)}</strong> <span style="opacity:0.75;">(${age} ans)</span>`;
+    });
+    banner.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#019939" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M12 2c0 2-2 3-2 5"/><path d="M12 2c0 2 2 3 2 5"/><rect x="3" y="10" width="18" height="4" rx="1"/><path d="M3 14v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5"/><path d="M3 18c1.5-1 3 1 4.5 0s3-1 4.5 0 3 1 4.5 0 3-1 4.5 0"/></svg> Anniversaire aujourd'hui : ${names.join(' &nbsp;·&nbsp; ')}`;
+    banner.style.display = 'inline-flex';
+  } else {
+    banner.style.display = 'none';
+  }
+
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-centre').textContent = centre;
+  document.getElementById('stat-rapat').textContent = rapat;
+
+  // Rapatriements ce mois
+  const now = new Date();
+  const thisMonth = now.getMonth(); const thisYear = now.getFullYear();
+  let rapatMois = 0;
+  allData.forEach(b => {
+    if (!b.derniers_rapat) return;
+    if (Array.isArray(b.derniers_rapat)) {
+      b.derniers_rapat.forEach(r => {
+        const d = parseDate(r.date || '');
+        if (d && d.getMonth() === thisMonth && d.getFullYear() === thisYear) rapatMois++;
+      });
+    } else {
+      String(b.derniers_rapat).split('\n').forEach(line => {
+        const sep = line.indexOf(' : ');
+        const dateStr = (sep > -1 ? line.slice(0, sep) : line).trim();
+        const d = parseDate(dateStr);
+        if (d && d.getMonth() === thisMonth && d.getFullYear() === thisYear) rapatMois++;
+      });
+    }
+  });
+  document.getElementById('stat-rapat-mois').textContent = rapatMois;
+
+  // Pill counts
+  document.getElementById('cnt-tous').textContent = total;
+  document.getElementById('cnt-centre').textContent = centre;
+  document.getElementById('cnt-rapatrieur').textContent = rapat;
+  document.getElementById('cnt-autre').textContent = allData.filter(b => b.roles.includes('autre')).length;
+
+  // Rapatriements récents
+  buildRapatSection();
+}
+
+function buildRapatSection() {
+  const nowMs  = Date.now();
+  const nowDate = new Date();
+  const todayISO = nowDate.toISOString().slice(0, 10);
+  const tomorrowDate = new Date(nowDate); tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  const tomorrowISO = tomorrowDate.toISOString().slice(0, 10);
+
+  function timeMs(hhmm) { // "16:45" → ms timestamp today
+    if (!hhmm) return null;
+    const [h, m] = hhmm.split(':').map(Number);
+    const d = new Date(); d.setHours(h, m, 0, 0); return d.getTime();
+  }
+
+  const allRapats = [];
+
+  allData.forEach(b => {
+    if (!b.derniers_rapat) return;
+    const raw = b.derniers_rapat;
+
+    if (Array.isArray(raw)) {
+      raw.forEach((r, idx) => {
+        // Dates ISO (yyyy-mm-dd) depuis le champ dates[]
+        const rapatDates = Array.isArray(r.dates) ? r.dates : [];
+        const firstISO   = rapatDates[0] || null;
+        const lastISO    = rapatDates[rapatDates.length - 1] || null;
+
+        // Date de référence pour diff (première date du rapat)
+        let dRef = null;
+        if (firstISO) {
+          const [y,mo,da] = firstISO.split('-').map(Number);
+          dRef = new Date(y, mo-1, da);
+        } else {
+          dRef = parseDate(r.date || '');
+        }
+        if (!dRef) return;
+
+        const diff = Math.floor((nowMs - dRef) / 86400000);
+        if (diff > 180) return; // ignorer >6 mois
+        if (diff < -1) return;  // ignorer si >2 jours dans le futur
+
+        const trajetArr  = Array.isArray(r.trajet) ? r.trajet : (r.trajet||'').split('>').map(v=>v.trim()).filter(Boolean);
+        const route      = trajetArr.join(' > ');
+        const distanceKm = r.distance_km || '';
+        const heures     = (r.heure_depart && r.heure_arrivee) ? `${r.heure_depart}→${r.heure_arrivee}` : (r.heure_depart || '');
+
+        // ── Calcul du statut précis ──
+        let status;
+        if (r.confirme !== undefined) {
+          // Non effectué d'un jour passé → supprimer silencieusement et ne pas afficher
+          if (r.confirme === false && diff > 0) {
+            fetch('/api/rapatriements/delete', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ benevole_id: b._id, index: idx })
+            }).catch(() => {});
+            return;
+          }
+          // Déjà confirmé → afficher statut sans boutons
+          status = 'confirme';
+        } else if (firstISO && firstISO > todayISO) {
+          // Futur
+          status = firstISO === tomorrowISO ? 'demain' : 'futur';
+        } else if (rapatDates.includes(todayISO) || diff === 0) {
+          // Aujourd'hui : affiner selon l'heure
+          const departMs  = timeMs(r.heure_depart);
+          const arriveeMs = timeMs(r.heure_arrivee);
+          if (arriveeMs && nowMs > arriveeMs) {
+            status = 'a_confirmer'; // heure de fin dépassée
+          } else if (departMs && nowMs >= departMs) {
+            status = 'en_cours';   // entre départ et arrivée
+          } else {
+            status = 'aujourd_hui'; // pas encore commencé
+          }
+        } else if (lastISO && lastISO < todayISO) {
+          status = 'a_confirmer'; // date(s) passée(s)
+        } else {
+          status = 'passe';
+        }
+
+        if (status === 'futur') return; // ne pas afficher les futurs lointains
+
+        allRapats.push({ date: dRef, diff, dateStr: r.date || '', route, trajetArr,
+          distanceKm, heures, nom: b.nom, prenom: b.prenom,
+          benevId: b._id, origIdx: idx, confirme: r.confirme, status });
+      });
+
+    } else {
+      // Format texte legacy
+      String(raw).split('\n').forEach(line => {
+        line = line.trim(); if (!line) return;
+        const sep = line.indexOf(' : ');
+        const dateStr = (sep > -1 ? line.slice(0, sep) : line).trim();
+        const route   = sep > -1 ? line.slice(sep+3).trim() : '';
+        const d = parseDate(dateStr);
+        if (!d) return;
+        const diff = Math.floor((nowMs - d) / 86400000);
+        if (diff < 0 || diff > 180) return;
+        const status = diff === 0 ? 'aujourd_hui' : 'passe';
+        allRapats.push({ date: d, diff, dateStr, route: route || b.commune || '?',
+          trajetArr: [], distanceKm: '', heures: '', nom: b.nom, prenom: b.prenom,
+          benevId: null, origIdx: null, confirme: undefined, status });
+      });
+    }
+  });
+
+  if (allRapats.length === 0) return;
+
+  // Tri : en_cours → a_confirmer → aujourd_hui → demain → passe/confirme
+  const ORDER = { en_cours:0, a_confirmer:1, aujourd_hui:2, demain:3, confirme:4, passe:5 };
+  allRapats.sort((a, b) => {
+    const oa = ORDER[a.status] ?? 5, ob = ORDER[b.status] ?? 5;
+    if (oa !== ob) return oa - ob;
+    return b.date - a.date;
+  });
+
+  const section = document.getElementById('rapat-section');
+  section.style.display = '';
+  const passeList = allRapats.filter(r => r.status === 'passe');
+  const minDiff = passeList.length ? passeList[0].diff : 0;
+  document.getElementById('rapat-sub').textContent = `— derniers ${Math.max(21, minDiff+1)} jours`;
+
+  const scroll = document.getElementById('rapat-scroll');
+  scroll.innerHTML = '';
+
+  allRapats.slice(0, 14).forEach(r => {
+    const LABEL = {
+      en_cours:    'EN COURS',
+      a_confirmer: 'À CONFIRMER',
+      aujourd_hui: "AUJOURD'HUI",
+      demain:      'DEMAIN',
+      confirme:    r.diff === 0 ? "AUJOURD'HUI" : r.diff === 1 ? 'IL Y A 1 J' : `IL Y A ${r.diff} J`,
+      passe:       r.diff === 1 ? 'IL Y A 1 J' : `IL Y A ${r.diff} J`,
+    };
+    const diffStr = LABEL[r.status] || `IL Y A ${r.diff} J`;
+
+    const villes = r.trajetArr.length ? r.trajetArr : r.route.split('>').map(v => v.trim()).filter(Boolean);
+    const hasMultiple = villes.length > 2;
+    const hegoShort = v => v.toLowerCase().includes('hegalaldia')
+      ? `<img src="/LogoHegalaldiaCrop.png" style="height:13px;vertical-align:middle;margin-right:2px;object-fit:contain;">Hegalaldia`
+      : esc(v);
+    const short = hasMultiple
+      ? `${hegoShort(villes[0])} → ${hegoShort(villes[villes.length-1])}`
+      : villes.map(hegoShort).join(' → ');
+    const dotColor = r.status === 'en_cours' ? '#2d9e5e' : '#e8825a';
+    const hegoLogo = `<img src="/LogoHegalaldiaCrop.png" style="height:14px;vertical-align:middle;margin-right:3px;object-fit:contain;">`;
+    const villeLabel = (v, bold, isLast) => {
+      const isHego = v.toLowerCase().includes('hegalaldia');
+      const color = isLast ? '#e8825a' : bold ? '#1a1a1a' : '#555';
+      const txt = `<span style="font-weight:${bold?'700':'400'};color:${color}">${isHego ? hegoLogo + 'Hegalaldia' : esc(v)}</span>`;
+      return txt;
+    };
+    const full = villes.map((v,i) =>
+      `<div style="display:flex;align-items:center;gap:6px;">
+        <span style="color:${dotColor};font-weight:700;width:14px;text-align:center;flex-shrink:0">${i===0?'·':'↓'}</span>
+        ${villeLabel(v, i===0||i===villes.length-1, i===villes.length-1)}
+      </div>`).join('');
+
+    const metaExtra = [r.heures, r.distanceKm ? `${r.distanceKm} km` : ''].filter(Boolean).join(' · ');
+
+    // Zone de confirmation
+    let confirmZone = '';
+    if (r.status === 'a_confirmer' || r.status === 'confirme') {
+      if (r.confirme === true) {
+        confirmZone = ''; // déjà confirmé, pas besoin d'afficher le message
+      } else if (r.confirme === false) {
+        // Non effectué — afficher statut + croix pour supprimer
+        confirmZone = `<div class="confirm-status non" style="display:flex;align-items:center;justify-content:space-between;">
+          <span>✗ Non effectué</span>
+          <button onclick="deleteRapatCarousel('${r.benevId}',${r.origIdx},this);event.stopPropagation()" title="Supprimer" style="background:none;border:none;cursor:pointer;font-size:0.95rem;color:#c0392b;padding:0 2px;line-height:1;">×</button>
+        </div>`;
+      } else {
+        confirmZone = `<div class="confirm-zone">
+          <div class="confirm-label">Rapatriement effectué ?</div>
+          <div class="confirm-btns">
+            <button class="confirm-btn oui" onclick="confirmRapat('${r.benevId}',${r.origIdx},true,this);event.stopPropagation()">✓ Oui</button>
+            <button class="confirm-btn non" onclick="askConfirmNon('${r.benevId}',${r.origIdx},this);event.stopPropagation()">✗ Non</button>
+          </div>
+        </div>`;
+      }
+    }
+
+    const CLASS = {
+      en_cours:    'rapat-card en-cours',
+      a_confirmer: 'rapat-card a-confirmer',
+      confirme:    r.confirme && r.diff >= 1 ? 'rapat-card' : r.confirme ? 'rapat-card confirme-oui' : 'rapat-card confirme-non',
+    };
+    const cardClass = CLASS[r.status] || 'rapat-card';
+
+    const div = document.createElement('div');
+    div.className = cardClass;
+    div.innerHTML = `
+      <div class="rapat-meta"><span>${diffStr}</span><span style="display:flex;align-items:center;gap:5px;">${r.status === 'en_cours' ? '<span class="live-dot" style="position:static;display:inline-block;"></span>' : ''}${esc(r.dateStr)}</span></div>
+      <div class="rapat-route-short">${hegoShort(villes[0])}</div>
+      ${hasMultiple ? `<div class="rapat-more" style="margin:1px 0;">+ ${villes.length-2} étape${villes.length-2>1?'s':''}</div>` : ''}
+      <div class="rapat-route-short rapat-route-arrival" style="color:#e8825a;">${hegoShort(villes[villes.length-1])}</div>
+      <div class="rapat-route-full">${full}</div>
+      ${metaExtra ? `<div class="rapat-extra">${esc(metaExtra)}</div>` : ''}
+      <div class="rapat-name"><span class="rapat-nom">${esc(r.nom)}</span> <span class="rapat-prenom">${esc(r.prenom)}</span></div>
+      ${confirmZone}
+    `;
+
+    if (hasMultiple) {
+      div.addEventListener('click', e => {
+        const isExpanded = div.dataset.expanded === '1';
+        scroll.querySelectorAll('.rapat-card').forEach(c => { if (c !== div) collapseCard(c); });
+        if (isExpanded) collapseCard(div); else expandCard(div);
+        e.stopPropagation();
+      });
+    }
+    scroll.appendChild(div);
+  });
+
+  document.addEventListener('click', () => {
+    scroll.querySelectorAll('.rapat-card').forEach(c => collapseCard(c));
+  });
+}
+
+function expandCard(card) {
+  const shorts = card.querySelectorAll('.rapat-route-short');
+  const full   = card.querySelector('.rapat-route-full');
+  const more   = card.querySelector('.rapat-more');
+  if (!full) return;
+  card.dataset.expanded = '1';
+
+  // Masquer les lignes courtes
+  shorts.forEach(s => { s.style.display = 'none'; });
+  if (more) more.style.display = 'none';
+  const name = card.querySelector('.rapat-name');
+  if (name) { name.style.overflow = 'visible'; name.style.textOverflow = 'clip'; }
+
+  // Préparer full pour mesure (invisible, nowrap)
+  card.style.whiteSpace = 'nowrap';
+  full.style.transition = 'none';
+  full.style.height = 'auto';
+  full.style.opacity = '1';
+
+  // Mesurer largeur et hauteur cibles
+  card.style.transition = 'none';
+  card.style.overflow = 'visible';
+  card.style.width = 'auto';
+  const targetW = Math.max(210, Math.min(card.scrollWidth + 2, 480));
+  const targetH = full.scrollHeight;
+  card.style.width = '210px';
+  card.style.overflow = 'hidden';
+
+  // Partir de height 0 pour la hauteur
+  full.style.height = '0';
+  full.style.overflow = 'hidden';
+
+  // Animer largeur + hauteur ensemble
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const ease = '0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      card.style.transition = `width ${ease}`;
+      card.style.width = targetW + 'px';
+      full.style.transition = `height ${ease}`;
+      full.style.height = targetH + 'px';
+      setTimeout(() => { full.style.height = 'auto'; full.style.overflow = ''; }, 320);
+    });
+  });
+}
+
+function collapseCard(card) {
+  if (card.dataset.expanded !== '1') return;
+  card.dataset.expanded = '0';
+
+  const shorts = card.querySelectorAll('.rapat-route-short');
+  const full   = card.querySelector('.rapat-route-full');
+  const more   = card.querySelector('.rapat-more');
+
+  // Rétrécir d'abord
+  card.style.transition = 'width 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+  card.style.width = '210px';
+
+  // Swap du contenu à la fin
+  setTimeout(() => {
+    card.style.whiteSpace = '';
+    const name = card.querySelector('.rapat-name');
+    if (name) { name.style.overflow = ''; name.style.textOverflow = ''; }
+    if (full) { full.style.height = '0'; full.style.opacity = '0'; }
+    shorts.forEach(s => { s.style.display = ''; });
+    if (more) more.style.display = '';
+  }, 200);
+}
+
+// ════════════════════════════
+//  Filtres
+// ════════════════════════════
+document.querySelectorAll('.pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    activeRole = btn.dataset.role;
+    activeTag = '';
+    onTagFilter('');
+    render();
+  });
+});
+
+function onTagFilter(val) {
+  activeTag = val;
+  if (val) {
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  } else {
+    document.querySelector('.pill[data-role="tous"]').classList.add('active');
+    activeRole = 'tous';
+  }
+  // Mettre à jour visuels du picker
+  document.querySelectorAll('.tpill').forEach(p => p.classList.toggle('active', p.dataset.val === val));
+  const lbl = document.getElementById('tag-picker-label');
+  const btn = document.getElementById('tag-picker-btn');
+  if (val) {
+    const active = document.querySelector(`.tpill[data-val="${val}"]`);
+    lbl.textContent = active ? active.textContent : 'Tag actif';
+    btn.style.background = 'rgba(255,255,255,0.25)';
+    btn.style.borderColor = 'rgba(255,255,255,0.7)';
+    btn.style.color = '#fff';
+  } else {
+    lbl.textContent = 'Filtrer par tag';
+    btn.style.background = 'transparent';
+    btn.style.borderColor = 'rgba(255,255,255,0.3)';
+    btn.style.color = 'rgba(255,255,255,0.8)';
+  }
+  render();
+}
+
+function toggleTagPicker() {
+  const panel = document.getElementById('tag-picker-panel');
+  const chevron = document.getElementById('tag-picker-chevron');
+  const open = panel.style.display === 'none';
+  panel.style.display = open ? 'block' : 'none';
+  chevron.style.transform = open ? 'rotate(180deg)' : '';
+}
+
+// Fermer le picker si clic ailleurs
+document.addEventListener('click', e => {
+  if (!document.getElementById('tag-picker-wrap').contains(e.target)) {
+    document.getElementById('tag-picker-panel').style.display = 'none';
+    document.getElementById('tag-picker-chevron').style.transform = '';
+  }
+});
+document.getElementById('search').addEventListener('input', render);
+
+// ── Recherche commune par proximité ──
+let _communeSearchTimer = null;
+let _communeSearchResults = null; // Map<_id, distanceKm> ou null
+let _communeSearchQuery = '';
+let _geoSearchCache = {};
+
+document.getElementById('search-commune').addEventListener('input', () => {
+  clearTimeout(_communeSearchTimer);
+  const q = document.getElementById('search-commune').value.trim();
+  if (!q) {
+    _communeSearchResults = null;
+    _communeSearchQuery = '';
+    document.getElementById('commune-search-status').textContent = '';
+    render();
+    return;
+  }
+  document.getElementById('commune-search-status').textContent = '…';
+  _communeSearchTimer = setTimeout(() => doCommuSearch(q), 350);
+});
+
+async function doCommuSearch(q) {
+  _communeSearchQuery = q.toLowerCase();
+  _communeSearchResults = null;
+  const statusEl = document.getElementById('commune-search-status');
+
+  try {
+    // 1. Géocoder la ville cherchée (priorité 64/65/40)
+    let coords = _geoSearchCache[q.toLowerCase()];
+    if (!coords) {
+      const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+      const r = await fetch(`https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(q)}&fields=nom,centre,codeDepartement&boost=population&limit=10`);
+      const data = await r.json();
+      if (!data.length) { statusEl.textContent = '?'; render(); return; }
+      const prio = data.find(d => PRIORITY_DEPTS_SEARCH.includes(d.codeDepartement) && norm(d.nom) === norm(q))
+                || data.find(d => PRIORITY_DEPTS_SEARCH.includes(d.codeDepartement))
+                || data[0];
+      const [lon, lat] = prio.centre.coordinates;
+      coords = { lat, lon };
+      _geoSearchCache[q.toLowerCase()] = coords;
+    }
+
+    if (q.toLowerCase() !== _communeSearchQuery) return; // annulé
+
+    // 2. Calculer distance entre ville cherchée et commune de chaque bénévole
+    const distMap = new Map();
+    const normQ = q.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+    const norm2 = s => (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+    let exactMatches = 0;
+    for (const b of allData) {
+      if (!b.commune) continue;
+      // Si la commune du bénévole correspond exactement à la ville cherchée → distance 0
+      if (norm2(b.commune) === normQ) {
+        distMap.set(b._id, 0);
+        exactMatches++;
+        continue;
+      }
+      let cc = communeCoords[b.commune];
+      if (!cc) cc = await geocodeCommune(b.commune);
+      if (!cc) continue;
+      const km = haversineKm(coords.lat, coords.lon, cc.lat, cc.lon);
+      distMap.set(b._id, km);
+    }
+    console.log(`[commune search] q="${q}" normQ="${normQ}" exactMatches=${exactMatches} distMap.size=${distMap.size} cancelled=${q.toLowerCase() !== _communeSearchQuery}`);
+
+    if (q.toLowerCase() !== _communeSearchQuery) return;
+
+    _communeSearchResults = distMap;
+    statusEl.textContent = `${distMap.size} bénévoles`;
+    render();
+  } catch(e) {
+    console.error('Erreur recherche commune:', e);
+    statusEl.textContent = '!';
+  }
+}
+
+
+function getFiltered() {
+  const q     = (document.getElementById('search').value||'').trim().toLowerCase();
+  const norm  = s => (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  let filtered = allData.filter(b => {
+    if (activeTag) {
+      const [type, key] = activeTag.split(':');
+      if (type === 'role') return (b.roles||[]).includes(key);
+      if (type === 'comp') return b[key] && b[key] !== '' && b[key] !== false;
+      return true;
+    }
+    return activeRole === 'tous' || (b.roles||[]).includes(activeRole);
+  });
+
+  // Tri par proximité si une commune est recherchée
+  if (_communeSearchResults) {
+    filtered = filtered
+      .filter(b => _communeSearchResults.has(b._id))
+      .sort((a, b2) => (_communeSearchResults.get(a._id) ?? 999) - (_communeSearchResults.get(b2._id) ?? 999));
+  }
+
+  // Filtre par nom / téléphone
+  if (q) {
+    const qn = norm(q);
+    filtered = filtered.filter(b => {
+      const hay = [b.prenom, b.nom, b.telephone, b.email].map(norm).join(' ');
+      return hay.includes(qn);
+    });
+  }
+
+  return filtered;
+}
+
+// ════════════════════════════
+//  Rendu
+// ════════════════════════════
+function render() {
+  let rows = getFiltered();
+  // Si une recherche par proximité est active, le tri par distance est déjà fait dans getFiltered()
+  if (!_communeSearchResults) rows.sort((a,b) => {
+    let va='', vb='';
+    if (sortCol==='nom') { va=(a.nom+a.prenom).toLowerCase(); vb=(b.nom+b.prenom).toLowerCase(); }
+    else if (sortCol==='commune') { va=(a.commune||'').toLowerCase(); vb=(b.commune||'').toLowerCase(); }
+    else if (sortCol==='modif') { va=a.modif||''; vb=b.modif||''; }
+    else if (sortCol==='rapat') {
+      const la = getLastRapat(a); const lb = getLastRapat(b);
+      va = la ? la.date.getTime().toString() : '0';
+      vb = lb ? lb.date.getTime().toString() : '0';
+    }
+    return sortAsc ? va.localeCompare(vb,'fr') : vb.localeCompare(va,'fr');
+  }); // fin du sort conditionnel
+
+  document.getElementById('benev-count-label').textContent = `(${rows.length})`;
+  document.getElementById('empty').style.display = rows.length===0 ? 'block' : 'none';
+
+  if (currentView === 'cards') renderCards(rows);
+  else renderTable(rows);
+}
+
+// ── Icônes équipement / compétences sur les cartes ──
+const CARD_ICONS = [
+  { key: 'admin',          label: 'Admin site',  color: '#6d28d9', bg: '#f5f3ff',
+    svg: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>` },
+  { key: 'caisses',        label: 'Caisse',     color: '#b45a10', bg: '#fff0e8',
+    svg: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8H3l1 13h16l1-13z"/><path d="M1 8h22"/><path d="M10 8V5a2 2 0 0 1 4 0v3"/></svg>` },
+  { key: 'gants',          label: 'Gants',      color: '#1d4ed8', bg: '#eff6ff',
+    svg: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M6 14v1a6 6 0 0 0 12 0v-5a2 2 0 0 0-4 0"/></svg>` },
+  { key: 'garde_domicile', label: 'Garde nuit', color: '#6d28d9', bg: '#f5f3ff',
+    svg: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>` },
+  { key: 'comp_oisillons', label: 'Oisillons',  color: '#b45309', bg: '#fffbeb',
+    svg: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M15 10c.5-1 2-1.5 3-1"/><path d="M12 7V4"/><path d="M10 9l-2-2"/><path d="M14 9l2-2"/><path d="M10 14.5q2 1.5 4 0"/></svg>` },
+  { key: 'comp_marins',    label: 'Oiseaux marins', color: '#0369a1', bg: '#e0f2fe',
+    svg: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>` },
+  { key: 'comp_vautour',   label: 'Capture vautour', color: '#0c3d22', bg: '#e8f5e9',
+    svg: `<img src="/LogoHegalaldiaColorCrop.png" style="width:13px;height:13px;object-fit:contain;display:inline-block;vertical-align:middle;">` },
+  { key: 'act_caddie',       label: 'Op. Caddie',   color: '#1e40af', bg: '#eff6ff', svg: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>` },
+  { key: 'act_papier_cadeau', label: 'Papiers Cadeaux', color: '#be185d', bg: '#fdf2f8', svg: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>` },
+  { key: 'act_espaces_verts', label: 'Espaces verts', color: '#15803d', bg: '#f0fdf4', svg: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8C8 10 5.9 16.17 3.82 19.82a2 2 0 0 0 3.37 2.15C9 19 12.1 15 17 14"/><path d="M17 8C15 13 10 15.24 7 17"/><path d="M21 3c-2 2-4 3.5-4 5"/><path d="M12 21c0-5 3-8 9-9"/></svg>` },
+  { key: 'comp_menage',    label: 'Ménage',     color: '#4c1d95', bg: '#f5f3ff',
+    svg: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="16" y1="2" x2="8" y2="14"/><rect x="5" y="14" width="6" height="2" rx="1" transform="rotate(-10 5 14)"/><path d="M5 16 L4 21 L11 20 L10 16"/><line x1="6" y1="17" x2="5.5" y2="20"/><line x1="7.5" y1="17" x2="7" y2="20"/><line x1="9" y1="17" x2="8.5" y2="20"/></svg>` },
+  { key: 'comp_heris',     label: 'Hérissons',  color: '#92400e', bg: '#fef3c7',
+    svg: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="14" rx="7" ry="5"/><path d="M12 9V5"/><path d="M9 10 7 7"/><path d="M15 10l2-3"/><path d="M10 14.5c0 1 .9 1.5 2 1.5s2-.5 2-1.5"/></svg>` },
+  { key: 'comp_exterieurs',label: 'Extérieurs', color: '#166534', bg: '#dcfce7',
+    svg: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>` },
+];
+
+// ── Tag picker — définition des groupes ──────────────────────────────────────
+const TAG_GROUPS = [
+  { label: 'Rôles', tags: [
+    { val: 'role:former', key: null, label: 'Formé(e)', color: '#0c3d22', bg: '#e8f5e9',
+      svg: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>` },
+  ]},
+  { label: 'Gouvernance', tags: [
+    { val: 'comp:ca', key: 'ca', label: 'Membre du CA', color: '#1e40af', bg: '#eff6ff',
+      svg: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>` },
+  ]},
+  { label: 'Compétences soin', tags: [
+    { val: 'comp:comp_menage',     key: 'comp_menage' },
+    { val: 'comp:comp_oisillons',  key: 'comp_oisillons' },
+    { val: 'comp:comp_marins',     key: 'comp_marins' },
+    { val: 'comp:comp_vautour',    key: 'comp_vautour' },
+    { val: 'comp:comp_exterieurs', key: 'comp_exterieurs' },
+    { val: 'comp:comp_heris',      key: 'comp_heris' },
+  ]},
+  { label: 'Compétences générales', tags: [
+    { val: 'comp:comp_brico', key: null, label: 'Bricolage', color: '#374151', bg: '#f3f4f6',
+      svg: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>` },
+    { val: 'comp:comp_info', key: null, label: 'Informatique', color: '#374151', bg: '#f3f4f6',
+      svg: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>` },
+    { val: 'comp:comp_commu', key: null, label: 'Communication', color: '#374151', bg: '#f3f4f6',
+      svg: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>` },
+    { val: 'comp:comp_compta', key: null, label: 'Comptabilité', color: '#374151', bg: '#f3f4f6',
+      svg: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>` },
+    { val: 'comp:comp_photo', key: null, label: 'Photo', color: '#374151', bg: '#f3f4f6',
+      svg: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>` },
+    { val: 'comp:comp_couture', key: null, label: 'Couture', color: '#374151', bg: '#f3f4f6',
+      svg: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>` },
+  ]},
+  { label: 'Activités', tags: [
+    { val: 'comp:act_caddie',       key: 'act_caddie' },
+    { val: 'comp:act_papier_cadeau',key: 'act_papier_cadeau' },
+    { val: 'comp:act_espaces_verts',key: 'act_espaces_verts' },
+  ]},
+  { label: 'Équipement', tags: [
+    { val: 'comp:gants',         key: 'gants' },
+    { val: 'comp:caisses',       key: 'caisses' },
+    { val: 'comp:garde_domicile',key: 'garde_domicile' },
+  ]},
+];
+
+function buildTagPicker() {
+  const iconMap = {};
+  CARD_ICONS.forEach(ic => { iconMap[ic.key] = ic; });
+
+  const panel = document.getElementById('tag-picker-panel');
+  panel.innerHTML = '<div style="display:flex;flex-direction:column;gap:14px;">' +
+    TAG_GROUPS.map(group => {
+      const pills = group.tags.map(t => {
+        const ic = t.key ? iconMap[t.key] : null;
+        const label  = ic ? ic.label  : t.label;
+        const color  = ic ? ic.color  : t.color;
+        const bg     = ic ? ic.bg     : t.bg;
+        const svg    = ic ? ic.svg    : t.svg;
+        return `<button class="tpill" data-val="${t.val}" style="--c:${color};--bg:${bg};display:inline-flex;align-items:center;gap:5px;">${svg}${label}</button>`;
+      }).join('');
+      return `<div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#9aaa9d;margin-bottom:8px;">${group.label}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">${pills}</div>
+      </div>`;
+    }).join('') + '</div>';
+
+  // Attacher les clics
+  panel.addEventListener('click', e => {
+    const pill = e.target.closest('.tpill');
+    if (!pill) return;
+    const newVal = activeTag === pill.dataset.val ? '' : pill.dataset.val;
+    onTagFilter(newVal);
+    panel.style.display = 'none';
+    document.getElementById('tag-picker-chevron').style.transform = '';
+  });
+}
+
+buildTagPicker();
+
+function cardIcons(b) {
+  const icons = CARD_ICONS.filter(ic => b[ic.key] && b[ic.key] !== '' && b[ic.key] !== false);
+  if (!icons.length) return '';
+  return `<div class="card-icons">${icons.map(ic =>
+    `<span class="card-icon" style="color:${ic.color};background:${ic.bg};">${ic.svg}${ic.label}</span>`
+  ).join('')}</div>`;
+}
+
+const GOAT_ID = '4a063384-383a-473d-b9b7-31b721838243';
+const SQUIRREL_ID = 'c42db4f0-2bb8-4c87-a197-4a9af8b25064';
+function goat(b) {
+  if (b._id === GOAT_ID) return ' 🐐';
+  if (b._id === SQUIRREL_ID) return ' 🐿️';
+  return '';
+}
+
+function fmtTel(tel) {
+  if (!tel) return '';
+  const digits = String(tel).replace(/\D/g, '');
+  if (digits.length === 10) {
+    return digits.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5');
+  }
+  // Numéro étranger ou format non standard → on remet juste des espaces tous les 2
+  if (digits.length > 10) return '+' + digits.slice(0, digits.length - 9) + ' ' + digits.slice(-9).replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3');
+  return tel; // trop court → on laisse tel quel
+}
+
+function telLink(tel) {
+  if (!tel) return '';
+  const digits = String(tel).replace(/\D/g, '');
+  const intl = digits.length === 10 ? '+33' + digits.slice(1) : '+' + digits;
+  const copyIcon = `<svg class="tel-copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+  return `<span class="tel-link" onclick="copyTel(event,'${intl}')" title="Copier le numéro">${esc(fmtTel(tel))}${copyIcon}</span>`;
+}
+
+function copyTel(e, num) {
+  e.stopPropagation();
+  e.preventDefault();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(num).then(() => showTelToast('Numéro copié !')).catch(() => copyTelFallback(num));
+  } else {
+    copyTelFallback(num);
+  }
+}
+
+function copyTelFallback(num) {
+  const ta = document.createElement('textarea');
+  ta.value = num;
+  ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try { document.execCommand('copy'); showTelToast('Numéro copié !'); }
+  catch(err) { showTelToast('Copie impossible'); }
+  document.body.removeChild(ta);
+}
+
+function showTelToast(msg) {
+  let t = document.getElementById('tel-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'tel-toast';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#019939;color:#fff;padding:8px 18px;border-radius:999px;font-size:0.85rem;z-index:9999;pointer-events:none;transition:opacity 0.3s;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._to);
+  t._to = setTimeout(() => t.style.opacity = '0', 2500);
+}
+
+function esc(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function fmtDateNaissance(input) {
+  const raw = input.value;
+  const digits = raw.replace(/[^0-9]/g, '').slice(0, 8);
+  let out = digits.slice(0, 2);
+  if (digits.length > 2) out += '/' + digits.slice(2, 4);
+  if (digits.length > 4) out += '/' + digits.slice(4, 8);
+  if (input.value !== out) input.value = out;
+}
+
+function fmtTelephone(input) {
+  const digits = input.value.replace(/\D/g, '').slice(0, 10);
+  let out = digits.replace(/(.{2})/g, '$1 ').trim();
+  if (input.value !== out) input.value = out;
+}
+
+function fmtImmat(input) {
+  let raw = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  let out = '';
+  if (raw.length <= 2) {
+    out = raw;
+  } else if (raw.length <= 5) {
+    out = raw.slice(0, 2) + '-' + raw.slice(2);
+  } else {
+    out = raw.slice(0, 2) + '-' + raw.slice(2, 5) + '-' + raw.slice(5, 7);
+  }
+  if (input.value !== out) input.value = out;
+}
+
+function fmtPuissance(input) {
+  const digits = input.value.replace(/\D/g, '');
+  if (input.value !== digits) input.value = digits;
+}
+
+const BADGE = {
+  centre:     ['badge-centre',    'Sur centre'],
+  rapatrieur: ['badge-rapatrieur','Rapatrieur'],
+  autre:      ['badge-autre',     'Autre'],
+  former:     ['badge-former',    'Formé'],
+};
+
+// Rôles à afficher sur les cartes et tableau (jamais "former")
+function displayRoles(b) {
+  const roles = b.roles || [];
+  const actifs = roles.filter(r => r !== 'former');
+  return actifs.length ? actifs : (roles.length ? roles : ['autre']);
+}
+
+// Texte de formation pour la fiche détail — basé uniquement sur la data
+function formationLabel(b) {
+  const roles = b.roles || [];
+  if (!roles.includes('former')) return '';
+  const actifs = roles.filter(r => r !== 'former');
+  const labels = { centre: 'sur centre', rapatrieur: 'en rapatriement', autre: '' };
+  const parts = actifs.map(r => labels[r]).filter(Boolean);
+  if (!parts.length) return 'Formé(e)';
+  return 'Formé(e) ' + parts.join(' et ');
+}
+
+function renderCards(rows) {
+  const grid = document.getElementById('cards-grid');
+  grid.style.display = 'grid';
+  document.getElementById('table-wrap').style.display = 'none';
+  grid.innerHTML = '';
+  rows.forEach(b => {
+    const adminBadge = b.admin === 'on' ? `<span class="badge-role badge-admin">Admin</span>` : '';
+    const caBadge      = b.ca      === 'on' ? `<span class="badge-role badge-ca">CA</span>` : '';
+    const badgesHtml = adminBadge + caBadge + displayRoles(b).map(r => {
+      const [cls, lbl] = BADGE[r] || ['badge-autre', r];
+      return `<span class="badge-role ${cls}">${lbl}</span>`;
+    }).join('');
+    const rayon = b.rayon ? `<span class="rayon-pill">${b.rayon} km</span>` : '';
+    const comment = (b.commentaire||b.info_temp) ?
+      `<div class="card-comment">${esc(b.commentaire||b.info_temp)}</div>` : '';
+    const date = b.modif ? `<div class="card-date">${esc(b.modif)}</div>` : '';
+    const card = document.createElement('div');
+    card.className = 'benev-card';
+    card.style.cursor = 'pointer';
+    card.addEventListener('click', () => openDetail(b));
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+        <div style="flex:1;min-width:0;">
+          <div class="card-nom">${esc(b.nom)}${goat(b)}</div>
+          <div class="card-prenom">${esc(b.prenom)}</div>
+          <div class="card-info" style="margin-top:8px;">
+            ${b.telephone ? `<div class="card-info-row"><span class="card-info-label">Tél.</span><span class="card-info-val">${telLink(b.telephone)}</span></div>` : ''}
+            ${b.commune ? `<div class="card-info-row"><span class="card-info-label">Commune</span><span class="card-info-val">${esc(b.commune)}${rayon}</span></div>` : ''}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0;margin-left:8px;">${badgesHtml}</div>
+      </div>
+      ${cardIcons(b)}
+      ${comment}
+      ${(() => {
+        const lr = getLastRapat(b);
+        if (!lr) return '';
+        const isRecent = lr.date && (Date.now() - lr.date.getTime()) < 30 * 86400000;
+        const shorten = s => s.replace(/Centre de soins Hegalaldia/gi, 'Hegalaldia');
+        const stops = lr.route.split(/\s*[>→]\s*/).map(s => shorten(s.trim())).filter(Boolean);
+        const depart = stops[0] || '';
+        const arrivee = stops[stops.length - 1] || '';
+        const nbEtapes = stops.length - 2;
+        const etapesLabel = nbEtapes > 0 ? ` <span style="font-size:0.68rem;color:#aaa;font-weight:500;">(${nbEtapes} étape${nbEtapes > 1 ? 's' : ''})</span>` : '';
+        const routeDisplay = depart === arrivee ? depart : `${depart} → ${arrivee}`;
+        return `<div class="card-last-rapat${isRecent ? ' recent' : ''}">
+          <div class="card-last-rapat-meta">
+            <span class="card-last-rapat-date">${esc(lr.dateStr)}</span>
+            ${isRecent ? '<span class="card-last-rapat-badge">Récent</span>' : ''}
+          </div>
+          <div class="card-last-rapat-route">${esc(routeDisplay)}${etapesLabel}</div>
+        </div>`;
+      })()}
+      ${date}
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function getLastRapat(b) {
+  // Retourne {dateStr, route, date} du dernier rapatriement, ou null
+  if (!b.derniers_rapat) return null;
+  let best = null;
+  if (Array.isArray(b.derniers_rapat)) {
+    b.derniers_rapat.forEach(r => {
+      const dateStr = r.date || '';
+      const trajet  = Array.isArray(r.trajet) ? r.trajet.join(' > ') : (r.trajet || '');
+      const d = parseDate(dateStr);
+      if (d && (!best || d > best.date)) best = { dateStr, route: trajet.replace(/>/g,'→'), date: d };
+    });
+  } else {
+    String(b.derniers_rapat).split('\n').forEach(line => {
+      line = line.trim(); if (!line) return;
+      const sep = line.indexOf(' : ');
+      const dateStr = (sep > -1 ? line.slice(0, sep) : line).trim();
+      const route   = sep > -1 ? line.slice(sep+3).trim() : '';
+      const d = parseDate(dateStr);
+      if (d && (!best || d > best.date)) best = { dateStr, route: route.replace(/>/g,'→'), date: d };
+    });
+  }
+  return best;
+}
+
+function renderTable(rows) {
+  document.getElementById('cards-grid').style.display = 'none';
+  const tw = document.getElementById('table-wrap');
+  tw.style.display = 'block';
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  const now = Date.now();
+
+  rows.forEach(b => {
+    // Bénévole cell
+    const roleLabels = displayRoles(b).map(r => {
+      const labels = {centre:'Sur centre', rapatrieur:'Rapatrieur', autre:'Autre', former:'Formé'};
+      return labels[r] || r;
+    }).join(' · ');
+    const nomCell = `<div class="td-nom">${esc(b.nom)}${goat(b)}</div>
+      <div class="td-sub">${esc(b.prenom)}${roleLabels ? ' · ' + esc(roleLabels) : ''}</div>`;
+
+    // Téléphone
+    const telCell = b.telephone ? `<span class="td-tel">${telLink(b.telephone)}</span>` : `<span class="empty-dash">—</span>`;
+
+    // Commune
+    const communeCell = b.commune ? esc(b.commune) : `<span class="empty-dash">—</span>`;
+
+    // Rayon
+    const rayonCell = b.rayon
+      ? `<span class="rayon-pill-t">${esc(b.rayon)} km</span>`
+      : `<span class="empty-dash">–</span>`;
+
+    // Info temporaire
+    const infoText = b.info_temp || b.commentaire || '';
+    const infoCell = infoText
+      ? `<div class="td-info-box">${esc(infoText).replace(/\n/g,'<br>')}</div>`
+      : `<span class="empty-dash">—</span>`;
+
+    // Dernier rapatriement
+    let rapatCell = `<span class="empty-dash">—</span>`;
+    const lr = getLastRapat(b);
+    if (lr) {
+      const diff = Math.floor((now - lr.date) / 86400000);
+      const recent = diff >= 0 && diff <= 30;
+      const badgeRecent = recent ? `<span class="badge-recent">RÉCENT</span>` : '';
+      rapatCell = `<div class="td-rapat-card">
+        <div class="td-rapat-date">${esc(lr.dateStr)} ${badgeRecent}</div>
+        <div class="td-rapat-route">${esc(lr.route || '—')}</div>
+      </div>`;
+    }
+
+    const tr = document.createElement('tr');
+    tr.style.cursor = 'pointer';
+    tr.addEventListener('click', () => openDetail(b));
+    tr.innerHTML = `
+      <td>${nomCell}</td>
+      <td>${telCell}</td>
+      <td style="white-space:nowrap">${communeCell}</td>
+      <td>${rayonCell}</td>
+      <td>${infoCell}</td>
+      <td>${rapatCell}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// View toggle
+function setView(v) {
+  currentView = v;
+  document.getElementById('btn-tableau').classList.toggle('active', v==='table');
+  document.getElementById('btn-cartes').classList.toggle('active', v==='cards');
+  render();
+}
+
+// Sort
+document.querySelectorAll('thead th[data-col]').forEach(th => {
+  th.addEventListener('click', () => {
+    const col = th.dataset.col;
+    if (sortCol===col) sortAsc=!sortAsc; else { sortCol=col; sortAsc=true; }
+    document.querySelectorAll('thead th').forEach(h=>h.classList.remove('sorted'));
+    th.classList.add('sorted');
+    const sa=th.querySelector('.sa'); if(sa) sa.textContent=sortAsc?'↑':'↓';
+    render();
+  });
+});
+
+// ════════════════════════════
+//  Type cards (centre / rapatrieur / autre)
+// ════════════════════════════
+function toggleTypeCard(btn) {
+  const t = btn.dataset.type;
+  btn.classList.toggle('selected-' + t);
+  updateAllSections();
+}
+
+function updateAllSections() {
+  const isCentre = document.querySelector('.type-card[data-type="centre"]').classList.contains('selected-centre');
+  const isRapat  = document.querySelector('.type-card[data-type="rapatrieur"]').classList.contains('selected-rapatrieur');
+  const isAutre  = document.querySelector('.type-card[data-type="autre"]').classList.contains('selected-autre');
+  document.getElementById('section-centre').style.display    = isCentre ? '' : 'none';
+  document.getElementById('section-rapatrieur').style.display = isRapat ? '' : 'none';
+  document.getElementById('section-autre').style.display     = isAutre  ? '' : 'none';
+  updateFormation(isCentre, isRapat, isAutre);
+}
+
+function updateFormation(isCentre, isRapat, isAutre) {
+  const anySelected = isCentre || isRapat || isAutre;
+  const section = document.getElementById('section-formation');
+  const chksDiv = document.getElementById('formation-chks');
+  if (!anySelected) { section.style.display = 'none'; return; }
+  section.style.display = '';
+  if (isCentre && isRapat) {
+    chksDiv.innerHTML = `
+      <div class="chk-item" data-chk="forme_soin" onclick="toggleChk(this)">
+        <span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Formé(e) en soin</span>
+      </div>
+      <div class="chk-item" data-chk="forme_rapat" onclick="toggleChk(this)">
+        <span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Formé(e) en rapatriement</span>
+      </div>`;
+  } else {
+    chksDiv.innerHTML = `
+      <div class="chk-item" data-chk="forme" onclick="toggleChk(this)">
+        <span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Formé(e)</span>
+      </div>`;
+  }
+}
+
+// ════════════════════════════
+//  Checkbox générique
+// ════════════════════════════
+function toggleChk(item) {
+  item.classList.toggle('checked');
+}
+
+function toggleVeteran() {
+  const checked = document.querySelector('[data-chk="veteran"]').classList.contains('checked');
+  const sub = document.getElementById('veteran-sub');
+  sub.style.display = checked ? 'flex' : 'none';
+  if (!checked) {
+    sub.querySelectorAll('.chk-item').forEach(i => i.classList.remove('checked'));
+  }
+}
+
+function toggleCaisses(item) {
+  toggleChk(item);
+  document.getElementById('section-caisses-detail').style.display =
+    item.classList.contains('checked') ? '' : 'none';
+}
+
+// ════════════════════════════
+//  BROUILLONS
+// ════════════════════════════
+const DRAFT_KEY = 'hegalaldia_drafts';
+function getDrafts() { try { return JSON.parse(localStorage.getItem(DRAFT_KEY)||'[]'); } catch(e) { return []; } }
+
+// ID unique pour la session de saisie en cours (reset à chaque nouvelle fiche)
+let _currentDraftId = null;
+function newDraftSession() {
+  _currentDraftId = 'draft_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+}
+
+// Upsert : écrase le brouillon existant avec le même _draftId, sinon push
+function upsertDraft(data) {
+  const drafts = getDrafts();
+  const idx = drafts.findIndex(d => d._draftId === data._draftId);
+  if (idx > -1) drafts[idx] = data;
+  else drafts.push(data);
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(drafts));
+  updateDraftBadge();
+}
+
+function saveDraft() {
+  const form = document.getElementById('add-form');
+  const data = collectForm(form);
+  if (!data.nom && !data.prenom) { alert('Saisissez au moins un nom ou prénom.'); return; }
+  upsertDraft({ ...data, _draftId: _currentDraftId, _savedAt: new Date().toLocaleString('fr') });
+  const res = document.getElementById('form-result');
+  res.className = 'success'; res.textContent = '💾 Brouillon enregistré !'; res.style.display = 'block';
+  setTimeout(() => { res.style.display = 'none'; }, 2500);
+}
+function updateDraftBadge() {
+  const n = getDrafts().length;
+  const b = document.getElementById('draft-badge');
+  b.textContent = n; b.style.display = n > 0 ? '' : 'none';
+}
+
+// ── Sauvegarde automatique au rechargement / fermeture ────────────────────
+function formHasContent() {
+  const form = document.getElementById('add-form');
+  if (!form) return false;
+  const data = collectForm(form);
+  return !!(data.nom || data.prenom || data.email || data.telephone);
+}
+
+window.addEventListener('beforeunload', e => {
+  const pageActive = document.getElementById('page-ajouter')?.classList.contains('active');
+  if (!pageActive || !formHasContent()) return;
+
+  if (editingBenev) {
+    // En mode édition : avertissement natif (données non sauvegardées)
+    e.preventDefault();
+    e.returnValue = '';
+  } else {
+    // Nouveau bénévole : auto-save en brouillon silencieux (écrase le précédent)
+    const form = document.getElementById('add-form');
+    const data = collectForm(form);
+    upsertDraft({ ...data, _draftId: _currentDraftId, _savedAt: new Date().toLocaleString('fr'), _autoSaved: true });
+  }
+});
+function renderDrafts() {
+  const drafts = getDrafts();
+  const grid = document.getElementById('drafts-grid');
+  const empty = document.getElementById('drafts-empty');
+  grid.innerHTML = '';
+  if (drafts.length === 0) { empty.style.display = ''; grid.style.display = 'none'; return; }
+  empty.style.display = 'none'; grid.style.display = '';
+
+  const TYPE_COLORS = {
+    centre:     { bg:'#e7f4ec', color:'#0c7a35', label:'Sur centre' },
+    rapatrieur: { bg:'#fff0e8', color:'#c4521a', label:'Rapatrieur' },
+    autre:      { bg:'#f1f3ee', color:'#5d6b60', label:'Autre bénévole' },
+    former:     { bg:'#fef3c7', color:'#92400e', label:'Formé' },
+  };
+
+  drafts.forEach((d, i) => {
+    const nom = (d.nom||'') + (d.prenom ? ' ' + d.prenom : '') || '—';
+    const types = ['centre','rapatrieur','autre','former'].filter(t => d[t]);
+    const typeTags = types.map(t => {
+      const c = TYPE_COLORS[t];
+      return `<span class="draft-type-tag" style="background:${c.bg};color:${c.color};">${c.label}</span>`;
+    }).join('');
+
+    const card = document.createElement('div');
+    card.className = 'draft-card';
+    card.innerHTML = `
+      <div class="draft-card-top">
+        <div>
+          <div class="draft-name">${esc(nom)}</div>
+          <div class="draft-date">${esc(d._savedAt||'')}${d._autoSaved ? ' <span style="font-size:0.7rem;background:#e8f5e9;color:#2d7a46;padding:1px 6px;border-radius:6px;font-weight:600;">auto-sauvegardé</span>' : ''}</div>
+        </div>
+        <span class="draft-badge-pill">Brouillon</span>
+      </div>
+      ${typeTags ? `<div class="draft-types">${typeTags}</div>` : ''}
+      <div class="draft-sep"></div>
+      <div class="draft-info">
+        ${d.telephone ? `<div class="draft-info-row"><span class="draft-info-lbl">Tél.</span><span class="draft-info-val">${esc(fmtTel(d.telephone))}</span></div>` : ''}
+        ${d.commune ? `<div class="draft-info-row"><span class="draft-info-lbl">Commune</span><span class="draft-info-val commune">${esc(d.commune)}</span></div>` : ''}
+      </div>
+      <div class="draft-actions">
+        <button class="btn-reprendre" onclick="reprendDraft(${i})">▶ Reprendre</button>
+        <button class="btn-supprimer" onclick="deleteDraft(${i})">Supprimer</button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+function reprendDraft(i) {
+  const drafts = getDrafts();
+  const d = drafts[i];
+  // Restaurer l'ID du brouillon pour que les saves suivantes écrasent le même slot
+  _currentDraftId = d._draftId || ('draft_' + Date.now());
+  fillForm(d);
+  goPage('page-ajouter', { keepEdit: true });
+}
+function deleteDraft(i) {
+  const drafts = getDrafts();
+  drafts.splice(i, 1);
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(drafts));
+  updateDraftBadge();
+  renderDrafts();
+}
+
+// ════════════════════════════
+// ════════════════════════════
+//  Véhicules dynamiques
+// ════════════════════════════
+function addVehiculeRow(data = {}) {
+  const list = document.getElementById('vehicules-list');
+  const idx  = list.children.length;
+  const row  = document.createElement('div');
+  row.className = 'vehicule-row';
+  row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end;padding-bottom:12px;border-bottom:1px solid #f0ede8;';
+  row.innerHTML = `
+    <div class="fg" style="margin:0;"><label style="font-size:0.78rem;">Immatriculation</label>
+      <input type="text" class="v-immat mono" placeholder="AA-000-AA" autocomplete="off" maxlength="9" oninput="fmtImmat(this)" value="${esc(data.immat||'')}"></div>
+    <div class="fg" style="margin:0;"><label style="font-size:0.78rem;">Puissance (CV)</label>
+      <input type="text" class="v-puissance" placeholder="ex : 6" autocomplete="off" maxlength="3" inputmode="numeric" oninput="fmtPuissance(this)" value="${esc(data.puissance||'')}"></div>
+    <div class="fg" style="margin:0;"><label style="font-size:0.78rem;">Moteur</label>
+      <select class="v-moteur">
+        <option value="">—</option>
+        <option value="Thermique"${data.moteur==='Thermique'?' selected':''}>Thermique</option>
+        <option value="Électrique"${data.moteur==='Électrique'?' selected':''}>Électrique</option>
+        <option value="Hybride"${data.moteur==='Hybride'?' selected':''}>Hybride</option>
+        <option value="Hybride rechargeable"${data.moteur==='Hybride rechargeable'?' selected':''}>Hybride rechargeable</option>
+      </select></div>
+    <button type="button" onclick="this.closest('.vehicule-row').remove();cleanVehiculeRows()" title="Supprimer ce véhicule"
+      style="padding:7px 10px;background:none;border:1.5px solid #f0c4b4;border-radius:8px;color:#c05621;cursor:pointer;font-size:0.9rem;line-height:1;margin-bottom:1px;">✕</button>
+  `;
+  list.appendChild(row);
+  cleanVehiculeRows();
+}
+
+function cleanVehiculeRows() {
+  // Masquer le bouton supprimer sur la dernière ligne si elle est seule
+  const rows = document.querySelectorAll('.vehicule-row');
+  rows.forEach((r, i) => {
+    r.querySelector('button').style.visibility = rows.length > 1 ? 'visible' : 'hidden';
+  });
+}
+
+function renderVehicules(vehicules) {
+  const list = document.getElementById('vehicules-list');
+  if (!list) return;
+  list.innerHTML = '';
+  if (!vehicules || vehicules.length === 0) vehicules = [{}];
+  vehicules.forEach(v => addVehiculeRow(v));
+}
+
+//  Formulaire submit
+// ════════════════════════════
+function collectForm(form) {
+  const getType = t => document.querySelector(`.type-card[data-type="${t}"]`)?.classList.contains('selected-'+t) ? 'on' : '';
+  const chks = {};
+  document.querySelectorAll('#add-form .chk-item').forEach(item => {
+    chks[item.dataset.chk] = item.classList.contains('checked') ? 'on' : '';
+  });
+  const fv = k => form[k] ? form[k].value.trim() : '';
+  return {
+    centre: getType('centre'), rapatrieur: getType('rapatrieur'), autre: getType('autre'),
+    former: (chks.forme||chks.forme_soin||chks.forme_rapat) ? 'on' : '',
+    forme: chks.forme||'', forme_soin: chks.forme_soin||'', forme_rapat: chks.forme_rapat||'',
+    nom: fv('nom'), prenom: fv('prenom'), naissance: fv('naissance'),
+    email: fv('email'), adresse: fv('adresse'),
+    telephone: fv('telephone'), telephone2: fv('telephone2'),
+    commune: fv('commune'), rayon: fv('rayon'),
+    urg_nom: fv('urg_nom'), urg_prenom: fv('urg_prenom'), urg_tel: fv('urg_tel'),
+    adhesion: chks.adhesion||'', admin: chks.admin||'', ca: chks.ca||'', veteran: chks.veteran||'', anc_sc: chks.anc_sc||'', anc_salarie: chks.anc_salarie||'', anc_ca: chks.anc_ca||'', premier_jour: fv('premier_jour'), disponibilites: fv('disponibilites'),
+    comp_menage: chks.comp_menage||'', comp_oisillons: chks.comp_oisillons||'',
+    comp_marins: chks.comp_marins||'', comp_vautour: chks.comp_vautour||'', comp_exterieurs: chks.comp_exterieurs||'', comp_heris: chks.comp_heris||'',
+    vehicules: [...document.querySelectorAll('.vehicule-row')].map(r => ({
+      immat:     r.querySelector('.v-immat').value.trim(),
+      puissance: r.querySelector('.v-puissance').value.trim(),
+      moteur:    r.querySelector('.v-moteur').value,
+    })).filter(v => v.immat || v.puissance || v.moteur),
+    caisses: chks.caisses||'', caisses_nb: fv('caisses_nb'), caisses_taille: fv('caisses_taille'),
+    gants: chks.gants||'', garde_domicile: chks.garde_domicile||'', recu_fiscal: chks.recu_fiscal||'',
+    zone_pb: chks.zone_pb||'', zone_bearn: chks.zone_bearn||'', zone_landes: chks.zone_landes||'', zone_hp: chks.zone_hp||'',
+    act_caddie: chks.act_caddie||'', act_papier_cadeau: chks.act_papier_cadeau||'', act_espaces_verts: chks.act_espaces_verts||'',
+    comp_brico: chks.comp_brico||'', comp_info: chks.comp_info||'', comp_commu: chks.comp_commu||'',
+    comp_compta: chks.comp_compta||'', comp_photo: chks.comp_photo||'', comp_couture: chks.comp_couture||'',
+    autres_competences: fv('autres_competences'),
+    commentaire: fv('commentaire'),
+  };
+}
+function fillForm(d) {
+  const form = document.getElementById('add-form');
+  ['centre','rapatrieur','autre'].forEach(t => {
+    const btn = document.querySelector(`.type-card[data-type="${t}"]`);
+    if (!btn) return;
+    if (d[t]) btn.classList.add('selected-'+t); else btn.classList.remove('selected-'+t);
+  });
+  updateAllSections();
+  setTimeout(() => {
+    document.querySelectorAll('#add-form .chk-item').forEach(item => {
+      const k = item.dataset.chk;
+      if (k && d[k]) item.classList.add('checked'); else item.classList.remove('checked');
+    });
+    if (d.caisses) document.getElementById('section-caisses-detail').style.display = '';
+    document.getElementById('veteran-sub').style.display = d.veteran === 'on' ? 'flex' : 'none';
+  }, 0);
+  ['nom','prenom','naissance','email','adresse','telephone','telephone2','commune','rayon',
+   'urg_nom','urg_prenom','urg_tel','premier_jour','disponibilites',
+   'caisses_nb','caisses_taille','autres_competences','commentaire'
+  ].forEach(k => { if (form[k]) form[k].value = d[k] || ''; });
+  // Véhicules : nouveau format tableau ou ancien format plat
+  const vehData = Array.isArray(d.vehicules) && d.vehicules.length
+    ? d.vehicules
+    : (d.immat || d.puissance || d.moteur)
+      ? [{ immat: d.immat||'', puissance: d.puissance||'', moteur: d.moteur||'' }]
+      : [];
+  renderVehicules(vehData);
+}
+
+// ════════════════════════════
+//  Édition d'un bénévole existant
+// ════════════════════════════
+function startEdit(b) {
+  editingBenev = b;
+  closeDetail();
+  // Passer toutes les données du bénévole + rôles convertis en champs 'on'
+  const _roles   = b.roles || [];
+  const _isFormer = _roles.includes('former');
+  const _isCentre = _roles.includes('centre');
+  const _isRapat  = _roles.includes('rapatrieur');
+  // Le formulaire affiche "Formé(e) en soin" + "Formé(e) en rapatriement" si centre+rapat,
+  // sinon juste "Formé(e)". On mappe former → les bons champs de checkbox.
+  const _formeSoin  = _isFormer && _isCentre && _isRapat ? 'on' : (b.forme_soin  || '');
+  const _formeRapat = _isFormer && _isCentre && _isRapat ? 'on' : (b.forme_rapat || '');
+  const _forme      = _isFormer && !(_isCentre && _isRapat) ? 'on' : (b.forme || '');
+  fillForm({
+    ...b,
+    centre:     _isCentre              ? 'on' : '',
+    rapatrieur: _isRapat               ? 'on' : '',
+    autre:      _roles.includes('autre') ? 'on' : '',
+    forme:      _forme,
+    forme_soin: _formeSoin,
+    forme_rapat: _formeRapat,
+    commentaire: b.commentaire || b.info_temp || '',
+  });
+  goPage('page-ajouter', { keepEdit: true });
+  // Show edit banner (reuse existing #form-saved-banner)
+  const banner = document.getElementById('form-saved-banner');
+  document.getElementById('form-saved-text').textContent = `Mode édition — ${b.prenom} ${b.nom}`;
+  banner.style.cssText = 'display:flex;align-items:center;gap:11px;margin-bottom:20px;padding:14px 18px;background:#fff8f2;border:1px solid #f4d3bd;border-radius:13px;';
+  banner.querySelector('span').style.background = '#ec6724';
+  banner.querySelector('span').textContent = '✎';
+  document.getElementById('btn-submit').innerHTML = '<span style="font-size:18px;line-height:0;">✓</span> Mettre à jour la fiche';
+  document.getElementById('btn-delete-benev').style.display = '';
+}
+
+document.getElementById('add-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const form = e.target;
+  const btn = document.getElementById('btn-submit');
+  const res = document.getElementById('form-result');
+  btn.disabled = true; btn.innerHTML = 'Envoi…';
+  res.style.display = 'none';
+  try {
+  const data = collectForm(form);
+  const endpoint = editingBenev ? '/api/benevoles/update' : '/api/benevoles/add';
+  const body = editingBenev
+    ? { ...data, _orig_nom: editingBenev.nom, _orig_prenom: editingBenev.prenom }
+    : data;
+    const r = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (r.ok) {
+      const isEdit = !!editingBenev;
+      const msg = isEdit
+        ? `${data.prenom} ${data.nom} a bien été mis à jour !`
+        : `${data.prenom} ${data.nom} a bien été ajouté(e) !`;
+
+      editingBenev = null;
+      document.getElementById('btn-delete-benev').style.display = 'none';
+      // Supprimer le brouillon correspondant à cette session
+      if (_currentDraftId) {
+        const drafts = getDrafts().filter(d => d._draftId !== _currentDraftId);
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(drafts));
+        updateDraftBadge();
+        _currentDraftId = null;
+      }
+      // Restaurer le bouton et masquer la bannière d'édition
+      btn.innerHTML = '<span style="font-size:18px;line-height:0;">✓</span> Enregistrer la fiche';
+      document.getElementById('form-saved-banner').style.display = 'none';
+      form.reset();
+      document.querySelectorAll('.type-card').forEach(c => {
+        c.classList.remove('selected-centre','selected-rapatrieur','selected-autre');
+      });
+      document.querySelectorAll('#add-form .chk-item').forEach(item => item.classList.remove('checked'));
+      ['section-centre','section-rapatrieur','section-autre','section-formation','section-caisses-detail'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.style.display = 'none';
+      });
+      await loadData();
+      // Retour à la liste avec toast
+      goPage('page-liste');
+      const toast = document.getElementById('liste-toast');
+      document.getElementById('liste-toast-msg').textContent = msg;
+      toast.style.display = 'flex';
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => {
+        toast.style.transition = 'opacity 0.5s';
+        toast.style.opacity = '0';
+        setTimeout(() => { toast.style.display = 'none'; toast.style.opacity = '1'; toast.style.transition = ''; }, 500);
+      }, 4000);
+    } else {
+      throw new Error(await r.text() || r.statusText);
+    }
+  } catch(err) {
+    res.className = 'error';
+    const msg = err.message || '';
+    if (msg.includes('existe déjà')) {
+      res.innerHTML = `<strong>Ce bénévole existe déjà.</strong><br><span style="font-size:0.85rem;">Un bénévole avec le même nom et prénom est déjà enregistré. Vérifiez la liste ou modifiez la fiche existante.</span>`;
+    } else {
+      res.textContent = '✗ Erreur : ' + msg;
+    }
+    res.style.display = 'block';
+    window.scrollTo({ top: res.getBoundingClientRect().top + window.scrollY - 20, behavior: 'smooth' });
+  }
+  btn.disabled = false;
+  if (editingBenev) {
+    btn.innerHTML = '<span style="font-size:18px;line-height:0;">✓</span> Mettre à jour la fiche';
+  } else {
+    btn.innerHTML = '<span style="font-size:18px;line-height:0;">✓</span> Enregistrer la fiche';
+  }
+});
+
+// ════════════════════════════
+//  Flèches rapatriements
+// ════════════════════════════
+(function() {
+  const scroll = document.getElementById('rapat-scroll');
+  const prev   = document.getElementById('rapat-prev');
+  const next   = document.getElementById('rapat-next');
+  if (!scroll || !prev || !next) return;
+
+  function updateArrows() {
+    prev.classList.toggle('disabled', scroll.scrollLeft <= 4);
+    next.classList.toggle('disabled', scroll.scrollLeft >= scroll.scrollWidth - scroll.clientWidth - 4);
+  }
+
+  function scrollBy(dir) {
+    // Largeur d'une carte + gap ≈ 212px, on avance de ~2 cartes
+    const step = Math.max(scroll.clientWidth * 0.6, 212);
+    scroll.scrollBy({ left: dir * step, behavior: 'smooth' });
+  }
+
+  prev.addEventListener('click', () => scrollBy(-1));
+  next.addEventListener('click', () => scrollBy(1));
+  scroll.addEventListener('scroll', updateArrows, { passive: true });
+  // Recalcul après chargement des cartes
+  new MutationObserver(updateArrows).observe(scroll, { childList: true });
+})();
+
+// ════════════════════════════
+//  Init + auto-refresh
+// ════════════════════════════
+updateDraftBadge();
+loadData().then(() => {
+  setTimeout(() => {
+    document.querySelectorAll('.confirm-status.oui').forEach(el => {
+      el.style.transition = 'opacity 0.5s';
+      el.style.opacity = '0';
+      setTimeout(() => el.remove(), 500);
+    });
+  }, 5000);
+});
+
+// Polling données toutes les 30s (ne recharge pas si une page autre que liste est active)
+setInterval(() => {
+  const pageAjouter = document.getElementById('page-ajouter')?.classList.contains('active');
+  if (!pageAjouter) loadData();
+}, 30_000);
+
+// Recalcul du statut rapatriements toutes les minutes (sans refetch, juste re-render)
+setInterval(() => {
+  if (allData && allData.length) buildRapatSection();
+}, 60_000);
+// ════════════════════════════
+//  PANNEAU DÉTAIL
+// ════════════════════════════
+function openDetail(b) {
+  const panel = document.getElementById('detail-panel');
+  const overlay = document.getElementById('detail-overlay');
+
+  const ROLE_BADGE = {
+    centre:     { cls: 'dp-badge-white',  lbl: 'Sur centre' },
+    rapatrieur: { cls: 'dp-badge-orange', lbl: 'Rapatrieur' },
+    autre:      { cls: 'dp-badge-white',  lbl: 'Autre' },
+    former:     { cls: 'dp-badge-white',  lbl: 'Formé' },
+  };
+
+  const adminDpBadge = b.admin === 'on' ? `<span class="dp-badge-admin">Admin</span>` : '';
+  const caDpBadge      = b.ca      === 'on' ? `<span class="dp-badge-ca">CA</span>` : '';
+  const vetLabel       = [b.anc_sc==='on'?'Anc. SC':'', b.anc_salarie==='on'?'Anc. Salarié':'', b.anc_ca==='on'?'Anc. CA':''].filter(Boolean).join(' · ');
+  const veteranDpBadge = b.veteran === 'on'
+    ? `<span style="background:#f5f0e8;color:#7a5c2e;font-weight:700;font-size:0.87rem;padding:6px 14px;border-radius:999px;display:inline-flex;align-items:center;gap:5px;">${vetLabel||'Vétéran'}</span>`
+    : '';
+  const badges = adminDpBadge + caDpBadge + veteranDpBadge + displayRoles(b).map(r => {
+    const { cls, lbl } = ROLE_BADGE[r] || { cls: 'dp-badge-white', lbl: r };
+    return `<span class="${cls}"><span class="dot"></span>${lbl}</span>`;
+  }).join('');
+
+  const formation = formationLabel(b);
+  const formationBadge = formation
+    ? `<span class="dp-badge-formation"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>${formation}</span>`
+    : '';
+
+  function row(label, val, opts = {}) {
+    if (!val) return '';
+    const cls = opts.mono ? ' class="mono"' : opts.bold ? ' class="bold"' : '';
+    return `<dt>${label}</dt><dd${cls}>${val}</dd>`;
+  }
+
+  function section(title, content) {
+    if (!content || content.trim() === '') return '';
+    return `<div class="dp-section">
+      <div class="dp-section-head">
+        <span class="dp-section-title">${title}</span>
+        <span class="dp-section-line"></span>
+      </div>
+      ${content}
+    </div>`;
+  }
+
+  // Rapatriements — tous, triés du plus récent au plus ancien
+  let rapatHTML = '<div class="dp-empty">Aucun rapatriement enregistré.</div>';
+  const rawRapat = b.derniers_rapat;
+  if (rawRapat) {
+    const items = [];
+
+    if (Array.isArray(rawRapat)) {
+      rawRapat.forEach((r, idx) => {
+        const dateStr    = r.date || '';
+        const trajetArr  = Array.isArray(r.trajet) ? r.trajet : (r.trajet||'').split('>').map(v=>v.trim()).filter(Boolean);
+        const route      = trajetArr.join(' > ');
+        const distanceKm = r.distance_km || '';
+        const heures     = (r.heure_depart && r.heure_arrivee) ? `${r.heure_depart} → ${r.heure_arrivee}` : (r.heure_depart || r.heure_arrivee || '');
+        items.push({ dateStr, route, trajetArr, distanceKm, heures, date: parseDate(dateStr), origIdx: idx });
+      });
+    } else {
+      String(rawRapat).split('\n').forEach((line, idx) => {
+        line = line.trim(); if (!line) return;
+        const sep    = line.indexOf(' : ');
+        const dateStr = (sep > -1 ? line.slice(0, sep) : line).trim();
+        const route   = sep > -1 ? line.slice(sep+3).trim() : '';
+        items.push({ dateStr, route, trajetArr: [], distanceKm: '', heures: '', date: parseDate(dateStr), origIdx: idx });
+      });
+    }
+
+    items.sort((a, b2) => (b2.date||0) - (a.date||0));
+    if (items.length > 0) {
+      const benevId = b._id || '';
+      rapatHTML = '<div class="dp-rapat-list">' + items.map(r => {
+        const villes = r.trajetArr.length ? r.trajetArr : r.route.split('>').map(v => v.trim()).filter(Boolean);
+        const stops = villes.length > 1
+          ? villes.map((v, i) => `<div class="stop"><span class="stop-dot">${i===0?'·':'↓'}</span><span style="font-weight:${i===0||i===villes.length-1?700:400}">${esc(v)}</span></div>`).join('')
+          : `<div class="stop"><span class="stop-dot">·</span><span>${esc(r.route||'—')}</span></div>`;
+        const meta = [r.heures, r.distanceKm ? `${r.distanceKm} km` : ''].filter(Boolean).join(' · ');
+        return `<div class="dp-rapat-item">
+          <button class="rapat-del-btn" onclick="deleteRapat('${benevId}',${r.origIdx})" title="Supprimer ce rapatriement">✕</button>
+          <div class="dp-rapat-date">${esc(r.dateStr)}${meta ? `<span style="font-size:0.75rem;color:#aaa;font-weight:400;margin-left:8px;">${esc(meta)}</span>` : ''}</div>
+          <div class="dp-rapat-route">${stops}</div>
+        </div>`;
+      }).join('') + '</div>';
+    }
+  }
+
+  // Compétences soin
+  const COMP_SOIN = { comp_menage:'Ménage/stocks', comp_oisillons:'Oisillons', comp_marins:'Oiseaux marins', comp_vautour:'Capture vautour', comp_exterieurs:'Extérieurs', comp_heris:'Tétées hérissons' };
+  const compSoin = Object.entries(COMP_SOIN).filter(([k]) => b[k]).map(([,v]) => `<span class="dp-chk-tag green">${v}</span>`).join('');
+
+  // Compétences générales
+  const COMP_GEN = { comp_brico:'Bricolage', comp_info:'Informatique', comp_commu:'Communication', comp_compta:'Comptabilité', comp_photo:'Photo', comp_couture:'Couture' };
+  const compGen = Object.entries(COMP_GEN).filter(([k]) => b[k]).map(([,v]) => `<span class="dp-chk-tag">${v}</span>`).join('');
+  if (b.autres_competences) compGen + `<span class="dp-chk-tag">${esc(b.autres_competences)}</span>`;
+
+  // Équipement rapatrieur
+  const EQUIP = { caisses:'Caisses', gants:'Gants', comp_vautour:'Capture vautour', garde_domicile:'Garde domicile', recu_fiscal:'Reçu fiscal' };
+  const equip = Object.entries(EQUIP).filter(([k]) => b[k]).map(([,v]) => `<span class="dp-chk-tag orange">${v}</span>`).join('');
+  const zones = [b.zone_pb&&'Pays Basque', b.zone_bearn&&'Béarn', b.zone_landes&&'Landes', b.zone_hp&&'Htes-Pyrénées'].filter(Boolean).map(v => `<span class="dp-chk-tag orange">${v}</span>`).join('');
+
+  // Véhicules HTML
+  const vehs = Array.isArray(b.vehicules) && b.vehicules.length ? b.vehicules
+    : (b.immat||b.puissance||b.moteur) ? [{immat:b.immat||'',puissance:b.puissance||'',moteur:b.moteur||''}] : [];
+  const vehHTML = vehs.length ? `
+    <div class="dp-veh-grid">
+      ${vehs.map((v,i) => `
+        <div class="dp-veh-card">
+          <div class="dp-veh-head">${vehs.length > 1 ? `Véhicule ${i+1}` : 'Véhicule'}</div>
+          <div class="dp-veh-body">
+            <dl class="dp-dl">
+              ${row('Immat.', esc(v.immat||'—'), {mono:true})}
+              ${row('Puiss.', esc(v.puissance ? v.puissance+' CV' : '—'), {bold:true})}
+              ${row('Moteur', esc(v.moteur||'—'), {bold:true})}
+            </dl>
+          </div>
+        </div>`).join('')}
+    </div>` : '';
+
+  // Nombre de rapatriements
+  const nbRapat = Array.isArray(b.derniers_rapat) ? b.derniers_rapat.length
+    : (b.derniers_rapat||'').split('\n').filter(l=>l.trim()).length;
+
+  panel.innerHTML = `
+    <div class="dp-header">
+      <div class="dp-header-top">
+        <div style="min-width:0;">
+          <div class="dp-nom">${esc(b.nom)} ${esc(b.prenom)}${goat(b)}</div>
+        </div>
+        <div style="display:flex;gap:10px;flex-shrink:0;">
+          <button class="dp-edit-btn-new" id="dp-edit-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3z"/><path d="M13.5 6.5l3 3"/></svg>
+            Modifier
+          </button>
+          <button class="dp-close" onclick="closeDetail()">✕</button>
+        </div>
+      </div>
+
+      <div class="dp-badges">${badges}${formationBadge}</div>
+      ${b.date_creation ? `<div class="dp-depuis">Bénévole depuis le ${esc(b.date_creation.split(' ')[0])}</div>` : ''}
+    </div>
+
+    <div class="dp-body">
+
+      ${section('Contact', `<dl class="dp-dl">
+        ${row('Tél.', `<span class="mono">${telLink(b.telephone)}</span>`)}
+        ${b.telephone2 ? row('Tél. 2', `<span class="mono">${telLink(b.telephone2)}</span>`) : ''}
+        ${row('Email', esc(b.email))}
+        ${row('Commune', esc(b.commune) + (b.rayon ? ` <span style="font-weight:500;color:#5d6b60;">· ${esc(b.rayon)} km</span>` : ''), {bold:true})}
+        ${row('Adresse', esc(b.adresse))}
+        ${row('Naissance', b.naissance ? (() => { const m = b.naissance.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/); if(!m) return esc(b.naissance); const bd = new Date(+m[3],+m[2]-1,+m[1]); const now = new Date(); let age = now.getFullYear()-bd.getFullYear(); if(now.getMonth()<bd.getMonth()||(now.getMonth()===bd.getMonth()&&now.getDate()<bd.getDate())) age--; return `<span class="mono">${esc(b.naissance)}</span> <span style="color:#888;font-size:0.85em;">(${age} ans)</span>`; })() : '', {})}
+      </dl>`)}
+
+      ${b.urg_nom||b.urg_tel ? section('Personne à prévenir', `
+        <div class="dp-urg-card">
+          <dl class="dp-dl">
+            ${row('Nom', esc((b.urg_nom||'') + (b.urg_prenom ? ' '+b.urg_prenom : '')), {bold:true})}
+            ${row('Tél.', esc(fmtTel(b.urg_tel)), {mono:true})}
+          </dl>
+        </div>`) : ''}
+
+      ${b.roles&&b.roles.includes('centre') ? section('Sur centre', `
+        <dl class="dp-dl">
+          ${row('1er jour', esc(b.premier_jour), {mono:true})}
+          ${b.adhesion ? `<dt>Adhésion</dt><dd><span class="dp-adhesion-ok"><span class="check">✓</span>Réglée</span></dd>` : ''}
+          ${row('Disponibilités', esc(b.disponibilites))}
+        </dl>
+        ${compSoin ? `<div style="margin-top:18px;"><div class="dp-section-head" style="margin-bottom:12px;"><span class="dp-section-title">Compétences soin</span><span class="dp-section-line"></span></div><div class="dp-chk-grid">${compSoin}</div></div>` : ''}
+      `) : ''}
+
+      ${b.roles&&b.roles.includes('rapatrieur') ? section('Véhicules', `
+        ${vehHTML}
+        ${equip||zones ? `<div style="margin-top:20px;">
+          <div class="dp-section-head" style="margin-bottom:12px;"><span class="dp-section-title">Équipement</span><span class="dp-section-line"></span></div>
+          ${equip ? `<div class="dp-chk-grid" style="margin-bottom:12px;">${equip}</div>` : ''}
+          ${b.caisses&&(b.caisses_nb||b.caisses_taille) ? `<dl class="dp-dl" style="margin-top:10px;">${row('Caisses', esc([b.caisses_nb&&b.caisses_nb+' caisse(s)', b.caisses_taille].filter(Boolean).join(' — ')))}</dl>` : ''}
+          ${zones ? `<div style="margin-top:12px;"><div class="dp-section-head" style="margin-bottom:10px;"><span class="dp-section-title">Rayon d'action</span><span class="dp-section-line"></span></div><div class="dp-chk-grid">${zones}</div></div>` : ''}
+        </div>` : ''}
+      `) : ''}
+
+      ${b.roles&&b.roles.includes('autre')&&compGen ? section('Compétences', `
+        <div class="dp-chk-grid">${compGen}</div>
+      `) : ''}
+
+      ${b.commentaire||b.info_temp ? section('Commentaire', `
+        <div class="dp-comment">${esc(b.commentaire||b.info_temp).replace(/\n/g,'<br>')}</div>
+      `) : ''}
+
+      ${section(`Rapatriements (${nbRapat})`, rapatHTML || '<div class="dp-empty">Aucun rapatriement enregistré.</div>')}
+
+      ${b.modif ? `<div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:#aaa;margin-top:20px;padding-top:16px;border-top:1px solid #eee;">Modifié le ${esc(b.modif)}</div>` : ''}
+    </div>
+  `;
+
+  panel.querySelector('#dp-edit-btn').addEventListener('click', () => startEdit(b));
+
+  overlay.classList.add('open');
+  requestAnimationFrame(() => panel.classList.add('open'));
+}
+
+async function confirmDeleteBenevole() {
+  const b = editingBenev;
+  if (!b) return;
+  if (!confirm(`Supprimer définitivement ${b.prenom} ${b.nom} ?\n\nCette action est irréversible.`)) return;
+  try {
+    const r = await fetch('/api/benevoles/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ benevole_id: b._id })
+    });
+    if (!r.ok) throw new Error(await r.text());
+    editingBenev = null;
+    document.getElementById('btn-delete-benev').style.display = 'none';
+    document.getElementById('btn-submit').innerHTML = '<span style="font-size:18px;line-height:0;">✓</span> Enregistrer la fiche';
+    document.getElementById('form-saved-banner').style.display = 'none';
+    document.getElementById('add-form').reset();
+    await loadData();
+    goPage('page-liste');
+  } catch(e) {
+    alert('Erreur : ' + e.message);
+  }
+}
+
+async function confirmRapat(benevId, idx, done, btn) {
+  const zone = btn.closest('.confirm-zone');
+  zone.innerHTML = '<span style="font-size:0.75rem;color:#aaa;">Enregistrement…</span>';
+  try {
+    const r = await fetch('/api/rapatriements/confirm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ benevole_id: benevId, index: idx, done })
+    });
+    if (!r.ok) throw new Error(await r.text());
+    await loadData();
+    if (done) {
+      setTimeout(() => {
+        document.querySelectorAll('.confirm-status.oui').forEach(el => {
+          el.style.transition = 'opacity 0.5s';
+          el.style.opacity = '0';
+          setTimeout(() => el.remove(), 500);
+        });
+      }, 5000);
+    }
+  } catch(e) {
+    zone.innerHTML = `<span style="font-size:0.75rem;color:#c0392b;">Erreur : ${e.message}</span>`;
+  }
+}
+
+// Étape de confirmation avant de marquer "Non effectué"
+function askConfirmNon(benevId, idx, btn) {
+  const zone = btn.closest('.confirm-zone');
+  zone.innerHTML = `
+    <div style="font-size:0.78rem;color:#c0392b;font-weight:600;margin-bottom:6px;">Confirmer non effectué ?</div>
+    <div class="confirm-btns">
+      <button class="confirm-btn non" onclick="confirmRapat('${benevId}',${idx},false,this);event.stopPropagation()">Oui, non effectué</button>
+      <button class="confirm-btn" onclick="cancelConfirmNon(this,'${benevId}',${idx});event.stopPropagation()" style="border-color:#aaa;color:#555;background:#f5f5f5;">Annuler</button>
+    </div>`;
+}
+
+function cancelConfirmNon(btn, benevId, idx) {
+  const zone = btn.closest('.confirm-zone');
+  zone.innerHTML = `
+    <div class="confirm-label">Rapatriement effectué ?</div>
+    <div class="confirm-btns">
+      <button class="confirm-btn oui" onclick="confirmRapat('${benevId}',${idx},true,this);event.stopPropagation()">✓ Oui</button>
+      <button class="confirm-btn non" onclick="askConfirmNon('${benevId}',${idx},this);event.stopPropagation()">✗ Non</button>
+    </div>`;
+}
+
+// Suppression depuis le carousel (croix sur "non effectué") — supprime aussi de la liste du bénévole
+async function deleteRapatCarousel(benevId, idx, btn) {
+  const card = btn.closest('.rapat-card');
+  card.style.opacity = '0.4';
+  card.style.pointerEvents = 'none';
+  try {
+    const r = await fetch('/api/rapatriements/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ benevole_id: benevId, index: idx })
+    });
+    if (!r.ok) throw new Error(await r.text());
+    await loadData();
+  } catch(e) {
+    card.style.opacity = '';
+    card.style.pointerEvents = '';
+    alert('Erreur : ' + e.message);
+  }
+}
+
+async function deleteRapat(benevId, idx) {
+  if (!confirm('Supprimer ce rapatriement ?')) return;
+  try {
+    const r = await fetch('/api/rapatriements/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ benevole_id: benevId, index: idx })
+    });
+    if (!r.ok) throw new Error(await r.text());
+    await loadData();
+    // Retrouver le bénévole mis à jour et rouvrir le panneau
+    const updated = allData.find(b => b._id === benevId);
+    if (updated) openDetail(updated);
+  } catch(e) {
+    alert('Erreur : ' + e.message);
+  }
+}
+
+function closeDetail() {
+  const panel = document.getElementById('detail-panel');
+  const overlay = document.getElementById('detail-overlay');
+  panel.classList.remove('open');
+  overlay.classList.remove('open');
+}
+
+document.addEventListener('click', e => { if (e.target.id === 'detail-overlay') closeDetail(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
+
+// ── Autocomplete commune d'habitation ─────────────────────────────────────
+async function communeAcSearch(input) {
+  const q = input.value.trim();
+  const drop = document.getElementById('commune-ac-drop');
+  if (q.length < 2) { drop.style.display = 'none'; return; }
+  clearTimeout(input._acTimer);
+  input._acTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`/api/villes?q=${encodeURIComponent(q)}`);
+      const villes = await res.json();
+      if (!villes.length) { drop.style.display = 'none'; return; }
+      drop.innerHTML = villes.map(v =>
+        `<div style="padding:9px 14px;cursor:pointer;font-size:0.88rem;border-bottom:1px solid #f0ede8;"
+              onmousedown="document.getElementById('commune-input').value='${v.replace(/'/g,"\\'")}';document.getElementById('commune-ac-drop').style.display='none';"
+              onmouseover="this.style.background='#f5f3ef'" onmouseout="this.style.background=''">${v}</div>`
+      ).join('');
+      drop.style.display = '';
+    } catch(e) { drop.style.display = 'none'; }
+  }, 250);
+}
+
+// ── Autocomplete trajet (villes + vétérinaires) ───────────────────────────
+let _vetosCache = null;
+
+async function getVetos() {
+  if (_vetosCache) return _vetosCache;
+  try {
+    const r = await fetch('/api/vetos');
+    _vetosCache = await r.json();
+  } catch(e) { _vetosCache = []; }
+  return _vetosCache;
+}
+
+function makeTrajetInput(placeholder) {
+  const uid = 'tac_' + Math.random().toString(36).slice(2, 8);
+  return `<input type="text" class="trajet-ville" placeholder="${placeholder}"
+    style="width:100%;padding:9px 12px;border:1.5px solid #d8d4ce;border-radius:9px;font-size:0.9rem;"
+    autocomplete="off" data-ac="${uid}"
+    oninput="trajetAcSearch(this)" onfocus="trajetAcSearch(this)" onblur="trajetAcHide(this);scheduleDistanceCalc()">
+  <div class="trajet-ac-dropdown" id="${uid}"></div>`;
+}
+
+// Precharger les vetos dès que possible
+getVetos();
+
+// ── Calcul de distance du trajet ─────────────────────────────────────────
+const _geocodeCache = {};
+
+async function geocode(q) {
+  if (_geocodeCache[q]) return _geocodeCache[q];
+  // Hegalaldia — coordonnées exactes
+  if (q.toLowerCase().includes('hegalaldia')) return { lat: 43.402226, lon: -1.503324 };
+  // Si c'est une clinique vétérinaire "Ville (Nom clinique)", extraire juste la ville
+  const cityName = q.includes('(') ? q.split('(')[0].trim() : q;
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityName + ', France')}&format=json&limit=1`;
+    const r   = await fetch(url, { headers: { 'Accept-Language': 'fr' } });
+    const d   = await r.json();
+    if (d.length) {
+      const coord = { lat: parseFloat(d[0].lat), lon: parseFloat(d[0].lon) };
+      _geocodeCache[q] = coord;
+      return coord;
+    }
+  } catch(e) {}
+  return null;
+}
+
+let _distTimer = null;
+
+function scheduleDistanceCalc() {
+  clearTimeout(_distTimer);
+  _distTimer = setTimeout(calcDistance, 600);
+}
+
+async function calcDistance() {
+  const villes = [...document.querySelectorAll('#rapat-trajet-list .trajet-ville')]
+    .map(i => i.value.trim()).filter(Boolean);
+  if (villes.length < 2) {
+    document.getElementById('rapat-distance-row').style.display = 'none';
+    return;
+  }
+
+  const row  = document.getElementById('rapat-distance-row');
+  const val  = document.getElementById('rapat-distance-val');
+  const spin = document.getElementById('rapat-distance-spin');
+  row.style.display  = 'flex';
+  spin.style.display = 'inline';
+  val.textContent    = '—';
+
+  try {
+    // Géocodage de toutes les villes en parallèle
+    const coords = await Promise.all(villes.map(v => geocode(v)));
+    if (coords.some(c => !c)) {
+      val.textContent = 'Ville(s) non reconnue(s)';
+      spin.style.display = 'none';
+      return;
+    }
+
+    // Appel OSRM avec tous les waypoints
+    const waypoints = coords.map(c => `${c.lon},${c.lat}`).join(';');
+    const url = `https://router.project-osrm.org/route/v1/driving/${waypoints}?overview=false`;
+    const r   = await fetch(url);
+    const d   = await r.json();
+
+    if (d.code === 'Ok' && d.routes.length) {
+      const km = Math.round(d.routes[0].distance / 1000);
+      val.textContent = `${km} km`;
+    } else {
+      val.textContent = 'Impossible de calculer';
+    }
+  } catch(e) {
+    val.textContent = 'Erreur réseau';
+  }
+  spin.style.display = 'none';
+}
+
+async function trajetAcSearch(input) {
+  const q   = input.value.trim();
+  const uid = input.dataset.ac;
+  const dd  = document.getElementById(uid);
+  if (!dd) return;
+
+  // Annuler le timer précédent de CET input
+  if (input._acTimer) clearTimeout(input._acTimer);
+
+  input._acTimer = setTimeout(async () => {
+    const vetos = await getVetos();
+    const ql    = q.toLowerCase();
+
+    // Centre Hegalaldia — suggestion prioritaire
+    const HEGALALDIA_NOM = 'Centre de soins Hegalaldia';
+    const showHegalal = q.length === 0 || HEGALALDIA_NOM.toLowerCase().includes(ql) || 'mouguerre'.includes(ql);
+
+    // Villes depuis le serveur (uniquement si >= 2 chars)
+    let matchVilles = [];
+    if (q.length >= 2) {
+      matchVilles = await fetch('/api/villes?q=' + encodeURIComponent(q))
+        .then(r => r.json()).catch(() => []);
+      matchVilles = matchVilles.slice(0, 6);
+    }
+
+    // Uniquement les cliniques qui matchent vraiment la recherche
+    const showVetos = q.length >= 2
+      ? vetos.filter(v => v.nom.toLowerCase().includes(ql)).slice(0, 5)
+      : [];
+
+    let html = '';
+    if (showHegalal) {
+      html += `<div class="trajet-ac-group">Centre de soins</div>`;
+      html += `<div class="trajet-ac-item" onmousedown="trajetAcSelect(event,'Centre de soins Hegalaldia','${uid}')">
+        <img src="/LogoHegalaldiaCrop.png" style="height:22px;vertical-align:middle;margin-right:6px;object-fit:contain;">
+        Centre de soins Hegalaldia <span class="ac-badge" style="background:#e6f5ec;color:#019939;border-radius:4px;padding:1px 6px;font-size:0.7rem;margin-left:4px;">Ustaritz</span>
+      </div>`;
+    }
+    if (matchVilles.length) {
+      html += `<div class="trajet-ac-group">Villes</div>`;
+      html += matchVilles.map(v =>
+        `<div class="trajet-ac-item" onmousedown="trajetAcSelect(event,'${v.replace(/'/g,"\'")}','${uid}')">${esc(v)}</div>`
+      ).join('');
+    }
+    html += `<div class="trajet-ac-group">Cliniques vétérinaires</div>`;
+    html += showVetos.map(v => acVetoItem(v, uid)).join('');
+
+    dd.innerHTML = html;
+    dd.classList.add('open');
+  }, 150);
+}
+
+function acVetoItem(v, uid) {
+  return `<div class="trajet-ac-item" onmousedown="trajetAcSelect(event,'${v.nom.replace(/'/g,"\\'")}','${uid}')">
+    ${esc(v.nom)}
+    ${v.statut ? `<span class="ac-badge ${v.statut === 'Partenaire' ? 'partenaire' : 'veto'}">${esc(v.statut)}</span>` : ''}
+  </div>`;
+}
+
+function trajetAcSelect(e, val, uid) {
+  e.preventDefault();
+  const input = document.querySelector(`[data-ac="${uid}"]`);
+  if (input) { input.value = val; input.classList.remove('phantom'); }
+  const dd = document.getElementById(uid);
+  if (dd) dd.classList.remove('open');
+  scheduleDistanceCalc();
+}
+
+function trajetAcHide(input) {
+  const uid = input.dataset.ac;
+  const dd  = document.getElementById(uid);
+  setTimeout(() => { if (dd) dd.classList.remove('open'); }, 150);
+}
+
+// ── Page rapatriement ─────────────────────────────────────────────────────
+function addRapatDate() {
+  const list = document.getElementById('rapat-dates-list');
+  const div  = document.createElement('div');
+  div.className = 'date-item';
+  div.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:8px;';
+  div.innerHTML = `
+    <input type="date" class="rapat-date-input" style="flex:1;padding:9px 12px;border:1.5px solid #d8d4ce;border-radius:9px;font-size:0.9rem;">
+    <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;color:#aaa;font-size:1.1rem;cursor:pointer;padding:4px 6px;">✕</button>
+  `;
+  list.appendChild(div);
+}
+
+function buildEtapeInput(phantom) {
+  const uid = 'tac_' + Math.random().toString(36).slice(2, 8);
+  const cls = phantom ? 'trajet-ville phantom' : 'trajet-ville';
+  return `<input type="text" class="${cls}" placeholder="Étape (ville ou clinique vétérinaire)"
+    style="width:100%;padding:9px 12px;border:1.5px solid #d8d4ce;border-radius:9px;font-size:0.9rem;"
+    autocomplete="off" data-ac="${uid}"
+    oninput="onEtapeInput(this);trajetAcSearch(this)" onfocus="trajetAcSearch(this)" onblur="trajetAcHide(this);scheduleDistanceCalc()">
+  <div class="trajet-ac-dropdown" id="${uid}"></div>`;
+}
+
+function onEtapeInput(input) {
+  const list    = document.getElementById('rapat-trajet-list');
+  const arrivee = list.querySelector('[data-role="arrivee"]');
+  const thisLine = input.closest('.trajet-line');
+
+  if (input.value.trim()) {
+    // Cette étape est remplie → enlever le style fantôme
+    input.classList.remove('phantom');
+    // Vérifier qu'il reste bien une étape fantôme vide juste avant arrivée
+    const prevArrivee = arrivee.previousElementSibling;
+    if (prevArrivee && prevArrivee.dataset.role === 'etape') {
+      const prevInput = prevArrivee.querySelector('.trajet-ville');
+      if (prevInput && prevInput.value.trim() !== '') {
+        addPhantomEtape();
+      }
+    }
+  } else {
+    // Champ vidé → remettre en fantôme
+    input.classList.add('phantom');
+    // Supprimer les étapes fantômes en double (garder seulement une vide à la fin)
+    cleanPhantomEtapes();
+  }
+}
+
+function addPhantomEtape() {
+  const list    = document.getElementById('rapat-trajet-list');
+  const arrivee = list.querySelector('[data-role="arrivee"]');
+  const div     = document.createElement('div');
+  div.className = 'trajet-line';
+  div.dataset.role = 'etape';
+  div.innerHTML = `
+    <div class="trajet-dot" style="background:#c8b800;"></div>
+    <div class="trajet-wrap">${buildEtapeInput(true)}</div>
+    <button type="button" onclick="removeEtape(this)" style="background:none;border:none;color:#ccc;font-size:1rem;cursor:pointer;padding:4px 6px;width:28px;flex-shrink:0;" title="Supprimer l'étape">✕</button>
+  `;
+  list.insertBefore(div, arrivee);
+}
+
+function removeEtape(btn) {
+  const line  = btn.closest('.trajet-line');
+  const list  = document.getElementById('rapat-trajet-list');
+  line.remove();
+  // S'assurer qu'il reste toujours au moins une étape fantôme
+  const remaining = list.querySelectorAll('[data-role="etape"]');
+  if (!remaining.length) addPhantomEtape();
+  else cleanPhantomEtapes();
+}
+
+function cleanPhantomEtapes() {
+  const list    = document.getElementById('rapat-trajet-list');
+  const etapes  = [...list.querySelectorAll('[data-role="etape"]')];
+  // Garder au plus une étape vide (fantôme) à la fin
+  let foundEmpty = false;
+  for (let i = etapes.length - 1; i >= 0; i--) {
+    const inp = etapes[i].querySelector('.trajet-ville');
+    if (!inp || !inp.value.trim()) {
+      if (foundEmpty) {
+        etapes[i].remove(); // doublon fantôme
+      } else {
+        foundEmpty = true;
+        inp && inp.classList.add('phantom');
+      }
+    }
+  }
+}
+
+let rapatBenevData = null;
+
+function searchBenevRapat(q) {
+  const dd = document.getElementById('rapat-benev-dropdown');
+  if (q.length < 2) { dd.style.display = 'none'; return; }
+  const q2 = q.toLowerCase();
+  const matches = allData.filter(b =>
+    (b.nom||'').toLowerCase().includes(q2) || (b.prenom||'').toLowerCase().includes(q2)
+  ).slice(0, 8);
+  if (!matches.length) { dd.style.display = 'none'; return; }
+  dd.innerHTML = matches.map(b => `
+    <div onclick="selectBenevRapat(${JSON.stringify(b).replace(/"/g,'&quot;')})"
+      style="padding:10px 14px;cursor:pointer;font-size:0.88rem;border-bottom:1px solid #f0ede8;"
+      onmouseover="this.style.background='#f7f9f5'" onmouseout="this.style.background=''">
+      <strong>${esc(b.nom)} ${esc(b.prenom)}</strong>
+      <span style="color:#aaa;font-size:0.8rem;margin-left:6px;">${esc(b.commune||'')}</span>
+    </div>
+  `).join('');
+  dd.style.display = '';
+}
+
+function selectBenevRapat(b) {
+  rapatBenevData = b;
+  document.getElementById('rapat-benev-id').value    = b._id || '';
+  document.getElementById('rapat-benev-search').value = '';
+  document.getElementById('rapat-benev-dropdown').style.display = 'none';
+  const sel = document.getElementById('rapat-benev-selected');
+  sel.style.display = 'flex';
+  sel.innerHTML = `<span>${esc(b.nom)} ${esc(b.prenom)} — ${esc(b.commune||'')}</span>
+    <button type="button" onclick="clearBenevRapat()" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:0.9rem;">✕</button>`;
+}
+
+function clearBenevRapat() {
+  rapatBenevData = null;
+  document.getElementById('rapat-benev-id').value = '';
+  document.getElementById('rapat-benev-selected').style.display = 'none';
+}
+
+async function submitRapat(e) {
+  e.preventDefault();
+  if (!rapatBenevData) { alert('Sélectionnez un bénévole.'); return; }
+
+  const dates = [...document.querySelectorAll('.rapat-date-input')]
+    .map(i => i.value).filter(Boolean);
+  if (!dates.length) { alert('Indiquez au moins une date.'); return; }
+
+  const villes = [...document.querySelectorAll('#rapat-trajet-list .trajet-ville')]
+    .map(i => i.value.trim()).filter(Boolean);
+  if (villes.length < 2) { alert('Indiquez au moins une ville de départ et une ville d\'arrivée.'); return; }
+
+  const payload = {
+    benevole_id:     rapatBenevData._id || '',
+    benevole_nom:    rapatBenevData.nom,
+    benevole_prenom: rapatBenevData.prenom,
+    dates,
+    heure_depart:  document.getElementById('rapat-heure-depart').value,
+    heure_arrivee: document.getElementById('rapat-heure-arrivee').value,
+    trajet: villes,
+    distance_km: document.getElementById('rapat-distance-val').textContent.replace(' km','') || '',
+    notes: document.getElementById('rapat-notes').value.trim()
+  };
+
+  const btn = document.getElementById('rapat-submit-btn');
+  btn.disabled = true; btn.textContent = 'Enregistrement…';
+
+  try {
+    const r = await fetch('/api/rapatriements/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!r.ok) throw new Error(await r.text());
+    // Reset form
+    document.getElementById('rapat-form').reset();
+    clearBenevRapat();
+    document.getElementById('rapat-dates-list').innerHTML = `
+      <div class="date-item">
+        <input type="date" class="rapat-date-input" style="flex:1;padding:9px 12px;border:1.5px solid #d8d4ce;border-radius:9px;font-size:0.9rem;">
+      </div>`;
+    // Reset trajet : supprimer toutes les étapes et remettre une fantôme
+    const tl = document.getElementById('rapat-trajet-list');
+    tl.querySelectorAll('[data-role="etape"]').forEach(e => e.remove());
+    tl.querySelectorAll('.trajet-ville').forEach(i => i.value = '');
+    addPhantomEtape();
+    await loadData();
+    goPage('page-liste');
+  } catch(err) {
+    alert('Erreur : ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span style="font-size:18px;line-height:0;">✓</span> Enregistrer le rapatriement';
+  }
+}
+</script>
+
+<div id="detail-overlay"></div>
+<div id="detail-panel"></div>
+
+<!-- ── Modale archivage rapatriements ── -->
+<div class="modal-overlay" id="archive-modal" onclick="handleArchiveOverlayClick(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-header-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ec6724" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5" rx="1"/>
+          <line x1="10" y1="12" x2="14" y2="12"/>
+        </svg>
+      </div>
+      <div>
+        <div class="modal-header-title">Archiver les rapatriements</div>
+        <div class="modal-header-sub">Suppression définitive des données d'une année</div>
+      </div>
+      <button class="modal-close" onclick="closeArchiveModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="modal-disclaimer">
+        <strong>Attention — action irréversible</strong>
+        <ul>
+          <li>Les rapatriements supprimés ne pourront pas être récupérés.</li>
+          <li>Téléchargez d'abord le XLS de l'année concernée pour garder une trace.</li>
+          <li>Seuls les rapatriements de l'année sélectionnée sont supprimés — le reste des données des bénévoles est intact.</li>
+          <li>Cette action ne peut pas être annulée.</li>
+        </ul>
+      </div>
+
+      <div class="modal-field">
+        <label>Année à supprimer</label>
+        <select id="archive-modal-year"></select>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <button class="btn-export" style="width:100%;justify-content:center;" onclick="archiveModalDownload()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Télécharger le XLS avant de supprimer
+        </button>
+      </div>
+
+      <label class="modal-confirm-check">
+        <input type="checkbox" id="archive-modal-confirm" onchange="updateArchiveDeleteBtn()">
+        Je confirme que cette suppression est définitive et irréversible, et que j'ai téléchargé ou n'ai pas besoin du XLS de cette année.
+      </label>
+
+      <div class="modal-actions">
+        <button class="modal-btn cancel" onclick="closeArchiveModal()">Annuler</button>
+        <button class="modal-btn delete" id="archive-modal-delete-btn" disabled onclick="archiveModalDelete()">
+          Supprimer les rapatriements
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/auth.js"></script>
+</body>
+</html>
