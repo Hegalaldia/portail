@@ -1102,9 +1102,9 @@
         <span class="sub" id="rapat-sub"></span>
       </div>
       <div class="rapat-wrapper">
-        <button class="rapat-arrow rapat-arrow-left disabled" id="rapat-prev">&#8592;</button>
+        <button class="rapat-arrow rapat-arrow-left disabled" id="rapat-prev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
         <div class="rapat-scroll" id="rapat-scroll"></div>
-        <button class="rapat-arrow rapat-arrow-right" id="rapat-next">&#8594;</button>
+        <button class="rapat-arrow rapat-arrow-right" id="rapat-next"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
       </div>
     </div>
 
@@ -3088,14 +3088,15 @@ async function syncDraftsFromServer() {
     const r = await fetch('/api/benevoles/drafts');
     if (!r.ok) return;
     const serverDrafts = await r.json();
-    const local = getDrafts();
-    // Fusionner : server a priorité si même _draftId (plus récent ou depuis autre appareil)
-    const merged = [...local];
-    for (const sd of serverDrafts) {
-      const i = merged.findIndex(d => d._draftId === sd._draftId);
-      if (i === -1) merged.push(sd);
+    // Le serveur est la source de vérité : on remplace le local par le serveur
+    // On ajoute uniquement les brouillons locaux non encore envoyés (pas de _draftId connu du serveur)
+    const serverIds = new Set(serverDrafts.map(d => d._draftId));
+    const localOnly = getDrafts().filter(d => !serverIds.has(d._draftId));
+    // Envoyer les brouillons locaux manquants au serveur
+    for (const d of localOnly) {
+      fetch('/api/benevoles/drafts', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(d) }).catch(()=>{});
     }
-    _saveDraftsLocal(merged);
+    _saveDraftsLocal([...serverDrafts, ...localOnly]);
     updateDraftBadge();
   } catch(e) {}
 }
@@ -3636,6 +3637,7 @@ document.getElementById('add-form').addEventListener('submit', async e => {
 // ════════════════════════════
 updateDraftBadge();
 syncDraftsFromServer();
+setInterval(syncDraftsFromServer, 10000);
 loadData().then(() => {
   setTimeout(() => {
     document.querySelectorAll('.confirm-status.oui').forEach(el => {
