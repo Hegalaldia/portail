@@ -163,8 +163,9 @@
       }
     })
     .catch(function () {
-      // Erreur réseau — afficher la page pour ne pas bloquer en cas de redémarrage serveur
-      revealBody();
+      // Erreur réseau — on redemande le mot de passe par sécurité
+      localStorage.removeItem(STORAGE_KEY);
+      showOverlay();
     });
   }
 

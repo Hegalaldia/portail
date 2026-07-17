@@ -56,11 +56,66 @@
     /* ── Top bar ── */
     .topbar {
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
       gap: 10px;
+      flex-wrap: wrap;
     }
+    .topbar-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    .clinic-combo { position: relative; min-width: 240px; }
+    .clinic-combo-input {
+      width: 100%;
+      border: 1.5px solid #d0ddd1;
+      border-radius: 8px;
+      padding: 8px 34px 8px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #1a2e1e;
+      background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7f6e' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 10px center;
+      cursor: pointer;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .clinic-combo-input:focus { border-color: #019939; }
+    .clinic-combo-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1.5px solid #d0ddd1;
+      border-radius: 10px;
+      box-shadow: 0 6px 24px rgba(12,61,34,0.12);
+      z-index: 100;
+      overflow: hidden;
+    }
+    .clinic-combo-dropdown.open { display: block; }
+    .clinic-combo-search {
+      width: 100%;
+      border: none;
+      border-bottom: 1.5px solid #e4ece5;
+      padding: 9px 12px;
+      font-size: 13px;
+      color: #1a2e1e;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .clinic-combo-list { max-height: 260px; overflow-y: auto; }
+    .clinic-combo-option {
+      padding: 8px 12px;
+      font-size: 13px;
+      color: #1a2e1e;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .clinic-combo-option:hover, .clinic-combo-option.focused { background: #f0f7f2; }
+    .clinic-combo-option.selected { font-weight: 700; color: #019939; }
+    .clinic-combo-empty { padding: 10px 12px; font-size: 13px; color: #8a9a8d; }
     .btn-refresh {
       background: #019939;
       color: #fff;
@@ -186,9 +241,10 @@
       font-size: 11.5px;
       font-weight: 600;
     }
-    .badge-relache  { background: #e8f5e9; color: #1b7a3a; }
-    .badge-deces    { background: #f0f2f1; color: #4a5a4e; }
+    .badge-relache    { background: #e8f5e9; color: #1b7a3a; }
+    .badge-deces      { background: #f0f2f1; color: #4a5a4e; }
     .badge-euthanasie { background: #fff3ec; color: #b84c00; }
+    .badge-rapatrie   { background: #e8f0ff; color: #3b5bdb; }
 
     /* ── Empty state ── */
     .empty-state {
@@ -236,10 +292,23 @@
 
   <main>
     <div class="topbar">
-      <button class="btn-refresh" id="btn-refresh" onclick="loadData()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-        Rafraîchir
-      </button>
+      <div class="topbar-left">
+        <div class="clinic-combo" id="clinic-combo">
+          <input class="clinic-combo-input" id="clinic-combo-input" type="text" readonly
+            value="Toutes les cliniques" onclick="toggleCombo()" placeholder="Toutes les cliniques">
+          <div class="clinic-combo-dropdown" id="clinic-combo-dropdown">
+            <input class="clinic-combo-search" id="clinic-combo-search" type="text"
+              placeholder="Rechercher une clinique…" oninput="filterCombo()" onkeydown="comboKey(event)">
+            <div class="clinic-combo-list" id="clinic-combo-list"></div>
+          </div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-refresh" id="btn-refresh" onclick="loadData()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Rafraîchir
+        </button>
+      </div>
     </div>
 
     <div id="content">
@@ -253,6 +322,67 @@
 
   <script>
     let charts = [];
+    let _codeMap = {};
+    let _allClinics = []; // [{code, nom}] sorted
+    let _selectedCode = '';
+
+    function buildClinicList(codeNames) {
+      _allClinics = Object.entries(codeNames)
+        .map(([code, nom]) => ({ code, nom }))
+        .sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
+    }
+
+    function toggleCombo() {
+      const dd = document.getElementById('clinic-combo-dropdown');
+      const open = dd.classList.contains('open');
+      if (open) { closeCombo(); return; }
+      dd.classList.add('open');
+      document.getElementById('clinic-combo-search').value = '';
+      renderComboList('');
+      setTimeout(() => document.getElementById('clinic-combo-search').focus(), 0);
+    }
+
+    function closeCombo() {
+      document.getElementById('clinic-combo-dropdown').classList.remove('open');
+    }
+
+    function filterCombo() {
+      const q = document.getElementById('clinic-combo-search').value;
+      renderComboList(q);
+    }
+
+    function renderComboList(q) {
+      const list = document.getElementById('clinic-combo-list');
+      const norm = q.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+      const filtered = _allClinics.filter(c =>
+        c.nom.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').includes(norm) ||
+        c.code.toLowerCase().includes(norm)
+      );
+      let html = `<div class="clinic-combo-option${_selectedCode === '' ? ' selected' : ''}" data-code="" onclick="selectClinic('')">Toutes les cliniques</div>`;
+      if (filtered.length === 0) {
+        html += `<div class="clinic-combo-empty">Aucune clinique trouvée</div>`;
+      } else {
+        html += filtered.map(c => `<div class="clinic-combo-option${_selectedCode === c.code ? ' selected' : ''}" data-code="${c.code}" onclick="selectClinic('${c.code}')">${c.nom}</div>`).join('');
+      }
+      list.innerHTML = html;
+    }
+
+    function selectClinic(code) {
+      _selectedCode = code;
+      const nom = code ? (_codeMap[code] || code) : 'Toutes les cliniques';
+      document.getElementById('clinic-combo-input').value = nom;
+      closeCombo();
+      loadData();
+    }
+
+    function comboKey(e) {
+      if (e.key === 'Escape') closeCombo();
+    }
+
+    // Close on outside click
+    document.addEventListener('click', e => {
+      if (!document.getElementById('clinic-combo').contains(e.target)) closeCombo();
+    });
 
     function destroyCharts() {
       charts.forEach(c => c.destroy());
@@ -267,20 +397,10 @@
 
     function badgeHtml(type) {
       const t = (type || '').toLowerCase();
-      if (t === 'relache' || t === 'relâché' || t === 'relache') {
-        return `<span class="badge badge-relache">Relâché</span>`;
-      } else if (t === 'euthanasie' || t === 'euthanasié' || t === 'euthanasiee') {
-        return `<span class="badge badge-euthanasie">Euthanasié</span>`;
-      } else {
-        return `<span class="badge badge-deces">Décès</span>`;
-      }
-    }
-
-    function typeLabel(type) {
-      const t = (type || '').toLowerCase();
-      if (t === 'relache' || t.startsWith('rel')) return 'Relâché';
-      if (t.startsWith('euth')) return 'Euthanasié';
-      return 'Décès';
+      if (t.startsWith('rel'))  return `<span class="badge badge-relache">Relâché</span>`;
+      if (t.startsWith('euth')) return `<span class="badge badge-euthanasie">Euthanasié</span>`;
+      if (t.startsWith('rap'))  return `<span class="badge badge-rapatrie">Rapatrié</span>`;
+      return `<span class="badge badge-deces">Décès</span>`;
     }
 
     function renderEmpty() {
@@ -297,10 +417,11 @@
       const btn = document.getElementById('btn-refresh');
       btn.disabled = true;
       btn.textContent = 'Chargement…';
+      const url = _selectedCode ? `/api/stats?code=${encodeURIComponent(_selectedCode)}` : '/api/stats';
 
       try {
         const [statsRes, vetosRes] = await Promise.all([
-          fetch('/api/stats', { cache: 'no-store' }),
+          fetch(url, { cache: 'no-store' }),
           fetch('/api/vetos', { cache: 'no-store' }),
         ]);
 
@@ -308,13 +429,19 @@
         const vetos = vetosRes.ok ? await vetosRes.json() : [];
 
         // Build code → name map
-        const codeMap = {};
+        _codeMap = {};
         for (const v of vetos) {
-          if (v.code) codeMap[v.code] = v.nom;
+          if (v.code) _codeMap[v.code] = v.nom;
+        }
+
+        // Prefer server-provided code→nom map, fall back to vetos-derived map
+        if (stats.code_names) {
+          Object.assign(_codeMap, stats.code_names);
+          if (_allClinics.length === 0) buildClinicList(stats.code_names);
         }
 
         destroyCharts();
-        renderPage(stats, codeMap);
+        renderPage(stats, _codeMap);
       } catch (e) {
         document.getElementById('content').innerHTML = `<div class="empty-state">
           <h3>Erreur de chargement</h3>
@@ -341,11 +468,23 @@
       }
 
       // Survival rate
-      const relache = byType['relache'] || byType['relâché'] || byType['Relâché'] || byType['Relache'] || 0;
-      const deces   = byType['deces']   || byType['décès']   || byType['Décès']   || 0;
-      const euth    = byType['euthanasie'] || byType['euthanasié'] || byType['Euthanasié'] || 0;
-      const total_outcomes = relache + deces + euth;
-      const survRate = total_outcomes > 0 ? Math.round(relache / total_outcomes * 100) : null;
+      const relache  = byType['relache'] || 0;
+      const deces    = byType['deces'] || 0;
+      const euth     = byType['euthanasie'] || 0;
+      const rapatrie = byType['rapatrie'] || 0;
+      const total_outcomes = relache + deces + euth + rapatrie;
+      const survRate = total_outcomes > 0 ? Math.round((relache + rapatrie) / total_outcomes * 100) : null;
+
+      // All-time outcomes
+      const allOut    = stats.outcomes_all || {};
+      const relAll    = allOut['relache'] || 0;
+      const decAll    = allOut['deces'] || 0;
+      const euthAll   = allOut['euthanasie'] || 0;
+      const rapatrieAll = allOut['rapatrie'] || 0;
+      const totalAll = stats.total_all || 0;
+
+      // Rapatriements par mois
+      const rapatMonths = stats.rapat_by_month || {};
 
       // Top species
       const topEntry = Object.entries(topSpecies)[0];
@@ -355,26 +494,37 @@
       const kpiHtml = `
         <div class="kpi-grid">
           <div class="kpi-card">
-            <div class="kpi-label">Animaux cette année</div>
-            <div class="kpi-value">${totalYear.toLocaleString('fr-FR')}</div>
-            <div class="kpi-sub">depuis le 1er janvier</div>
+            <div class="kpi-label">Total animaux (depuis début)</div>
+            <div class="kpi-value">${totalAll.toLocaleString('fr-FR')}</div>
+            <div class="kpi-sub">dont ${totalYear.toLocaleString('fr-FR')} cette année · ${totalMonth} ce mois</div>
           </div>
           <div class="kpi-card">
-            <div class="kpi-label">Ce mois-ci</div>
-            <div class="kpi-value accent">${totalMonth.toLocaleString('fr-FR')}</div>
-            <div class="kpi-sub">animaux reçus</div>
+            <div class="kpi-label">Relâchés</div>
+            <div class="kpi-value" style="color:#019939">${relAll.toLocaleString('fr-FR')}</div>
+            <div class="kpi-sub">${relache} cette année · ${survRate !== null ? survRate + ' % survie' : '—'}</div>
           </div>
           <div class="kpi-card">
-            <div class="kpi-label">Taux de survie</div>
-            <div class="kpi-value">${survRate !== null ? survRate + ' %' : '—'}</div>
-            <div class="kpi-sub">relâchés / (relâchés+décès+euth.)</div>
+            <div class="kpi-label">Décès · Euthanasies</div>
+            <div class="kpi-value" style="color:#5b6b5e">${(decAll + euthAll).toLocaleString('fr-FR')}</div>
+            <div class="kpi-sub">${decAll} décès · ${euthAll} euthanasies (tout temps)</div>
           </div>
           <div class="kpi-card">
-            <div class="kpi-label">Espèce dominante</div>
-            <div class="kpi-value" style="font-size:18px;padding-top:6px">${topSpeciesName}</div>
-            <div class="kpi-sub">${topEntry ? topEntry[1] + ' cas cette année' : 'aucune donnée'}</div>
+            <div class="kpi-label">Rapatriés au centre</div>
+            <div class="kpi-value" style="color:#3b5bdb">${rapatrieAll.toLocaleString('fr-FR')}</div>
+            <div class="kpi-sub">${rapatrie} cette année</div>
           </div>
-        </div>`;
+        </div>
+        ${Object.entries(topSpecies).slice(0, 5).length > 0 ? `
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:22px">
+          ${Object.entries(topSpecies).slice(0, 5).map(([sp, n], i) => {
+            const ranks = ['1re','2e','3e','4e','5e'];
+            return `<div class="kpi-card">
+              <div class="kpi-label">${ranks[i]} Espèce</div>
+              <div class="kpi-value" style="font-size:17px;padding-top:4px;line-height:1.2">${sp}</div>
+              <div class="kpi-sub">${n} cas cette année</div>
+            </div>`;
+          }).join('')}
+        </div>` : ''}`;
 
       // Weekly chart
       const weekLabels = Object.keys(weeklyData);
@@ -437,9 +587,80 @@
             </table>`}
         </div>`;
 
+      // Rapatriements par mois chart
+      const rapatLabels = Object.keys(rapatMonths).map(m => {
+        const [y, mo] = m.split('-');
+        return new Date(+y, +mo - 1).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' });
+      });
+      const rapatValues = Object.values(rapatMonths);
+      const rapatChartHtml = `
+        <div class="chart-card">
+          <h2>Rapatriements par mois — 12 derniers mois</h2>
+          <div class="chart-wrap-tall">
+            <canvas id="chart-rapat"></canvas>
+          </div>
+        </div>`;
+
+      // Per-clinic breakdown table (only in global view)
+      let clinicTableHtml = '';
+      const clinicSummary = stats.clinic_summary || {};
+      if (!stats.filtered_code && Object.keys(clinicSummary).filter(c => c).length > 0) {
+        const clinicCodes = Object.keys(clinicSummary).filter(c => c).sort((a, b) => {
+          const na = codeMap[a] || a, nb = codeMap[b] || b;
+          return na.localeCompare(nb, 'fr');
+        });
+        const clinicRows = clinicCodes.map(code => {
+          const s = clinicSummary[code];
+          const out = s.outcomes || {};
+          const rel = out['relache'] || 0;
+          const dec = out['deces'] || 0;
+          const eut = out['euthanasie'] || 0;
+          const rap = out['rapatrie'] || 0;
+          const tot = rel + dec + eut + rap;
+          const survPct = tot > 0 ? Math.round((rel + rap) / tot * 100) : null;
+          const nom = codeMap[code] || '—';
+          return `<tr>
+            <td><strong>${nom}</strong></td>
+            <td><code style="font-size:11px;background:#f4f7f4;padding:2px 6px;border-radius:4px">${code}</code></td>
+            <td style="text-align:right">${s.total}</td>
+            <td style="text-align:right">${rel > 0 ? `<span style="color:#019939;font-weight:600">${rel}</span>` : '—'}</td>
+            <td style="text-align:right">${dec > 0 ? dec : '—'}</td>
+            <td style="text-align:right">${eut > 0 ? `<span style="color:#b84c00">${eut}</span>` : '—'}</td>
+            <td style="text-align:right">${rap > 0 ? `<span style="color:#3b5bdb;font-weight:600">${rap}</span>` : '—'}</td>
+            <td style="text-align:right">${survPct !== null ? `<span style="color:${survPct >= 50 ? '#019939' : '#b84c00'};font-weight:600">${survPct} %</span>` : '—'}</td>
+            <td style="text-align:right">
+              <button onclick="document.getElementById('clinic-filter').value='${code}';loadData();"
+                style="background:none;border:1.5px solid #d0ddd1;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;color:#0c3d22;cursor:pointer">Voir</button>
+            </td>
+          </tr>`;
+        }).join('');
+        clinicTableHtml = `
+          <div class="table-card">
+            <h2>Récapitulatif par clinique</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Clinique</th>
+                  <th>Code</th>
+                  <th style="text-align:right">Animaux</th>
+                  <th style="text-align:right">Relâchés</th>
+                  <th style="text-align:right">Décès</th>
+                  <th style="text-align:right">Euth.</th>
+                  <th style="text-align:right">Rapatriés</th>
+                  <th style="text-align:right">% Survie</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>${clinicRows}</tbody>
+            </table>
+          </div>`;
+      }
+
       document.getElementById('content').innerHTML =
         kpiHtml + weeklyChartHtml +
         `<div class="chart-row">${donutHtml}${speciesHtml}</div>` +
+        rapatChartHtml +
+        clinicTableHtml +
         tableHtml;
 
       // Render weekly bar chart
@@ -479,9 +700,9 @@
       }));
 
       // Render donut
-      const donutLabels = ['Relâché', 'Décès', 'Euthanasié'];
-      const donutValues = [relache, deces, euth];
-      const donutColors = ['#019939', '#8a9a8d', '#ec6724'];
+      const donutLabels = ['Relâché', 'Décès', 'Euthanasié', 'Rapatrié'];
+      const donutValues = [relache, deces, euth, rapatrie];
+      const donutColors = ['#019939', '#8a9a8d', '#ec6724', '#3b5bdb'];
       const ctxDonut = document.getElementById('chart-donut').getContext('2d');
       charts.push(new Chart(ctxDonut, {
         type: 'doughnut',
@@ -545,6 +766,42 @@
             },
             y: {
               ticks: { color: '#2a3d2e', font: { size: 11 } },
+              grid: { display: false }
+            }
+          }
+        }
+      }));
+
+      // Render rapatriements par mois
+      const ctxRapat = document.getElementById('chart-rapat').getContext('2d');
+      charts.push(new Chart(ctxRapat, {
+        type: 'bar',
+        data: {
+          labels: rapatLabels,
+          datasets: [{
+            label: 'Rapatriements',
+            data: rapatValues,
+            backgroundColor: '#ec6724bb',
+            borderColor: '#ec6724',
+            borderWidth: 1,
+            borderRadius: 4,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y} rapatriement${ctx.parsed.y > 1 ? 's' : ''}` } }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { stepSize: 1, color: '#6b7f6e', font: { size: 11 } },
+              grid: { color: '#f0f4f1' }
+            },
+            x: {
+              ticks: { color: '#6b7f6e', font: { size: 11 } },
               grid: { display: false }
             }
           }

@@ -4,7 +4,7 @@ Serveur local pour la heatmap animaux sauvages.
 Lance avec : python3 server.py
 Puis ouvre : http://localhost:8080  (ou http://[IP]:8080 depuis un autre ordi)
 """
-import http.server, urllib.request, json, os, threading, time, re, uuid as _uuid, io
+import http.server, urllib.request, json, os, threading, time, re, uuid as _uuid, io, subprocess
 try:
     import openpyxl
     from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
@@ -16,6 +16,25 @@ except ImportError:
 PORT             = 8080
 DEFAULT_SHEET_ID = '1VpN669xp2u34Itapwz5UWuEIi2UmoxTTWfrPQP83rhE'
 CONFIG_FILE      = 'config.json'
+
+# ── Version Git ────────────────────────────────────────────────────────────────
+def _get_version():
+    try:
+        commit = subprocess.check_output(
+            ['git', 'rev-parse', '--short', 'HEAD'],
+            cwd=os.path.dirname(os.path.abspath(__file__)),
+            stderr=subprocess.DEVNULL
+        ).decode().strip()
+        date = subprocess.check_output(
+            ['git', 'log', '-1', '--format=%cd', '--date=format:%d/%m/%Y %H:%M'],
+            cwd=os.path.dirname(os.path.abspath(__file__)),
+            stderr=subprocess.DEVNULL
+        ).decode().strip()
+        return {'commit': commit, 'date': date, 'version': f'{commit} — {date}'}
+    except Exception:
+        return {'commit': 'unknown', 'date': '', 'version': 'unknown'}
+
+VERSION_INFO = _get_version()
 
 # ── Configuration persistante (config.json) ────────────────────────────────────
 _cfg_lock = threading.Lock()
@@ -139,16 +158,16 @@ def _check_token(token):
         return True
 
 def _purge_expired_tokens():
-    """Nettoyer les tokens expirés toutes les heures."""
+    """Vider tous les tokens à minuit chaque nuit."""
+    from datetime import datetime, timedelta
     while True:
-        time.sleep(3600)
-        now = time.time()
+        now = datetime.now()
+        next_midnight = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        time.sleep((next_midnight - now).total_seconds())
         with _tokens_lock:
-            expired = [t for t, exp in list(_auth_tokens.items()) if now > exp]
-            for t in expired:
-                _auth_tokens.pop(t, None)
-            if expired:
-                _save_tokens(_auth_tokens)
+            _auth_tokens.clear()
+            _save_tokens(_auth_tokens)
+        print(f'[auth] Tokens réinitialisés à minuit ({datetime.now().strftime("%d/%m/%Y")})')
 
 threading.Thread(target=_purge_expired_tokens, daemon=True).start()
 
@@ -212,6 +231,20 @@ def _save_messages(msgs):
 def _check_portal_password(pwd):
     cfg = load_config()
     return pwd == cfg.get('portal_password', 'Hegalaldia2026')
+
+def _verify_clinic_code(code):
+    """Vérifie un code clinique. Retourne {'type': 'admin'|'clinic'|None, 'nom': str}."""
+    cfg = load_config()
+    admin_code = cfg.get('admin_code', '')
+    if admin_code and code.upper() == admin_code.upper():
+        return {'type': 'admin', 'nom': ''}
+    with _clinic_codes_lock:
+        codes = _load_clinic_codes()  # {nom: code}
+    reverse = {v.upper(): k for k, v in codes.items()}
+    nom = reverse.get(code.upper())
+    if nom:
+        return {'type': 'clinic', 'nom': nom}
+    return {'type': None, 'nom': ''}
 
 _HISTORY_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'clinic_history.json')
 _history_lock = threading.Lock()
@@ -515,6 +548,7 @@ def add_benevole(data):
         'comp_brico', 'comp_info', 'comp_commu', 'comp_compta', 'comp_photo', 'comp_couture',
         'act_caddie', 'act_papier_cadeau', 'act_espaces_verts',
         'autres_competences', 'commentaire', 'info_temp', 'competences',
+        'indisponible',
     ]
     for k in all_fields:
         new_b[k] = data.get(k, '')
@@ -529,6 +563,7 @@ def add_benevole(data):
                 raise ValueError(f'Un bénévole nommé {new_b["prenom"]} {new_b["nom"]} existe déjà.')
         volunteers.append(new_b)
         save_benevoles_json(volunteers)
+    return new_b['_id']
     print(f'[benevoles] ✓ Ajouté : {new_b["prenom"]} {new_b["nom"]}')
 
 def update_benevole(orig_nom, orig_prenom, data):
@@ -555,7 +590,7 @@ def update_benevole(orig_nom, orig_prenom, data):
                     'telephone', 'telephone2', 'email', 'adresse', 'commune', 'rayon', 'naissance',
                     'urg_nom', 'urg_prenom', 'urg_tel',
                     'forme', 'forme_soin', 'forme_rapat',
-                    'adhesion', 'admin', 'ca', 'veteran', 'anc_sc', 'anc_salarie', 'anc_ca',
+                    'adhesion', 'ca', 'veteran', 'anc_sc', 'anc_salarie', 'anc_ca',
                     'premier_jour', 'disponibilites',
                     'comp_menage', 'comp_oisillons', 'comp_marins', 'comp_vautour', 'comp_exterieurs', 'comp_heris',
                     'immat', 'puissance', 'moteur',
@@ -564,9 +599,12 @@ def update_benevole(orig_nom, orig_prenom, data):
                     'act_caddie', 'act_papier_cadeau', 'act_espaces_verts',
                     'comp_brico', 'comp_info', 'comp_commu', 'comp_compta', 'comp_photo', 'comp_couture',
                     'autres_competences', 'commentaire', 'info_temp', 'competences',
+                    'indisponible',
                 ]
                 for k in all_fields:
                     updated[k] = data.get(k, b.get(k, ''))
+                # admin est protégé : toujours préserver la valeur existante
+                updated['admin'] = b.get('admin', '')
                 updated['vehicules'] = data.get('vehicules', b.get('vehicules', []))
                 # info_temp is legacy; commentaire replaces it — always clear on update
                 updated['info_temp'] = ''
@@ -578,6 +616,23 @@ def update_benevole(orig_nom, orig_prenom, data):
 
 _CLINIC_CODES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'clinic_codes.json')
 _clinic_codes_lock = threading.Lock()
+
+_CLINIC_PREFS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'clinic_prefs.json')
+_clinic_prefs_lock = threading.Lock()
+
+def _load_clinic_prefs():
+    try:
+        with open(_CLINIC_PREFS_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def _save_clinic_prefs(data):
+    try:
+        with open(_CLINIC_PREFS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f'Erreur sauvegarde clinic_prefs: {e}')
 
 def _load_clinic_codes():
     try:
@@ -594,27 +649,22 @@ def _save_clinic_codes(data):
         print(f'Erreur sauvegarde clinic_codes: {e}')
 
 def _generate_clinic_code(nom, existing_codes):
-    """Génère un code unique et déterministe pour une clinique."""
+    """Génère un code unique pour une clinique : préfixe ville + 6 chars aléatoires."""
     import unicodedata
-    # Préfixe : 3 premières lettres de la ville (avant la parenthèse), sans accents
     city = nom.split('(')[0].strip()
     city_clean = ''.join(
         c for c in unicodedata.normalize('NFD', city)
         if unicodedata.category(c) != 'Mn' and c.isalpha()
     ).upper()
     prefix = city_clean[:3] if len(city_clean) >= 3 else city_clean.ljust(3, 'X')
-    # Numéro : hash déterministe du nom complet → 100-999
-    h = 0
-    for ch in nom:
-        h = (h * 31 + ord(ch)) & 0xFFFF
-    base_num = 100 + (h % 900)
-    # Éviter les collisions avec les codes déjà attribués
-    used_nums = {int(c.split('-')[1]) for c in existing_codes.values()
-                 if c.startswith(prefix + '-') and c.split('-')[1].isdigit()}
-    num = base_num
-    while num in used_nums:
-        num = 100 + (num + 1) % 900
-    return f'{prefix}-{num:03d}'
+    alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'  # sans O/0/I/1 pour éviter confusion
+    existing_vals = set(existing_codes.values())
+    for _ in range(100):
+        suffix = ''.join(_secrets.choice(alphabet) for _ in range(6))
+        code = f'{prefix}-{suffix}'
+        if code not in existing_vals:
+            return code
+    raise RuntimeError(f'Impossible de générer un code unique pour {nom}')
 
 def get_vetos():
     now = time.time()
@@ -643,12 +693,11 @@ def get_vetos():
             codes = _load_clinic_codes()
             changed = False
             for v in vetos:
-                if v['statut'] == 'Partenaire' and v['nom'] not in codes:
+                if v['statut'] != 'Eviter' and v['nom'] not in codes:
                     codes[v['nom']] = _generate_clinic_code(v['nom'], codes)
                     print(f'  [codes] Nouveau code : {v["nom"]} → {codes[v["nom"]]}')
                     changed = True
-                if v['statut'] == 'Partenaire':
-                    v['code'] = codes[v['nom']]
+                # Ne pas exposer le code dans la réponse publique
             if changed:
                 _save_clinic_codes(codes)
         _vetos_cache['data'] = vetos
@@ -686,8 +735,12 @@ def add_to_geo_preloaded(ville, lat, lon):
 
 
 # ── Export XLS ────────────────────────────────────────────────────────────────
-def export_benevoles_xls(year=None):
+def export_benevoles_xls(year=None, ids=None):
     data = get_benevoles()
+    # Filtrer par IDs si fournis
+    if ids is not None:
+        id_set = set(ids)
+        data = [b for b in data if b.get('_id') in id_set]
     # Si year spécifié : filtre les rapatriements pour n'inclure que cette année
     if year:
         import copy
@@ -773,7 +826,7 @@ def export_benevoles_xls(year=None):
         ('Comp. Ménage',  'comp_menage',  14, 'centre'),
         ('Comp. Oisillons','comp_oisillons',14,'centre'),
         ('Comp. Marins',  'comp_marins',  14, 'centre'),
-        ('Comp. Vautour', 'comp_vautour', 14, 'both'),
+        ('Comp. Vautour', 'comp_vautour', 14, 'centre'),
         ('Comp. Extérieurs','comp_exterieurs',14,'centre'),
         ('Comp. Hérissons','comp_heris',  14, 'centre'),
         # — Rapatrieur —
@@ -1060,6 +1113,13 @@ def clear_rapatriements_year(year):
 # ── Serveur HTTP ───────────────────────────────────────────────────────────────
 class Handler(http.server.SimpleHTTPRequestHandler):
 
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
+
     def do_GET(self):
         if self.path == '/api/data':
             try:
@@ -1190,13 +1250,33 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(body)
 
-        elif self.path == '/api/stats':
+        elif self.path.startswith('/api/stats'):
             import datetime as _dt
+            import urllib.parse as _up
             try:
+                _qs = _up.parse_qs(_up.urlparse(self.path).query)
+                stats_code = (_qs.get('code') or [None])[0]
                 with _history_lock:
                     h = _load_history()
                 animals_log  = h.get('animals_log', [])
                 outcomes_log = h.get('outcomes_log', [])
+                # Per-clinic summary (always computed on full data)
+                clinic_summary = {}
+                for a in animals_log:
+                    c = a.get('clinic_code', '')
+                    if c not in clinic_summary:
+                        clinic_summary[c] = {'total': 0, 'outcomes': {}}
+                    clinic_summary[c]['total'] += 1
+                for o in outcomes_log:
+                    c = o.get('clinic_code', '')
+                    if c not in clinic_summary:
+                        clinic_summary[c] = {'total': 0, 'outcomes': {}}
+                    t = o.get('type', 'deces')
+                    clinic_summary[c]['outcomes'][t] = clinic_summary[c]['outcomes'].get(t, 0) + 1
+                # Filter by clinic code if requested
+                if stats_code:
+                    animals_log  = [a for a in animals_log  if a.get('clinic_code') == stats_code]
+                    outcomes_log = [o for o in outcomes_log if o.get('clinic_code') == stats_code]
                 year_now  = _dt.datetime.now().strftime('%Y')
                 month_now = _dt.datetime.now().strftime('%Y-%m')
                 # Total cette année
@@ -1229,13 +1309,60 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 weekly_ordered = {w: weekly.get(w, 0) for w in weeks_ordered}
                 # Sorties récentes (last 100)
                 recent_outcomes = sorted(outcomes_log, key=lambda x: x.get('date',''), reverse=True)[:100]
+                # Total all-time
+                total_all = len(animals_log)
+                # Outcomes all-time par type
+                outcomes_all = {}
+                for o in outcomes_log:
+                    t = o.get('type', 'deces')
+                    outcomes_all[t] = outcomes_all.get(t, 0) + 1
+                # Rapatriements par mois (depuis benevoles)
+                rapat_by_month = {}
+                try:
+                    benvs = load_benevoles_json() or []
+                    for b in benvs:
+                        raps = b.get('derniers_rapat', [])
+                        if isinstance(raps, str):
+                            for line in raps.split('\n'):
+                                line = line.strip()
+                                if not line: continue
+                                date_str = line.split(' : ')[0].strip()
+                                m = _dt.datetime.strptime(date_str, '%d/%m/%Y').strftime('%Y-%m') if '/' in date_str else None
+                                if m: rapat_by_month[m] = rapat_by_month.get(m, 0) + 1
+                        elif isinstance(raps, list):
+                            for r in raps:
+                                date_str = r.get('date', '') if isinstance(r, dict) else ''
+                                if '/' in date_str:
+                                    try:
+                                        m = _dt.datetime.strptime(date_str, '%d/%m/%Y').strftime('%Y-%m')
+                                        rapat_by_month[m] = rapat_by_month.get(m, 0) + 1
+                                    except Exception:
+                                        pass
+                except Exception:
+                    pass
+                # Générer les 12 derniers mois dans l'ordre
+                months_ordered = {}
+                for i in range(11, -1, -1):
+                    d = _dt.datetime.now().replace(day=1) - _dt.timedelta(days=i * 30)
+                    key = d.strftime('%Y-%m')
+                    months_ordered[key] = rapat_by_month.get(key, 0)
+                # Build code→nom reverse map from clinic_codes.json
+                with _clinic_codes_lock:
+                    raw_codes = _load_clinic_codes()  # {nom: code}
+                code_names = {v: k for k, v in raw_codes.items()}
                 result = {
                     'total_year': total_year,
                     'total_month': total_month,
+                    'total_all': total_all,
                     'outcomes_by_type': outcomes_by_type,
+                    'outcomes_all': outcomes_all,
                     'top_species': top_species,
                     'weekly_animals': weekly_ordered,
                     'recent_outcomes': recent_outcomes,
+                    'rapat_by_month': months_ordered,
+                    'clinic_summary': clinic_summary,
+                    'filtered_code': stats_code,
+                    'code_names': code_names,
                 }
                 body = json.dumps(result, ensure_ascii=False).encode('utf-8')
                 self.send_response(200)
@@ -1275,8 +1402,85 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(str(e).encode())
 
+        elif self.path == '/api/benevoles/drafts':
+            try:
+                drafts_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'benevoles_drafts.json')
+                drafts = []
+                if os.path.isfile(drafts_file):
+                    with open(drafts_file, 'r', encoding='utf-8') as f:
+                        drafts = json.load(f)
+                body = json.dumps(drafts, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', len(body))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500); self.end_headers(); self.wfile.write(str(e).encode())
+
         elif self.path == '/api/benevoles/add':
             pass  # handled in do_POST
+
+        elif self.path == '/api/centres_soins':
+            try:
+                f = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'centres_soins.json')
+                with open(f, 'r', encoding='utf-8') as fp:
+                    data = json.load(fp)
+                body = json.dumps(data, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', len(body))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(str(e).encode())
+
+        elif self.path == '/api/clinics/prefs':
+            with _clinic_prefs_lock:
+                prefs = _load_clinic_prefs()
+            body = json.dumps(prefs, ensure_ascii=False).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(body)
+
+        elif self.path == '/api/clinics/codes':
+            try:
+                with _clinic_codes_lock:
+                    codes = _load_clinic_codes()
+                cfg = load_config()
+                try:
+                    vetos = get_vetos()
+                    statut_map = {v['nom']: v['statut'] for v in vetos}
+                except Exception:
+                    statut_map = {}
+                clinics = [{'nom': nom, 'code': code, 'statut': statut_map.get(nom, '')} for nom, code in sorted(codes.items())]
+                body = json.dumps({
+                    'clinics': clinics,
+                    'admin_code': cfg.get('admin_code', '—')
+                }, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(str(e).encode())
+
+        elif self.path == '/api/version':
+            body = json.dumps(VERSION_INFO, ensure_ascii=False).encode()
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(body)
 
         elif self.path == '/api/vetos':
             try:
@@ -1327,6 +1531,32 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.send_header('Content-Type', 'text/plain')
                 self.end_headers()
                 self.wfile.write(str(e).encode())
+
+        elif self.path.startswith('/api/benevoles/photo/'):
+            bev_id = self.path[len('/api/benevoles/photo/'):].split('?')[0]
+            photos_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'photos')
+            # Find photo file for this id (any extension)
+            photo_path = None
+            for ext in ('jpg', 'jpeg', 'png', 'gif', 'webp'):
+                candidate = os.path.join(photos_dir, f'{bev_id}.{ext}')
+                if os.path.isfile(candidate):
+                    photo_path = candidate
+                    break
+            if photo_path:
+                mime = 'image/jpeg' if photo_path.endswith(('.jpg','.jpeg')) else \
+                       'image/png' if photo_path.endswith('.png') else \
+                       'image/gif' if photo_path.endswith('.gif') else 'image/webp'
+                with open(photo_path, 'rb') as f:
+                    data = f.read()
+                self.send_response(200)
+                self.send_header('Content-Type', mime)
+                self.send_header('Content-Length', len(data))
+                self.send_header('Cache-Control', 'no-cache')
+                self.end_headers()
+                self.wfile.write(data)
+            else:
+                self.send_response(404)
+                self.end_headers()
 
         else:
             # Pas de cache pour les fichiers HTML/JS
@@ -1434,12 +1664,58 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(str(e).encode())
 
+        elif self.path == '/api/benevoles/drafts':
+            try:
+                drafts_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'benevoles_drafts.json')
+                length = int(self.headers.get('Content-Length', 0))
+                draft = json.loads(self.rfile.read(length)) if length else {}
+                drafts = []
+                if os.path.isfile(drafts_file):
+                    with open(drafts_file, 'r', encoding='utf-8') as f:
+                        drafts = json.load(f)
+                idx = next((i for i, d in enumerate(drafts) if d.get('_draftId') == draft.get('_draftId')), -1)
+                if idx > -1:
+                    drafts[idx] = draft
+                else:
+                    drafts.append(draft)
+                with open(drafts_file, 'w', encoding='utf-8') as f:
+                    json.dump(drafts, f, ensure_ascii=False, indent=2)
+                resp = json.dumps({'ok': True}).encode()
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp)
+            except Exception as e:
+                self.send_response(500); self.end_headers(); self.wfile.write(str(e).encode())
+
+        elif self.path == '/api/benevoles/export-xls':
+            try:
+                if not _HAS_OPENPYXL:
+                    raise RuntimeError('openpyxl non installé')
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length)) if length else {}
+                ids = body.get('ids')  # None = tous
+                xls_body = export_benevoles_xls(ids=ids)
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                self.send_header('Content-Disposition', 'attachment; filename="benevoles_export.xlsx"')
+                self.send_header('Content-Length', len(xls_body))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(xls_body)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'text/plain')
+                self.end_headers()
+                self.wfile.write(str(e).encode())
+
         elif self.path == '/api/benevoles/add':
             try:
                 length = int(self.headers.get('Content-Length', 0))
                 body   = json.loads(self.rfile.read(length))
-                add_benevole(body)
-                resp = json.dumps({'ok': True}).encode()
+                new_id = add_benevole(body)
+                resp = json.dumps({'ok': True, 'id': new_id}).encode()
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
@@ -1735,6 +2011,54 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(str(e).encode())
 
+        elif self.path == '/api/rapatriements/update':
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body   = json.loads(self.rfile.read(length))
+                benv_id = str(body.get('benevole_id', ''))
+                idx     = int(body.get('index', -1))
+                dates   = body.get('dates', [])
+                def to_display(d):
+                    parts = d.split('-')
+                    if len(parts) == 3 and len(parts[0]) == 4:
+                        return f"{parts[2]}/{parts[1]}/{parts[0]}"
+                    return d
+                if len(dates) == 1:
+                    date_label = to_display(dates[0])
+                elif len(dates) > 1:
+                    date_label = f"{to_display(dates[0])} - {to_display(dates[-1])}"
+                else:
+                    date_label = ''
+                with _benv_lock:
+                    volunteers = load_benevoles_json() or []
+                    found = False
+                    for b in volunteers:
+                        if b.get('_id') == benv_id:
+                            raw = b.get('derniers_rapat', [])
+                            if isinstance(raw, list) and 0 <= idx < len(raw):
+                                raw[idx]['date']          = date_label
+                                raw[idx]['dates']         = dates
+                                raw[idx]['heure_depart']  = str(body.get('heure_depart', ''))
+                                raw[idx]['heure_arrivee'] = str(body.get('heure_arrivee', ''))
+                                raw[idx]['trajet']        = body.get('trajet', [])
+                                raw[idx]['distance_km']   = str(body.get('distance_km', ''))
+                                raw[idx]['notes']         = str(body.get('notes', ''))
+                                found = True
+                            break
+                    if found:
+                        save_benevoles_json(volunteers)
+                resp = json.dumps({'ok': found}).encode()
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'text/plain')
+                self.end_headers()
+                self.wfile.write(str(e).encode())
+
         elif self.path == '/api/messages':
             try:
                 length = int(self.headers.get('Content-Length', 0))
@@ -1765,6 +2089,53 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(str(e).encode())
 
+        elif self.path.startswith('/api/benevoles/photo/'):
+            try:
+                bev_id = self.path[len('/api/benevoles/photo/'):]
+                if not bev_id or '/' in bev_id or '..' in bev_id:
+                    raise ValueError('id invalide')
+                ct = self.headers.get('Content-Type', '')
+                length = int(self.headers.get('Content-Length', 0))
+                if length > 5 * 1024 * 1024:
+                    raise ValueError('fichier trop grand (max 5 Mo)')
+                raw = self.rfile.read(length)
+                # Detect extension from Content-Type or first bytes
+                if 'jpeg' in ct or 'jpg' in ct:
+                    ext = 'jpg'
+                elif 'png' in ct:
+                    ext = 'png'
+                elif 'gif' in ct:
+                    ext = 'gif'
+                elif 'webp' in ct:
+                    ext = 'webp'
+                elif raw[:4] == b'\x89PNG':
+                    ext = 'png'
+                elif raw[:2] in (b'\xff\xd8',):
+                    ext = 'jpg'
+                else:
+                    ext = 'jpg'
+                photos_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'photos')
+                os.makedirs(photos_dir, exist_ok=True)
+                # Delete old photo if different extension
+                for old_ext in ('jpg','jpeg','png','gif','webp'):
+                    old = os.path.join(photos_dir, f'{bev_id}.{old_ext}')
+                    if os.path.isfile(old):
+                        os.remove(old)
+                dest = os.path.join(photos_dir, f'{bev_id}.{ext}')
+                with open(dest, 'wb') as f:
+                    f.write(raw)
+                resp = json.dumps({'ok': True, 'url': f'/api/benevoles/photo/{bev_id}'}).encode()
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp)
+            except Exception as e:
+                self.send_response(400)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'ok': False, 'error': str(e)}).encode())
+
         elif self.path == '/api/messages/read':
             try:
                 length = int(self.headers.get('Content-Length', 0))
@@ -1780,6 +2151,160 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp)
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(str(e).encode())
+
+        elif self.path == '/api/messages/unread':
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length))
+                msg_id = str(body.get('id', ''))
+                msgs = _load_messages()
+                for m in msgs:
+                    if m['id'] == msg_id:
+                        m['read'] = False
+                        break
+                _save_messages(msgs)
+                resp = json.dumps({'ok': True}).encode()
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp)
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(str(e).encode())
+
+        elif self.path == '/api/messages/pin':
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length))
+                msg_id = str(body.get('id', ''))
+                pinned = bool(body.get('pinned', True))
+                msgs = _load_messages()
+                for m in msgs:
+                    if m['id'] == msg_id:
+                        m['pinned'] = pinned
+                        break
+                _save_messages(msgs)
+                resp = json.dumps({'ok': True}).encode()
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp)
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(str(e).encode())
+
+        elif self.path == '/api/messages/archive':
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length))
+                msg_id = str(body.get('id', ''))
+                msgs = _load_messages()
+                msgs = [m for m in msgs if m['id'] != msg_id]
+                _save_messages(msgs)
+                resp = json.dumps({'ok': True}).encode()
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp)
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(str(e).encode())
+
+        elif self.path == '/api/clinics/prefs':
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length))
+                nom = str(body.get('nom', '')).strip()
+                val = body.get('val')  # True / False / None
+                with _clinic_prefs_lock:
+                    prefs = _load_clinic_prefs()
+                    if val is None:
+                        prefs.pop(nom, None)
+                    else:
+                        prefs[nom] = bool(val)
+                    _save_clinic_prefs(prefs)
+                resp = json.dumps({'ok': True}).encode()
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp)
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(str(e).encode())
+
+        elif self.path == '/api/clinics/regenerate-code':
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length))
+                nom = str(body.get('nom', '')).strip()
+                with _clinic_codes_lock:
+                    codes = _load_clinic_codes()
+                    if nom not in codes:
+                        resp = json.dumps({'ok': False, 'error': 'Clinique inconnue'}).encode()
+                        self.send_response(404)
+                        self.send_header('Content-Type', 'application/json')
+                        self.send_header('Access-Control-Allow-Origin', _cors_origin())
+                        self.end_headers()
+                        self.wfile.write(resp)
+                        return
+                    new_code = _generate_clinic_code(nom, {k: v for k, v in codes.items() if k != nom})
+                    codes[nom] = new_code
+                    _save_clinic_codes(codes)
+                    print(f'[codes] Code régénéré : {nom} → {new_code}')
+                resp = json.dumps({'ok': True, 'code': new_code}).encode()
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', _cors_origin())
+                self.end_headers()
+                self.wfile.write(resp)
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(str(e).encode())
+
+        elif self.path == '/api/clinics/verify-code':
+            try:
+                ip = self.client_address[0]
+                allowed, retry_after = _check_rate_limit(ip)
+                if not allowed:
+                    resp = json.dumps({'ok': False, 'error': 'too_many_attempts', 'retry_after': retry_after}).encode()
+                    self.send_response(429)
+                    self.send_header('Content-Type', 'application/json')
+                    self.send_header('Retry-After', str(retry_after))
+                    self.send_header('Access-Control-Allow-Origin', _cors_origin())
+                    self.end_headers()
+                    self.wfile.write(resp)
+                    return
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length))
+                code = str(body.get('code', '')).strip()
+                result = _verify_clinic_code(code)
+                if result['type']:
+                    _record_login_success(ip)
+                    resp = json.dumps({'ok': True, 'type': result['type'], 'nom': result['nom']}).encode()
+                    self.send_response(200)
+                else:
+                    _record_login_failure(ip)
+                    with _login_lock:
+                        remaining = MAX_LOGIN_ATTEMPTS - _login_attempts.get(ip, {}).get('count', 0)
+                    resp = json.dumps({'ok': False, 'remaining': max(0, remaining)}).encode()
+                    self.send_response(401)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', _cors_origin())
                 self.end_headers()
                 self.wfile.write(resp)
             except Exception as e:
@@ -1840,6 +2365,45 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(str(e).encode())
 
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+    def do_DELETE(self):
+        if self.path.startswith('/api/benevoles/photo/'):
+            bev_id = self.path[len('/api/benevoles/photo/'):].split('?')[0]
+            photos_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'photos')
+            deleted = False
+            for ext in ('jpg', 'jpeg', 'png', 'gif', 'webp'):
+                p = os.path.join(photos_dir, f'{bev_id}.{ext}')
+                if os.path.isfile(p):
+                    os.remove(p)
+                    deleted = True
+            resp = json.dumps({'ok': True, 'deleted': deleted}).encode()
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(resp)
+        elif self.path.startswith('/api/benevoles/drafts/'):
+            draft_id = self.path[len('/api/benevoles/drafts/'):]
+            try:
+                drafts_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'benevoles_drafts.json')
+                drafts = []
+                if os.path.isfile(drafts_file):
+                    with open(drafts_file, 'r', encoding='utf-8') as f:
+                        drafts = json.load(f)
+                drafts = [d for d in drafts if d.get('_draftId') != draft_id]
+                with open(drafts_file, 'w', encoding='utf-8') as f:
+                    json.dump(drafts, f, ensure_ascii=False, indent=2)
+                resp = json.dumps({'ok': True}).encode()
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp)
+            except Exception as e:
+                self.send_response(500); self.end_headers(); self.wfile.write(str(e).encode())
         else:
             self.send_response(404)
             self.end_headers()

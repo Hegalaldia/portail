@@ -1,0 +1,35 @@
+Options -Indexes
+
+# Routing : toutes les requetes /api/* vers api/index.php
+RewriteEngine On
+
+# Autoriser les requetes vers les fichiers/dossiers existants
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Rediriger /api/* vers api/index.php
+RewriteRule ^api/(.*)$ api/index.php [QSA,L]
+
+# Si on appelle directement /api (sans slash final)
+RewriteRule ^api$ api/index.php [QSA,L]
+
+# Fichiers statiques : servir normalement (HTML, JS, CSS, images, JSON publics)
+# Pas de cache pour les fichiers HTML
+<FilesMatch "\.(html|htm)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+</FilesMatch>
+
+# Proteger les fichiers JSON sensibles en acces direct
+<FilesMatch "^(benevoles|tokens|failed_logins|messages|clinic_stats|clinic_history|clinic_prefs|clinic_codes|config|benevoles_drafts|backup_last)\.json$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Proteger le dossier backups
+<IfModule mod_authz_core.c>
+    <Directory "backups">
+        Require all denied
+    </Directory>
+</IfModule>

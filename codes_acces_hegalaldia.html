@@ -9,6 +9,7 @@
   @media print {
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .no-print { display: none !important; }
+    .search-wrap { display: none !important; }
     .page-break { page-break-before: always; }
   }
   * { box-sizing: border-box; }
@@ -107,11 +108,15 @@
       <div class="label-title">Accès administrateur — Vue toutes cliniques</div>
       <div class="label-sub">Permet de voir l'ensemble des cliniques partenaires et leurs données en temps réel</div>
     </div>
-    <div class="code-box">HEGA-ADMIN</div>
+    <div class="code-box" id="admin-code">…</div>
   </div>
 
   <!-- Clinic codes -->
   <div class="section-title">Codes d'accès — Cliniques partenaires</div>
+  <div style="margin-bottom:12px;position:relative;max-width:320px" class="search-wrap">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a9a8d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);pointer-events:none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input id="clinic-search" type="text" placeholder="Rechercher une clinique ou une ville…" oninput="filterRows()" style="width:100%;padding:7px 12px 7px 32px;border:1.5px solid #dbe3dc;border-radius:999px;font-size:13px;outline:none;box-sizing:border-box;color:#1a2e1e;background:#fff">
+  </div>
   <table>
     <thead>
       <tr>
@@ -119,9 +124,10 @@
         <th>Clinique</th>
         <th>Ville</th>
         <th>Code d'accès</th>
+        <th class="no-print"></th>
       </tr>
     </thead>
-    <tbody id="clinic-rows"></tbody>
+    <tbody id="clinic-rows"><tr><td colspan="4" style="padding:16px;color:#8a9a8d">Chargement…</td></tr></tbody>
   </table>
 
   <!-- Instructions -->
@@ -140,53 +146,76 @@
 </div>
 
 <script>
-// Liste de secours si le serveur est inaccessible
-const FALLBACK_CLINICS = [
-  { nom: "Amou (Bio'vet)",                              code: "AMO-012" },
-  { nom: "Arudy (Les Crestadous)",                      code: "ARU-010" },
-  { nom: "Billère (Caillard)",                          code: "BIL-008" },
-  { nom: "Labenne (Ker Guilhem)",                       code: "LAB-011" },
-  { nom: "Lembeye (Vic-Bilh)",                          code: "LEM-007" },
-  { nom: "Lourdes (Biscaye)",                           code: "LRD-006" },
-  { nom: "Oloron (Haut Bearn)",                         code: "OLO-013" },
-  { nom: "Oloron (Porte d'Aspe)",                       code: "OLO-005" },
-  { nom: "Orthez (Gaston Pheobus)",                     code: "ORT-004" },
-  { nom: "Peyrehorade (Bio'vet)",                       code: "PEY-003" },
-  { nom: "Saint-Pée-sur-Nivelle (Arche des 4 pattes)", code: "SPE-002" },
-  { nom: "Tardets-Sorholus (Saison)",                   code: "TAR-913" },
-  { nom: "Ustaritz (Errobia)",                          code: "UST-001" },
-].map(v => ({ ...v, ville: v.nom.split('(')[0].trim() }));
-
 (async () => {
-  // Charger les cliniques partenaires depuis le serveur
-  let clinics = [];
+  // Charger les codes depuis le serveur
+  const base = location.protocol === 'file:' ? 'http://localhost:8080' : '';
+  let clinics = [], adminCode = '—';
   try {
-    const r = await fetch('http://192.168.1.55:8080/api/vetos');
-    const vetos = await r.json();
-    clinics = vetos
-      .filter(v => v.statut === 'Partenaire' && v.code)
-      .map(v => ({
-        nom:   v.nom,
-        ville: v.nom.split('(')[0].trim(),
-        code:  v.code,
-      }));
+    const r = await fetch(base + '/api/clinics/codes');
+    const data = await r.json();
+    clinics = data.clinics;
+    adminCode = data.admin_code;
   } catch(e) {
-    // Serveur inaccessible : utiliser la liste de secours
-    clinics = FALLBACK_CLINICS;
+    document.getElementById('clinic-rows').innerHTML =
+      '<tr><td colspan="4" style="color:#c0392b;padding:16px">Serveur inaccessible — impossible de charger les codes.</td></tr>';
   }
 
+  document.getElementById('admin-code').textContent = adminCode;
+
   const tbody = document.getElementById('clinic-rows');
-  tbody.innerHTML = clinics.map((c, i) => {
-    const ville    = c.nom.split('(')[0].trim();
-    const clinique = c.nom.includes('(') ? c.nom.split('(')[1].replace(')', '').trim() : c.nom;
-    return `
-    <tr>
-      <td style="color:#8a9a8d;font-size:12px">${String(i+1).padStart(2,'0')}</td>
-      <td><div class="clinic-name">${clinique}</div></td>
-      <td><div style="font-size:13px;color:#5b6b5e">${ville}</div></td>
-      <td><span class="code-pill">${c.code}</span></td>
-    </tr>`;
-  }).join('');
+  function renderRows(list) {
+    tbody.innerHTML = list.map((c, i) => {
+      const ville    = c.nom.split('(')[0].trim();
+      const clinique = c.nom.includes('(') ? c.nom.split('(')[1].replace(')', '').trim() : c.nom;
+      const nomEsc   = c.nom.replace(/'/g, "\\'");
+      return `
+      <tr>
+        <td style="color:#8a9a8d;font-size:12px">${String(i+1).padStart(2,'0')}</td>
+        <td><div class="clinic-name">${clinique}</div></td>
+        <td><div style="font-size:13px;color:#5b6b5e">${ville}</div></td>
+        <td><span class="code-pill" id="code-${i}">${c.code}</span></td>
+        <td class="no-print">
+          <button onclick="regenCode('${nomEsc}', ${i})"
+            style="background:none;border:1px solid #dbe3dc;border-radius:999px;padding:3px 10px;font-size:11px;color:#5b6b5e;cursor:pointer">
+            ↻ Régénérer
+          </button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+  window._allClinics = clinics;
+  renderRows(clinics);
+
+  window.filterRows = function() {
+    const q = document.getElementById('clinic-search').value.trim().toLowerCase();
+    const filtered = q ? window._allClinics.filter(c => c.nom.toLowerCase().includes(q)) : window._allClinics;
+    renderRows(filtered);
+  };
+
+  window.regenCode = async function(nom, i) {
+    if (!confirm(`Régénérer le code de "${nom}" ?\nL'ancien code ne fonctionnera plus.`)) return;
+    const btn = document.querySelectorAll('.no-print button')[i];
+    btn.disabled = true; btn.textContent = '…';
+    try {
+      const r = await fetch(base + '/api/clinics/regenerate-code', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({nom})
+      });
+      const data = await r.json();
+      if (data.ok) {
+        document.getElementById('code-' + i).textContent = data.code;
+        btn.textContent = '✓ Fait';
+        setTimeout(() => { btn.disabled = false; btn.textContent = '↻ Régénérer'; }, 2000);
+      } else {
+        alert('Erreur : ' + (data.error || 'inconnue'));
+        btn.disabled = false; btn.textContent = '↻ Régénérer';
+      }
+    } catch(e) {
+      alert('Erreur réseau');
+      btn.disabled = false; btn.textContent = '↻ Régénérer';
+    }
+  };
 
   // Date du jour
   const months = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
@@ -194,6 +223,5 @@ const FALLBACK_CLINICS = [
   document.getElementById('doc-date').textContent = d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
 })();
 </script>
-<script src="/auth.js"></script>
 </body>
 </html>

@@ -170,7 +170,7 @@
       background: #fff; border-radius: 10px; padding: 14px 16px;
       width: 210px; flex-shrink: 0; border-left: 3px solid #e8825a;
       box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-      cursor: pointer; overflow: hidden; position: relative;
+      cursor: pointer;
     }
     .rapat-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.13); }
     .rapat-card.en-cours { border-left-color: #2d9e5e; background: #f0faf4; }
@@ -871,8 +871,8 @@
     /* Étape fantôme (pointillé) */
     .trajet-ville.phantom {
       border-style: dashed !important;
-      border-color: #e8d96a !important;
-      background: #fffef0 !important;
+      border-color: #d8d4ce !important;
+      background: #fff !important;
       color: #888;
     }
     .trajet-ville.phantom::placeholder { color: #bbb; }
@@ -1148,6 +1148,7 @@
     <div class="benev-header">
       <div class="benev-title">Tous les bénévoles <span id="benev-count-label">(…)</span></div>
       <div style="display:flex;align-items:center;gap:10px;">
+        <div id="ferie-banner" style="display:none;background:#fff0f0;border:1.5px solid #e24b4a;border-radius:8px;padding:7px 13px;align-items:center;gap:6px;font-size:0.82rem;font-weight:600;color:#a32d2d;width:fit-content;white-space:nowrap;"></div>
         <div id="birthday-banner" style="display:none;background:#fff;border:1.5px solid #019939;border-radius:8px;padding:7px 13px;align-items:center;gap:6px;font-size:0.82rem;font-weight:600;color:#2d6a40;width:fit-content;white-space:nowrap;"></div>
         <button class="btn-archive-mgr" onclick="openArchiveModal()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -1204,7 +1205,18 @@
   <div class="add-page">
     <div id="form-saved-banner" style="display:none; align-items:center; gap:11px; margin-bottom:20px; padding:14px 18px; background:#e7f4ec; border:1px solid #b9e0c6; border-radius:13px;">
       <span style="width:24px;height:24px;border-radius:999px;background:#019939;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0;">✓</span>
-      <span id="form-saved-text" style="font-size:14.5px;font-weight:600;color:#0c3d22;"></span>
+      <span id="form-saved-text" style="font-size:14.5px;font-weight:600;color:#0c3d22;flex:1;"></span>
+      <div style="position:relative;width:48px;height:48px;flex-shrink:0;">
+        <div title="Changer la photo" onclick="document.getElementById('edit-photo-file').click()" style="cursor:pointer;width:48px;height:48px;position:relative;">
+          <img id="edit-photo-preview" style="width:48px;height:48px;border-radius:50%;object-fit:cover;display:none;border:2px solid #b9e0c6;">
+          <div id="edit-photo-placeholder" style="width:48px;height:48px;border-radius:50%;background:#d4ecdb;display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:#5a8a65;font-weight:700;"></div>
+          <div style="position:absolute;bottom:-2px;right:-2px;background:#0c3d22;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+        </div>
+        <button id="edit-photo-delete" type="button" onclick="deleteBenevPhoto(event)" title="Supprimer la photo" style="display:none;position:absolute;top:-4px;right:-4px;width:18px;height:18px;border-radius:50%;background:#e53e3e;border:none;color:#fff;font-size:11px;line-height:1;cursor:pointer;padding:0;align-items:center;justify-content:center;">✕</button>
+        <input type="file" id="edit-photo-file" accept="image/*" style="display:none;" onchange="editPhotoSelected(this)">
+      </div>
     </div>
     <div class="add-card">
       <form id="add-form">
@@ -1235,6 +1247,21 @@
         <hr class="f-sep">
 
         <!-- ── Identité ── -->
+        <div id="form-photo-wrap" style="display:flex;align-items:center;gap:16px;margin-bottom:18px;">
+          <div style="position:relative;flex-shrink:0;">
+            <div id="form-photo-zone" onclick="document.getElementById('form-photo-file').click()" title="Ajouter une photo"
+              style="width:72px;height:72px;border-radius:50%;background:#e8f5ec;border:2px dashed #b9e0c6;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;flex-shrink:0;">
+              <img id="form-photo-preview" style="width:72px;height:72px;object-fit:cover;display:none;border-radius:50%;">
+              <svg id="form-photo-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5a8a65" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+            </div>
+            <button id="form-photo-delete" type="button" onclick="formPhotoDelete(event)" style="display:none;position:absolute;top:-3px;right:-3px;width:20px;height:20px;border-radius:50%;background:#e53e3e;border:none;color:#fff;font-size:12px;cursor:pointer;padding:0;align-items:center;justify-content:center;line-height:1;">✕</button>
+            <input type="file" id="form-photo-file" accept="image/*" style="display:none;" onchange="formPhotoSelected(this)">
+          </div>
+          <div style="font-size:12.5px;color:#6b7f6e;line-height:1.5">
+            <div style="font-weight:600;color:#1a2e1e;margin-bottom:2px">Photo du bénévole</div>
+            Cliquez pour ajouter une photo.<br>Elle sera recadrée en cercle.
+          </div>
+        </div>
         <div class="frow c3">
           <div class="fg"><label>Nom de famille</label><input type="text" name="nom" autocomplete="off"></div>
           <div class="fg"><label>Prénom</label><input type="text" name="prenom" autocomplete="off"></div>
@@ -1243,7 +1270,7 @@
 
         <!-- ── Contact ── -->
         <div class="frow c2">
-          <div class="fg"><label>Email</label><input type="email" name="email" placeholder="prenom.nom@exemple.fr"></div>
+          <div class="fg"><label>Email</label><input type="email" name="email" placeholder="prenom.nom@exemple.fr" oninput="this.value=this.value.toLowerCase()"></div>
           <div class="fg"><label>Adresse</label><input type="text" name="adresse" autocomplete="off"></div>
         </div>
         <div class="frow c3">
@@ -1268,35 +1295,6 @@
           </div>
         </div>
 
-        <!-- ── Gouvernance (toujours visible) ── -->
-        <div class="f-box gray" style="margin-bottom:14px;">
-          <div class="f-box-title">Gouvernance</div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:0;">
-            <div class="chk-item" data-chk="ca" onclick="toggleChk(this)">
-              <span class="chk-box"><span class="chk-check">✓</span></span>
-              <span class="chk-label">Membre du CA</span>
-            </div>
-            <div class="chk-item" data-chk="veteran" onclick="toggleChk(this);toggleVeteran()">
-              <span class="chk-box"><span class="chk-check">✓</span></span>
-              <span class="chk-label">Vétéran</span>
-            </div>
-          </div>
-          <div id="veteran-sub" style="display:none;flex-wrap:wrap;gap:8px;margin-top:8px;">
-            <div class="chk-item" data-chk="anc_sc" onclick="toggleChk(this)">
-              <span class="chk-box"><span class="chk-check">✓</span></span>
-              <span class="chk-label">Ancien SC</span>
-            </div>
-            <div class="chk-item" data-chk="anc_salarie" onclick="toggleChk(this)">
-              <span class="chk-box"><span class="chk-check">✓</span></span>
-              <span class="chk-label">Ancien Salarié</span>
-            </div>
-            <div class="chk-item" data-chk="anc_ca" onclick="toggleChk(this)">
-              <span class="chk-box"><span class="chk-check">✓</span></span>
-              <span class="chk-label">Ancien CA</span>
-            </div>
-          </div>
-        </div>
-
         <!-- ══ SECTION SUR CENTRE ══ -->
         <div id="section-centre" style="display:none;">
           <div class="f-box green" style="margin-bottom:14px;">
@@ -1314,19 +1312,19 @@
               <label>1er jour de bénévolat</label>
               <input type="date" name="premier_jour" style="max-width:220px;padding:8px 12px;border:1.5px solid #d8d4ce;border-radius:9px;font-size:0.9rem;color:#1a1a1a;">
             </div>
-            <div class="fg" style="margin-bottom:0;">
+            <div class="fg" style="margin-bottom:14px;">
               <label>Disponibilités</label>
               <textarea name="disponibilites" placeholder="Jours et créneaux de disponibilité…" style="min-height:100px;"></textarea>
             </div>
-          </div>
-          <div class="f-section-label" style="margin-bottom:12px;">Compétences en soin</div>
-          <div class="chk-2col" style="margin-bottom:22px;">
-            <div class="chk-item" data-chk="comp_menage"     onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Ménage intérieur/extérieur et stocks</span></div>
-            <div class="chk-item" data-chk="comp_oisillons"  onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Nourrissage oisillons</span></div>
-            <div class="chk-item" data-chk="comp_marins"     onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Oiseaux marins</span></div>
-            <div class="chk-item" data-chk="comp_vautour"    onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Formée capture vautour</span></div>
-            <div class="chk-item" data-chk="comp_exterieurs" onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Préparation extérieurs</span></div>
-            <div class="chk-item" data-chk="comp_heris"      onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Tétées hérissons</span></div>
+            <div class="f-section-label" style="margin-bottom:12px;margin-top:4px;">Compétences en soin</div>
+            <div class="chk-2col" style="margin-bottom:0;">
+              <div class="chk-item" data-chk="comp_menage"     onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Ménage intérieur/extérieur et stocks</span></div>
+              <div class="chk-item" data-chk="comp_oisillons"  onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Nourrissage oisillons</span></div>
+              <div class="chk-item" data-chk="comp_marins"     onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Oiseaux marins</span></div>
+              <div class="chk-item" data-chk="comp_vautour"    onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Formée capture vautour</span></div>
+              <div class="chk-item" data-chk="comp_exterieurs" onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Préparation extérieurs</span></div>
+              <div class="chk-item" data-chk="comp_heris"      onclick="toggleChk(this)"><span class="chk-box"><span class="chk-check">✓</span></span><span class="chk-label">Tétées hérissons</span></div>
+            </div>
           </div>
         </div>
 
@@ -1415,10 +1413,46 @@
           </div>
         </div>
 
+        <!-- ── Autre (toujours visible) ── -->
+        <div class="f-box gray" style="margin-bottom:22px;">
+          <div class="f-box-title">Autre</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:0;">
+            <div class="chk-item" data-chk="ca" onclick="toggleChk(this)">
+              <span class="chk-box"><span class="chk-check">✓</span></span>
+              <span class="chk-label">Membre du CA</span>
+            </div>
+            <div class="chk-item" data-chk="veteran" onclick="toggleChk(this);toggleVeteran()">
+              <span class="chk-box"><span class="chk-check">✓</span></span>
+              <span class="chk-label">Vétéran</span>
+            </div>
+          </div>
+          <div id="veteran-sub" style="display:none;flex-wrap:wrap;gap:8px;margin-top:8px;">
+            <div class="chk-item" data-chk="anc_sc" onclick="toggleChk(this)">
+              <span class="chk-box"><span class="chk-check">✓</span></span>
+              <span class="chk-label">Ancien SC</span>
+            </div>
+            <div class="chk-item" data-chk="anc_salarie" onclick="toggleChk(this)">
+              <span class="chk-box"><span class="chk-check">✓</span></span>
+              <span class="chk-label">Ancien Salarié</span>
+            </div>
+            <div class="chk-item" data-chk="anc_ca" onclick="toggleChk(this)">
+              <span class="chk-box"><span class="chk-check">✓</span></span>
+              <span class="chk-label">Ancien CA</span>
+            </div>
+          </div>
+        </div>
+
         <!-- ── Commentaires (toujours visible) ── -->
-        <div class="fg" style="margin-bottom:30px;">
+        <div class="fg" style="margin-bottom:16px;">
           <label>Commentaires</label>
           <textarea name="commentaire" placeholder="Disponibilités, contraintes, informations temporaires…"></textarea>
+        </div>
+        <div style="margin-bottom:30px;">
+          <button type="button" id="btn-indispo" onclick="toggleIndispo()" style="display:flex;align-items:center;gap:8px;padding:9px 16px;border-radius:9px;border:1.5px solid #e4b8b8;background:#fff5f5;color:#c0392b;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s,border-color 0.15s">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+            <span id="btn-indispo-label">Marquer temporairement indisponible</span>
+          </button>
+          <input type="hidden" name="indisponible" id="field-indisponible" value="">
         </div>
 
         <!-- ── Actions ── -->
@@ -1446,7 +1480,6 @@
         <div class="hero-count" style="font-size:2rem; margin-bottom:8px;">Brouillons</div>
         <div style="font-size:0.9rem; color:rgba(255,255,255,0.75);">Fiches commencées et non finalisées, reprenez-les quand vous voulez.</div>
       </div>
-      <button class="btn-add-hero" onclick="goPage('page-ajouter')">+ Nouvelle fiche</button>
     </div>
   </div>
   <div class="brouillons-page">
@@ -1572,11 +1605,14 @@
         style="width:100%;padding:10px 14px;border:1.5px solid #d8d4ce;border-radius:9px;font-size:0.9rem;resize:vertical;"></textarea>
     </div>
 
-    <div style="display:flex;gap:10px;">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
       <button type="submit" class="btn-save" id="rapat-submit-btn">
         <span style="font-size:18px;line-height:0;">✓</span> Enregistrer le rapatriement
       </button>
       <button type="button" class="btn-cancel-form" onclick="goPage('page-liste')">Annuler</button>
+      <button type="button" id="rapat-delete-btn" onclick="deleteRapatFromEdit()" style="display:none;padding:12px 20px;border-radius:999px;border:1.5px solid #f5c6c2;background:#fff8f8;color:#c0392b;font-size:14px;font-weight:600;cursor:pointer;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:-2px;margin-right:5px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>Supprimer
+      </button>
     </div>
   </form>
 </div>
@@ -1730,7 +1766,15 @@ function exportXLS() {
   const btn = document.getElementById('btn-export');
   btn.classList.add('loading');
   btn.textContent = 'Génération…';
-  fetch('/api/benevoles/export-xls')
+
+  const ids = _filteredRows.map(b => b._id).filter(Boolean);
+  const isFiltered = ids.length < allData.length;
+
+  fetch('/api/benevoles/export-xls', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ids: isFiltered ? ids : null }),
+  })
     .then(r => {
       if (!r.ok) return r.text().then(t => { throw new Error(t); });
       return r.blob();
@@ -1740,7 +1784,7 @@ function exportXLS() {
       const a    = document.createElement('a');
       const date = new Date().toISOString().slice(0, 10);
       a.href     = url;
-      a.download = `benevoles_${date}.xlsx`;
+      a.download = `benevoles_${date}${isFiltered ? '_filtre' : ''}.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
     })
@@ -1751,11 +1795,13 @@ function exportXLS() {
     });
 }
 
+let _savedAnchorId = null; // ID du bénévole dont la carte était visible en haut de l'écran
+
 function goPage(id, opts = {}) {
   // Si on navigue vers la page d'ajout sans passer par startEdit,
   // on remet le formulaire à zéro (sauf si opts.keepEdit = true)
   if (id === 'page-ajouter' && !opts.keepEdit) {
-    editingBenev = null;
+    editingBenev = null; window.editingBenev = null;
     const form = document.getElementById('add-form');
     if (form) form.reset();
     // Remettre les type-cards à zéro (non gérées par form.reset)
@@ -1773,13 +1819,42 @@ function goPage(id, opts = {}) {
     // Remettre le titre du hero
     const heroLabel = document.querySelector('#page-ajouter .hero-label');
     if (heroLabel) heroLabel.textContent = 'Nouvelle fiche';
+    // Reset indispo
+    const _fi = document.getElementById('field-indisponible');
+    const _bi = document.getElementById('btn-indispo');
+    const _li = document.getElementById('btn-indispo-label');
+    if (_fi) { _fi.value = ''; _bi.style.background='#fff5f5'; _bi.style.borderColor='#e4b8b8'; _bi.style.color='#c0392b'; _li.textContent='Marquer temporairement indisponible'; }
+    // Reset photo formulaire
+    resetFormPhoto();
+    const _fpw = document.getElementById('form-photo-wrap');
+    if (_fpw) _fpw.style.display = 'flex';
+  }
+  // Sauvegarder la carte visible en haut si on quitte page-liste
+  const currentPage = document.querySelector('.page.active');
+  if (currentPage && currentPage.id === 'page-liste' && id !== 'page-liste') {
+    _savedAnchorId = null;
+    document.querySelectorAll('[data-benev-id]').forEach(el => {
+      if (_savedAnchorId) return;
+      const rect = el.getBoundingClientRect();
+      if (rect.top >= 0 && rect.top < window.innerHeight * 0.5) _savedAnchorId = el.dataset.benevId;
+    });
   }
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   document.querySelectorAll('.nav-link').forEach(a => {
     a.classList.toggle('active', a.dataset.page === id);
   });
-  window.scrollTo(0, 0);
+  if (id === 'page-liste' && _savedAnchorId) {
+    const anchorId = _savedAnchorId;
+    _savedAnchorId = null;
+    // Attendre que le DOM soit stable puis scroller sur la carte
+    requestAnimationFrame(() => {
+      const el = document.querySelector(`[data-benev-id="${anchorId}"]`);
+      if (el) el.scrollIntoView({ block: 'start' });
+    });
+  } else {
+    window.scrollTo(0, 0);
+  }
   if (id === 'page-brouillons') renderDrafts();
 }
 document.querySelectorAll('.nav-link[data-page]').forEach(a => {
@@ -1822,10 +1897,15 @@ function parseDate(s) {
   return new Date(year, parseInt(m[2])-1, parseInt(m[1]));
 }
 
-async function loadData() {
+let _lastDataHash = '';
+async function loadData(forceRender = false) {
   try {
     const r = await fetch('/api/benevoles');
-    allData = await r.json();
+    const newData = await r.json();
+    const hash = JSON.stringify(newData);
+    if (!forceRender && hash === _lastDataHash) return;
+    _lastDataHash = hash;
+    allData = newData;
   } catch(e) { allData = []; }
   computeStats();
   render();
@@ -1907,6 +1987,52 @@ function computeStats() {
     banner.style.display = 'inline-flex';
   } else {
     banner.style.display = 'none';
+  }
+
+  // Jours fériés dans les 7 prochains jours
+  function getEaster(year) {
+    const a = year % 19, b = Math.floor(year / 100), c = year % 100;
+    const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+    const g = Math.floor((b - f + 1) / 3), h = (19*a + b - d - g + 15) % 30;
+    const i = Math.floor(c / 4), k = c % 4, l = (32 + 2*e + 2*i - h - k) % 7;
+    const m = Math.floor((a + 11*h + 22*l) / 451);
+    const month = Math.floor((h + l - 7*m + 114) / 31);
+    const day   = ((h + l - 7*m + 114) % 31) + 1;
+    return new Date(year, month - 1, day);
+  }
+  function getHolidays(year) {
+    const p = getEaster(year);
+    const add = (d, n) => new Date(d.getTime() + n * 86400000);
+    return [
+      { date: new Date(year, 0, 1),  nom: 'Jour de l\'An' },
+      { date: add(p, 1),             nom: 'Lundi de Pâques' },
+      { date: new Date(year, 4, 1),  nom: 'Fête du Travail' },
+      { date: new Date(year, 4, 8),  nom: 'Victoire 1945' },
+      { date: add(p, 39),            nom: 'Ascension' },
+      { date: add(p, 50),            nom: 'Lundi de Pentecôte' },
+      { date: new Date(year, 6, 14), nom: 'Fête Nationale' },
+      { date: new Date(year, 7, 15), nom: 'Assomption' },
+      { date: new Date(year, 10, 1), nom: 'Toussaint' },
+      { date: new Date(year, 10,11), nom: 'Armistice' },
+      { date: new Date(year, 11,25), nom: 'Noël' },
+    ];
+  }
+  const today0 = new Date(todayD); today0.setHours(0,0,0,0);
+  const in7    = new Date(today0.getTime() + 7 * 86400000);
+  const holidays = [...getHolidays(todayD.getFullYear()), ...getHolidays(todayD.getFullYear() + 1)];
+  const upcoming = holidays.filter(h => h.date >= today0 && h.date <= in7);
+  const ferBanner = document.getElementById('ferie-banner');
+  if (upcoming.length > 0) {
+    const days = ['dim.','lun.','mar.','mer.','jeu.','ven.','sam.'];
+    const items = upcoming.map(h => {
+      const diff = Math.round((h.date - today0) / 86400000);
+      const label = diff === 0 ? 'aujourd\'hui' : diff === 1 ? 'demain' : `${days[h.date.getDay()]} ${h.date.getDate()}/${h.date.getMonth()+1}`;
+      return `<strong>${h.nom}</strong> <span style="opacity:0.75">(${label})</span>`;
+    });
+    ferBanner.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e24b4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Jour férié à venir : ${items.join(' &nbsp;·&nbsp; ')}`;
+    ferBanner.style.display = 'inline-flex';
+  } else {
+    ferBanner.style.display = 'none';
   }
 
   document.getElementById('stat-total').textContent = total;
@@ -2027,7 +2153,9 @@ function buildRapatSection() {
 
         allRapats.push({ date: dRef, diff, dateStr: r.date || '', route, trajetArr,
           distanceKm, heures, nom: b.nom, prenom: b.prenom,
-          benevId: b._id, origIdx: idx, confirme: r.confirme, status });
+          benevId: b._id, origIdx: idx, confirme: r.confirme, status,
+          dates: r.dates || [], heure_depart: r.heure_depart || '',
+          heure_arrivee: r.heure_arrivee || '', notes: r.notes || '' });
       });
 
     } else {
@@ -2068,7 +2196,9 @@ function buildRapatSection() {
   const scroll = document.getElementById('rapat-scroll');
   scroll.innerHTML = '';
 
-  allRapats.slice(0, 14).forEach(r => {
+  window._rapatEditData = {};
+
+  allRapats.slice(0, 14).forEach((r, ri) => {
     const LABEL = {
       en_cours:    'EN COURS',
       a_confirmer: 'À CONFIRMER',
@@ -2153,7 +2283,26 @@ function buildRapatSection() {
         e.stopPropagation();
       });
     }
-    scroll.appendChild(div);
+
+    if (r.benevId && r.origIdx !== null && !['passe','confirme'].includes(r.status)) {
+      window._rapatEditData[ri] = {
+        benevId: r.benevId, origIdx: r.origIdx,
+        nom: r.nom, prenom: r.prenom,
+        dates: r.dates || [],
+        heureDepart: r.heure_depart || '', heureArrivee: r.heure_arrivee || '',
+        trajetArr: r.trajetArr || [], distanceKm: r.distanceKm || '',
+        notes: r.notes || ''
+      };
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'display:flex;flex-direction:column;flex-shrink:0;width:210px;gap:4px';
+      wrapper.appendChild(div);
+      wrapper.insertAdjacentHTML('beforeend',
+        `<button onclick="openRapatEditModal(window._rapatEditData[${ri}])" style="padding:5px 8px;border-radius:8px;border:1.5px solid #dbe3dc;background:#fff;font-size:11.5px;font-weight:600;color:#5b6b5e;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Modifier</button>`
+      );
+      scroll.appendChild(wrapper);
+    } else {
+      scroll.appendChild(div);
+    }
   });
 
   document.addEventListener('click', () => {
@@ -2238,7 +2387,12 @@ document.querySelectorAll('.pill').forEach(btn => {
     btn.classList.add('active');
     activeRole = btn.dataset.role;
     activeTag = '';
-    onTagFilter('');
+    // Réinitialiser visuellement le tag picker sans toucher à activeRole
+    document.querySelectorAll('.tpill').forEach(p => p.classList.remove('active'));
+    const lbl = document.getElementById('tag-picker-label');
+    const tagBtn = document.getElementById('tag-picker-btn');
+    if (lbl) lbl.textContent = 'Filtrer par tag';
+    if (tagBtn) { tagBtn.style.background='transparent'; tagBtn.style.borderColor='rgba(255,255,255,0.3)'; tagBtn.style.color='rgba(255,255,255,0.8)'; }
     render();
   });
 });
@@ -2398,8 +2552,10 @@ function getFiltered() {
 // ════════════════════════════
 //  Rendu
 // ════════════════════════════
+let _filteredRows = [];
 function render() {
   let rows = getFiltered();
+  _filteredRows = rows;
   // Si une recherche par proximité est active, le tri par distance est déjà fait dans getFiltered()
   if (!_communeSearchResults) rows.sort((a,b) => {
     let va='', vb='';
@@ -2564,6 +2720,7 @@ function telLink(tel) {
 function copyTel(e, num) {
   e.stopPropagation();
   e.preventDefault();
+  window._tTelCopied = true;
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(num).then(() => showTelToast('Numéro copié !')).catch(() => copyTelFallback(num));
   } else {
@@ -2673,45 +2830,58 @@ function renderCards(rows) {
     }).join('');
     const rayon = b.rayon ? `<span class="rayon-pill">${b.rayon} km</span>` : '';
     const comment = (b.commentaire||b.info_temp) ?
-      `<div class="card-comment">${esc(b.commentaire||b.info_temp)}</div>` : '';
-    const date = b.modif ? `<div class="card-date">${esc(b.modif)}</div>` : '';
+      `<div class="card-comment">${esc(b.commentaire||b.info_temp).replace(/\n/g,' / ')}</div>` : '';
+    const indispoBadge = b.indisponible === 'on'
+      ? `<span style="font-size:11px;font-weight:700;color:#c0392b;background:#fff0ee;border:1px solid #f5c6c6;border-radius:6px;padding:3px 8px">⊘ Temporairement indisponible</span>`
+      : '';
+    const date = b.modif
+      ? `<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px"><span class="card-date" style="margin-top:0">${esc(b.modif)}</span>${indispoBadge}</div>`
+      : indispoBadge ? `<div style="display:flex;justify-content:flex-end;margin-top:4px">${indispoBadge}</div>` : '';
     const card = document.createElement('div');
     card.className = 'benev-card';
     card.style.cursor = 'pointer';
+    card.dataset.benevId = b._id || '';
     card.addEventListener('click', () => openDetail(b));
+    card.style.display = 'flex';
+    card.style.flexDirection = 'column';
     card.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
-        <div style="flex:1;min-width:0;">
-          <div class="card-nom">${esc(b.nom)}${goat(b)}</div>
-          <div class="card-prenom">${esc(b.prenom)}</div>
-          <div class="card-info" style="margin-top:8px;">
-            ${b.telephone ? `<div class="card-info-row"><span class="card-info-label">Tél.</span><span class="card-info-val">${telLink(b.telephone)}</span></div>` : ''}
-            ${b.commune ? `<div class="card-info-row"><span class="card-info-label">Commune</span><span class="card-info-val">${esc(b.commune)}${rayon}</span></div>` : ''}
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+          <div style="flex:1;min-width:0;">
+            <div class="card-nom">${esc(b.nom)}${goat(b)}</div>
+            <div class="card-prenom">${esc(b.prenom)}</div>
+            <div class="card-info" style="margin-top:8px;">
+              ${b.telephone ? `<div class="card-info-row"><span class="card-info-label">Tél.</span><span class="card-info-val">${telLink(b.telephone)}</span></div>` : ''}
+              ${b.commune ? `<div class="card-info-row"><span class="card-info-label">Commune</span><span class="card-info-val">${esc(b.commune)}${rayon}</span></div>` : ''}
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:8px;flex-shrink:0;margin-left:8px;">
+            <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">${badgesHtml}</div>
+            <img src="/api/benevoles/photo/${b._id||''}${_photoTs[b._id] ? '?t='+_photoTs[b._id] : ''}" alt="" style="width:60px;height:60px;border-radius:50%;object-fit:cover;display:none;flex-shrink:0;" onerror="this.style.display='none'" onload="this.style.display='block'">
           </div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0;margin-left:8px;">${badgesHtml}</div>
+        ${cardIcons(b)}
+        ${comment}
+        ${(() => {
+          const lr = getLastRapat(b);
+          if (!lr) return '';
+          const isRecent = lr.date && (Date.now() - lr.date.getTime()) < 30 * 86400000;
+          const shorten = s => s.replace(/Centre de soins Hegalaldia/gi, 'Hegalaldia');
+          const stops = lr.route.split(/\s*[>→]\s*/).map(s => shorten(s.trim())).filter(Boolean);
+          const depart = stops[0] || '';
+          const arrivee = stops[stops.length - 1] || '';
+          const nbEtapes = stops.length - 2;
+          const etapesLabel = nbEtapes > 0 ? ` <span style="font-size:0.68rem;color:#aaa;font-weight:500;">(${nbEtapes} étape${nbEtapes > 1 ? 's' : ''})</span>` : '';
+          const routeDisplay = depart === arrivee ? depart : `${depart} → ${arrivee}`;
+          return `<div class="card-last-rapat${isRecent ? ' recent' : ''}">
+            <div class="card-last-rapat-meta">
+              <span class="card-last-rapat-date">${esc(lr.dateStr)}</span>
+              ${isRecent ? '<span class="card-last-rapat-badge">Récent</span>' : ''}
+            </div>
+            <div class="card-last-rapat-route">${esc(routeDisplay)}${etapesLabel}</div>
+          </div>`;
+        })()}
       </div>
-      ${cardIcons(b)}
-      ${comment}
-      ${(() => {
-        const lr = getLastRapat(b);
-        if (!lr) return '';
-        const isRecent = lr.date && (Date.now() - lr.date.getTime()) < 30 * 86400000;
-        const shorten = s => s.replace(/Centre de soins Hegalaldia/gi, 'Hegalaldia');
-        const stops = lr.route.split(/\s*[>→]\s*/).map(s => shorten(s.trim())).filter(Boolean);
-        const depart = stops[0] || '';
-        const arrivee = stops[stops.length - 1] || '';
-        const nbEtapes = stops.length - 2;
-        const etapesLabel = nbEtapes > 0 ? ` <span style="font-size:0.68rem;color:#aaa;font-weight:500;">(${nbEtapes} étape${nbEtapes > 1 ? 's' : ''})</span>` : '';
-        const routeDisplay = depart === arrivee ? depart : `${depart} → ${arrivee}`;
-        return `<div class="card-last-rapat${isRecent ? ' recent' : ''}">
-          <div class="card-last-rapat-meta">
-            <span class="card-last-rapat-date">${esc(lr.dateStr)}</span>
-            ${isRecent ? '<span class="card-last-rapat-badge">Récent</span>' : ''}
-          </div>
-          <div class="card-last-rapat-route">${esc(routeDisplay)}${etapesLabel}</div>
-        </div>`;
-      })()}
       ${date}
     `;
     grid.appendChild(card);
@@ -2892,6 +3062,7 @@ function toggleCaisses(item) {
 // ════════════════════════════
 const DRAFT_KEY = 'hegalaldia_drafts';
 function getDrafts() { try { return JSON.parse(localStorage.getItem(DRAFT_KEY)||'[]'); } catch(e) { return []; } }
+function _saveDraftsLocal(drafts) { localStorage.setItem(DRAFT_KEY, JSON.stringify(drafts)); }
 
 // ID unique pour la session de saisie en cours (reset à chaque nouvelle fiche)
 let _currentDraftId = null;
@@ -2905,8 +3076,28 @@ function upsertDraft(data) {
   const idx = drafts.findIndex(d => d._draftId === data._draftId);
   if (idx > -1) drafts[idx] = data;
   else drafts.push(data);
-  localStorage.setItem(DRAFT_KEY, JSON.stringify(drafts));
+  _saveDraftsLocal(drafts);
   updateDraftBadge();
+  // Sync serveur (best-effort)
+  fetch('/api/benevoles/drafts', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) }).catch(()=>{});
+}
+
+// Charger les brouillons depuis le serveur et fusionner avec localStorage
+async function syncDraftsFromServer() {
+  try {
+    const r = await fetch('/api/benevoles/drafts');
+    if (!r.ok) return;
+    const serverDrafts = await r.json();
+    const local = getDrafts();
+    // Fusionner : server a priorité si même _draftId (plus récent ou depuis autre appareil)
+    const merged = [...local];
+    for (const sd of serverDrafts) {
+      const i = merged.findIndex(d => d._draftId === sd._draftId);
+      if (i === -1) merged.push(sd);
+    }
+    _saveDraftsLocal(merged);
+    updateDraftBadge();
+  } catch(e) {}
 }
 
 function saveDraft() {
@@ -3004,10 +3195,12 @@ function reprendDraft(i) {
 }
 function deleteDraft(i) {
   const drafts = getDrafts();
+  const draftId = drafts[i]?._draftId;
   drafts.splice(i, 1);
-  localStorage.setItem(DRAFT_KEY, JSON.stringify(drafts));
+  _saveDraftsLocal(drafts);
   updateDraftBadge();
   renderDrafts();
+  if (draftId) fetch(`/api/benevoles/drafts/${encodeURIComponent(draftId)}`, { method: 'DELETE' }).catch(()=>{});
 }
 
 // ════════════════════════════
@@ -3090,7 +3283,27 @@ function collectForm(form) {
     comp_compta: chks.comp_compta||'', comp_photo: chks.comp_photo||'', comp_couture: chks.comp_couture||'',
     autres_competences: fv('autres_competences'),
     commentaire: fv('commentaire'),
+    indisponible: document.getElementById('field-indisponible').value || '',
   };
+}
+
+function toggleIndispo() {
+  const field = document.getElementById('field-indisponible');
+  const btn   = document.getElementById('btn-indispo');
+  const label = document.getElementById('btn-indispo-label');
+  const isOn  = field.value === 'on';
+  field.value = isOn ? '' : 'on';
+  if (!isOn) {
+    btn.style.background = '#c0392b';
+    btn.style.borderColor = '#c0392b';
+    btn.style.color = '#fff';
+    label.textContent = 'Temporairement indisponible (actif)';
+  } else {
+    btn.style.background = '#fff5f5';
+    btn.style.borderColor = '#e4b8b8';
+    btn.style.color = '#c0392b';
+    label.textContent = 'Marquer temporairement indisponible';
+  }
 }
 function fillForm(d) {
   const form = document.getElementById('add-form');
@@ -3124,8 +3337,91 @@ function fillForm(d) {
 // ════════════════════════════
 //  Édition d'un bénévole existant
 // ════════════════════════════
+let _pendingPhotoBlob = null;
+let _pendingPhotoBenevId = null;
+const _photoTs = {}; // cache-buster par bénévole
+
+// ── Photo zone formulaire (création) ──
+let _pendingFormPhotoBlob = null;
+
+function formPhotoSelected(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  input.value = '';
+  openCropModal(file, '__form__');
+}
+
+window._onFormPhotoCropped = function(blob) {
+  _pendingFormPhotoBlob = blob;
+  const preview = document.getElementById('form-photo-preview');
+  const icon = document.getElementById('form-photo-icon');
+  const delBtn = document.getElementById('form-photo-delete');
+  if (preview) { preview.src = URL.createObjectURL(blob); preview.style.display = 'block'; }
+  if (icon) icon.style.display = 'none';
+  if (delBtn) delBtn.style.display = 'flex';
+};
+
+function formPhotoDelete(e) {
+  e.preventDefault(); e.stopPropagation();
+  _pendingFormPhotoBlob = null;
+  const preview = document.getElementById('form-photo-preview');
+  const icon = document.getElementById('form-photo-icon');
+  const delBtn = document.getElementById('form-photo-delete');
+  if (preview) { preview.src = ''; preview.style.display = 'none'; }
+  if (icon) icon.style.display = 'block';
+  if (delBtn) delBtn.style.display = 'none';
+}
+
+function resetFormPhoto() {
+  _pendingFormPhotoBlob = null;
+  const preview = document.getElementById('form-photo-preview');
+  const icon = document.getElementById('form-photo-icon');
+  const delBtn = document.getElementById('form-photo-delete');
+  if (preview) { preview.src = ''; preview.style.display = 'none'; }
+  if (icon) icon.style.display = 'block';
+  if (delBtn) delBtn.style.display = 'none';
+}
+
+function editPhotoSelected(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  input.value = '';
+  openCropModal(file, '__edit__');
+}
+
+// Appelé par confirmCrop quand on est en mode édition (benevId === '__edit__')
+window._onEditPhotoCropped = function(blob) {
+  _pendingPhotoBlob = blob;
+  _pendingPhotoDelete = false;
+  const preview = document.getElementById('edit-photo-preview');
+  const ph = document.getElementById('edit-photo-placeholder');
+  const delBtn = document.getElementById('edit-photo-delete');
+  if (preview) {
+    preview.src = URL.createObjectURL(blob);
+    preview.style.display = 'block';
+    if (ph) ph.style.display = 'none';
+    if (delBtn) delBtn.style.display = 'flex';
+  }
+};
+
+let _pendingPhotoDelete = false;
+
+async function deleteBenevPhoto(e) {
+  e.preventDefault(); e.stopPropagation();
+  const preview = document.getElementById('edit-photo-preview');
+  const ph = document.getElementById('edit-photo-placeholder');
+  const delBtn = document.getElementById('edit-photo-delete');
+  _pendingPhotoBlob = null;
+  _pendingPhotoDelete = true;
+  if (preview) { preview.style.display = 'none'; URL.revokeObjectURL(preview.src); }
+  if (ph) ph.style.display = 'flex';
+  if (delBtn) delBtn.style.display = 'none';
+}
+
 function startEdit(b) {
-  editingBenev = b;
+  editingBenev = b; window.editingBenev = b;
+  _pendingPhotoBlob = null;
+  _pendingPhotoBenevId = b._id || null;
   closeDetail();
   // Passer toutes les données du bénévole + rôles convertis en champs 'on'
   const _roles   = b.roles || [];
@@ -3147,6 +3443,21 @@ function startEdit(b) {
     forme_rapat: _formeRapat,
     commentaire: b.commentaire || b.info_temp || '',
   });
+  // État indisponible
+  const field = document.getElementById('field-indisponible');
+  const btn   = document.getElementById('btn-indispo');
+  const label = document.getElementById('btn-indispo-label');
+  if (b.indisponible === 'on') {
+    field.value = 'on';
+    btn.style.background = '#c0392b'; btn.style.borderColor = '#c0392b'; btn.style.color = '#fff';
+    label.textContent = 'Temporairement indisponible (actif)';
+  } else {
+    field.value = '';
+    btn.style.background = '#fff5f5'; btn.style.borderColor = '#e4b8b8'; btn.style.color = '#c0392b';
+    label.textContent = 'Marquer temporairement indisponible';
+  }
+  const _fpw = document.getElementById('form-photo-wrap');
+  if (_fpw) _fpw.style.display = 'none';
   goPage('page-ajouter', { keepEdit: true });
   // Show edit banner (reuse existing #form-saved-banner)
   const banner = document.getElementById('form-saved-banner');
@@ -3156,6 +3467,26 @@ function startEdit(b) {
   banner.querySelector('span').textContent = '✎';
   document.getElementById('btn-submit').innerHTML = '<span style="font-size:18px;line-height:0;">✓</span> Mettre à jour la fiche';
   document.getElementById('btn-delete-benev').style.display = '';
+  // Photo dans le banner
+  const preview = document.getElementById('edit-photo-preview');
+  const ph = document.getElementById('edit-photo-placeholder');
+  if (preview && ph) {
+    ph.textContent = (b.prenom||'?').charAt(0).toUpperCase();
+    preview.style.display = 'none';
+    ph.style.display = 'flex';
+    _pendingPhotoDelete = false;
+    const delBtn = document.getElementById('edit-photo-delete');
+    if (b._id) {
+      const tmp = new Image();
+      tmp.onload = () => {
+        preview.src = tmp.src; preview.style.display = 'block'; ph.style.display = 'none';
+        if (delBtn) delBtn.style.display = 'flex';
+      };
+      tmp.src = `/api/benevoles/photo/${b._id}?t=${Date.now()}`;
+    } else {
+      if (delBtn) delBtn.style.display = 'none';
+    }
+  }
 }
 
 document.getElementById('add-form').addEventListener('submit', async e => {
@@ -3163,6 +3494,17 @@ document.getElementById('add-form').addEventListener('submit', async e => {
   const form = e.target;
   const btn = document.getElementById('btn-submit');
   const res = document.getElementById('form-result');
+
+  // Vérifier qu'au moins un rôle est sélectionné
+  const hasRole = document.querySelector('.type-card.selected-centre, .type-card.selected-rapatrieur, .type-card.selected-autre');
+  if (!hasRole) {
+    res.style.display = 'block';
+    res.style.color = '#c0392b';
+    res.textContent = 'Veuillez sélectionner au moins un rôle (Sur centre, Rapatrieur ou Autre bénévole).';
+    document.querySelector('.type-cards').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
   btn.disabled = true; btn.innerHTML = 'Envoi…';
   res.style.display = 'none';
   try {
@@ -3177,18 +3519,31 @@ document.getElementById('add-form').addEventListener('submit', async e => {
       body: JSON.stringify(body),
     });
     if (r.ok) {
+      const rJson = await r.json();
       const isEdit = !!editingBenev;
       const msg = isEdit
         ? `${data.prenom} ${data.nom} a bien été mis à jour !`
         : `${data.prenom} ${data.nom} a bien été ajouté(e) !`;
 
-      editingBenev = null;
+      // Upload photo si présente (création ou modification)
+      const photoTargetId = isEdit ? editingBenev._id : rJson.id;
+      if (_pendingFormPhotoBlob && photoTargetId) {
+        await fetch(`/api/benevoles/photo/${photoTargetId}`, {
+          method: 'POST', headers: { 'Content-Type': 'image/jpeg' }, body: _pendingFormPhotoBlob
+        });
+        _photoTs[photoTargetId] = Date.now();
+      }
+      resetFormPhoto();
+
+      editingBenev = null; window.editingBenev = null;
       document.getElementById('btn-delete-benev').style.display = 'none';
       // Supprimer le brouillon correspondant à cette session
       if (_currentDraftId) {
-        const drafts = getDrafts().filter(d => d._draftId !== _currentDraftId);
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(drafts));
+        const draftIdToDelete = _currentDraftId;
+        const drafts = getDrafts().filter(d => d._draftId !== draftIdToDelete);
+        _saveDraftsLocal(drafts);
         updateDraftBadge();
+        fetch(`/api/benevoles/drafts/${encodeURIComponent(draftIdToDelete)}`, { method: 'DELETE' }).catch(()=>{});
         _currentDraftId = null;
       }
       // Restaurer le bouton et masquer la bannière d'édition
@@ -3202,6 +3557,19 @@ document.getElementById('add-form').addEventListener('submit', async e => {
       ['section-centre','section-rapatrieur','section-autre','section-formation','section-caisses-detail'].forEach(id => {
         const el = document.getElementById(id); if (el) el.style.display = 'none';
       });
+      if (_pendingPhotoBenevId) {
+        if (_pendingPhotoBlob) {
+          await fetch(`/api/benevoles/photo/${_pendingPhotoBenevId}`, {
+            method: 'POST', headers: { 'Content-Type': 'image/jpeg' }, body: _pendingPhotoBlob
+          });
+          _photoTs[_pendingPhotoBenevId] = Date.now();
+          _pendingPhotoBlob = null;
+        } else if (_pendingPhotoDelete) {
+          await fetch(`/api/benevoles/photo/${_pendingPhotoBenevId}`, { method: 'DELETE' });
+          _photoTs[_pendingPhotoBenevId] = Date.now();
+          _pendingPhotoDelete = false;
+        }
+      }
       await loadData();
       // Retour à la liste avec toast
       goPage('page-liste');
@@ -3267,6 +3635,7 @@ document.getElementById('add-form').addEventListener('submit', async e => {
 //  Init + auto-refresh
 // ════════════════════════════
 updateDraftBadge();
+syncDraftsFromServer();
 loadData().then(() => {
   setTimeout(() => {
     document.querySelectorAll('.confirm-status.oui').forEach(el => {
@@ -3290,7 +3659,10 @@ setInterval(() => {
 // ════════════════════════════
 //  PANNEAU DÉTAIL
 // ════════════════════════════
+let _openDetailBenev = null;
 function openDetail(b) {
+  _openDetailBenev = b;
+  window._openDetailBenev = b;
   const panel = document.getElementById('detail-panel');
   const overlay = document.getElementById('detail-overlay');
 
@@ -3383,8 +3755,8 @@ function openDetail(b) {
 
   // Compétences générales
   const COMP_GEN = { comp_brico:'Bricolage', comp_info:'Informatique', comp_commu:'Communication', comp_compta:'Comptabilité', comp_photo:'Photo', comp_couture:'Couture' };
-  const compGen = Object.entries(COMP_GEN).filter(([k]) => b[k]).map(([,v]) => `<span class="dp-chk-tag">${v}</span>`).join('');
-  if (b.autres_competences) compGen + `<span class="dp-chk-tag">${esc(b.autres_competences)}</span>`;
+  let compGen = Object.entries(COMP_GEN).filter(([k]) => b[k]).map(([,v]) => `<span class="dp-chk-tag">${v}</span>`).join('');
+  if (b.autres_competences) compGen += `<span class="dp-chk-tag">${esc(b.autres_competences)}</span>`;
 
   // Équipement rapatrieur
   const EQUIP = { caisses:'Caisses', gants:'Gants', comp_vautour:'Capture vautour', garde_domicile:'Garde domicile', recu_fiscal:'Reçu fiscal' };
@@ -3413,23 +3785,40 @@ function openDetail(b) {
   const nbRapat = Array.isArray(b.derniers_rapat) ? b.derniers_rapat.length
     : (b.derniers_rapat||'').split('\n').filter(l=>l.trim()).length;
 
+  const benevPhotoId = b._id || '';
   panel.innerHTML = `
     <div class="dp-header">
       <div class="dp-header-top">
-        <div style="min-width:0;">
-          <div class="dp-nom">${esc(b.nom)} ${esc(b.prenom)}${goat(b)}</div>
+        <div style="display:flex;align-items:center;gap:14px;min-width:0;">
+          <div style="position:relative;flex-shrink:0;">
+            <img id="dp-photo-img" src="/api/benevoles/photo/${benevPhotoId}${_photoTs[benevPhotoId] ? '?t='+_photoTs[benevPhotoId] : ''}" alt=""
+              style="width:86px;height:86px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.25);display:none;"
+              onerror="this.style.display='none';document.getElementById('dp-photo-placeholder').style.display='flex'"
+              onload="this.style.display='block';document.getElementById('dp-photo-placeholder').style.display='none'">
+            <div id="dp-photo-placeholder" style="width:86px;height:86px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:2rem;color:rgba(255,255,255,0.6);flex-shrink:0;">
+              ${esc(b.prenom||'').charAt(0).toUpperCase()||'?'}
+            </div>
+          </div>
+          <div style="min-width:0;">
+            <div class="dp-nom">${esc(b.nom)}${goat(b)}</div>
+            <div class="dp-prenom" style="font-size:1.1rem;font-weight:500;opacity:0.85;margin-top:2px">${esc(b.prenom)}</div>
+          </div>
         </div>
-        <div style="display:flex;gap:10px;flex-shrink:0;">
-          <button class="dp-edit-btn-new" id="dp-edit-btn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3z"/><path d="M13.5 6.5l3 3"/></svg>
-            Modifier
-          </button>
+        <div style="flex-shrink:0;">
           <button class="dp-close" onclick="closeDetail()">✕</button>
         </div>
       </div>
 
-      <div class="dp-badges">${badges}${formationBadge}</div>
-      ${b.date_creation ? `<div class="dp-depuis">Bénévole depuis le ${esc(b.date_creation.split(' ')[0])}</div>` : ''}
+      <div style="margin-top:6px;">
+        <div class="dp-badges">${badges}${formationBadge}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">
+          ${b.date_creation ? `<div class="dp-depuis" style="margin-top:0">Bénévole depuis le ${esc(b.date_creation.split(' ')[0])}</div>` : '<div></div>'}
+          <button class="dp-edit-btn-new" id="dp-edit-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Modifier
+          </button>
+        </div>
+      </div>
     </div>
 
     <div class="dp-body">
@@ -3501,7 +3890,7 @@ async function confirmDeleteBenevole() {
       body: JSON.stringify({ benevole_id: b._id })
     });
     if (!r.ok) throw new Error(await r.text());
-    editingBenev = null;
+    editingBenev = null; window.editingBenev = null;
     document.getElementById('btn-delete-benev').style.display = 'none';
     document.getElementById('btn-submit').innerHTML = '<span style="font-size:18px;line-height:0;">✓</span> Enregistrer la fiche';
     document.getElementById('form-saved-banner').style.display = 'none';
@@ -3560,6 +3949,115 @@ function cancelConfirmNon(btn, benevId, idx) {
 }
 
 // Suppression depuis le carousel (croix sur "non effectué") — supprime aussi de la liste du bénévole
+let _rapatEditState = {};
+
+function openRapatEditModal(r) {
+  _rapatEditState = { benevId: r.benevId, idx: r.origIdx, nom: r.nom, prenom: r.prenom };
+
+  // Naviguer vers le formulaire
+  goPage('page-rapat-add');
+
+  // Pré-remplir le bénévole
+  const fakeBenevole = { _id: r.benevId, nom: r.nom, prenom: r.prenom, commune: '' };
+  selectBenevRapat(fakeBenevole);
+
+  // Pré-remplir les dates
+  const datesList = document.getElementById('rapat-dates-list');
+  datesList.innerHTML = (r.dates || []).map(d =>
+    `<div class="date-item"><input type="date" class="rapat-date-input" value="${d}" style="flex:1;padding:9px 12px;border:1.5px solid #d8d4ce;border-radius:9px;font-size:0.9rem;"></div>`
+  ).join('') || `<div class="date-item"><input type="date" class="rapat-date-input" style="flex:1;padding:9px 12px;border:1.5px solid #d8d4ce;border-radius:9px;font-size:0.9rem;"></div>`;
+
+  // Pré-remplir heures
+  document.getElementById('rapat-heure-depart').value = r.heureDepart || '';
+  document.getElementById('rapat-heure-arrivee').value = r.heureArrivee || '';
+
+  // Pré-remplir trajet
+  const trajet = r.trajetArr || [];
+  const tl = document.getElementById('rapat-trajet-list');
+  tl.querySelectorAll('[data-role="etape"]').forEach(e => e.remove());
+  // Départ et arrivée
+  const depart  = tl.querySelector('[data-role="depart"] .trajet-ville');
+  const arrivee = tl.querySelector('[data-role="arrivee"] .trajet-ville');
+  if (depart)  depart.value  = trajet[0] || '';
+  if (arrivee) arrivee.value = trajet[trajet.length - 1] || '';
+  // Étapes intermédiaires
+  trajet.slice(1, -1).forEach(v => {
+    addPhantomEtape();
+    const etapes = tl.querySelectorAll('[data-role="etape"] .trajet-ville');
+    const last = etapes[etapes.length - 1];
+    if (last) { last.value = v; last.classList.remove('phantom'); }
+  });
+  addPhantomEtape();
+
+  // Pré-remplir distance et notes
+  document.getElementById('rapat-distance-val').textContent = r.distanceKm || '—';
+  document.getElementById('rapat-notes').value = r.notes || '';
+
+  // Passer en mode édition
+  document.querySelector('#page-rapat-add .hero h2') && (document.querySelector('#page-rapat-add .hero h2').textContent = 'Modifier le rapatriement');
+  const btn = document.getElementById('rapat-submit-btn');
+  btn.innerHTML = '<span style="font-size:18px;line-height:0;">✓</span> Enregistrer les modifications';
+  document.getElementById('rapat-delete-btn').style.display = '';
+}
+
+function closeRapatEditModal() {
+  _rapatEditState = {};
+}
+
+async function deleteRapatFromEdit() {
+  if (!_rapatEditState.benevId && _rapatEditState.idx === undefined) return;
+  if (!confirm(`Supprimer ce rapatriement de ${_rapatEditState.prenom} ${_rapatEditState.nom} ?`)) return;
+  const btn = document.getElementById('rapat-delete-btn');
+  btn.disabled = true; btn.textContent = 'Suppression…';
+  try {
+    const r = await fetch('/api/rapatriements/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ benevole_id: _rapatEditState.benevId, index: _rapatEditState.idx })
+    });
+    if (!r.ok) throw new Error(await r.text());
+    _rapatEditState = {};
+    document.getElementById('rapat-delete-btn').style.display = 'none';
+    document.querySelector('#page-rapat-add .hero h2') && (document.querySelector('#page-rapat-add .hero h2').textContent = 'Nouveau rapatriement');
+    document.getElementById('rapat-submit-btn').innerHTML = '<span style="font-size:18px;line-height:0;">✓</span> Enregistrer le rapatriement';
+    await loadData();
+    goPage('page-liste');
+  } catch(e) {
+    alert('Erreur : ' + e.message);
+    btn.disabled = false; btn.textContent = 'Supprimer';
+  }
+}
+
+async function saveRapatEdit() {
+  const btn = document.getElementById('rapat-edit-save');
+  btn.disabled = true; btn.textContent = 'Enregistrement…';
+  const dates = document.getElementById('re-dates').value.split('\n').map(s => s.trim()).filter(Boolean);
+  const trajet = document.getElementById('re-trajet').value.split('\n').map(s => s.trim()).filter(Boolean);
+  try {
+    const r = await fetch('/api/rapatriements/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        benevole_id:   _rapatEditState.benevId,
+        index:         _rapatEditState.idx,
+        dates,
+        heure_depart:  document.getElementById('re-hdepart').value,
+        heure_arrivee: document.getElementById('re-harrivee').value,
+        trajet,
+        distance_km:   document.getElementById('re-distance').value,
+        notes:         document.getElementById('re-notes').value,
+      })
+    });
+    if (!r.ok) throw new Error(await r.text());
+    closeRapatEditModal();
+    await loadData();
+  } catch(e) {
+    alert('Erreur : ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Enregistrer';
+  }
+}
+
 async function deleteRapatCarousel(benevId, idx, btn) {
   const card = btn.closest('.rapat-card');
   card.style.opacity = '0.4';
@@ -3595,6 +4093,13 @@ async function deleteRapat(benevId, idx) {
   } catch(e) {
     alert('Erreur : ' + e.message);
   }
+}
+
+function uploadBenevPhoto(benevId, input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  input.value = '';
+  openCropModal(file, benevId);
 }
 
 function closeDetail() {
@@ -3888,12 +4393,13 @@ function cleanPhantomEtapes() {
 
 let rapatBenevData = null;
 
+function _norm(s) { return (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
 function searchBenevRapat(q) {
   const dd = document.getElementById('rapat-benev-dropdown');
   if (q.length < 2) { dd.style.display = 'none'; return; }
-  const q2 = q.toLowerCase();
+  const q2 = _norm(q);
   const matches = allData.filter(b =>
-    (b.nom||'').toLowerCase().includes(q2) || (b.prenom||'').toLowerCase().includes(q2)
+    _norm(b.nom).includes(q2) || _norm(b.prenom).includes(q2)
   ).slice(0, 8);
   if (!matches.length) { dd.style.display = 'none'; return; }
   dd.innerHTML = matches.map(b => `
@@ -3951,13 +4457,21 @@ async function submitRapat(e) {
   const btn = document.getElementById('rapat-submit-btn');
   btn.disabled = true; btn.textContent = 'Enregistrement…';
 
+  const isEdit = _rapatEditState && _rapatEditState.benevId;
+  const url = isEdit ? '/api/rapatriements/update' : '/api/rapatriements/add';
+  if (isEdit) {
+    payload.benevole_id = _rapatEditState.benevId;
+    payload.index       = _rapatEditState.idx;
+  }
+
   try {
-    const r = await fetch('/api/rapatriements/add', {
+    const r = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
     if (!r.ok) throw new Error(await r.text());
+    _rapatEditState = {};
     // Reset form
     document.getElementById('rapat-form').reset();
     clearBenevRapat();
@@ -3965,7 +4479,6 @@ async function submitRapat(e) {
       <div class="date-item">
         <input type="date" class="rapat-date-input" style="flex:1;padding:9px 12px;border:1.5px solid #d8d4ce;border-radius:9px;font-size:0.9rem;">
       </div>`;
-    // Reset trajet : supprimer toutes les étapes et remettre une fantôme
     const tl = document.getElementById('rapat-trajet-list');
     tl.querySelectorAll('[data-role="etape"]').forEach(e => e.remove());
     tl.querySelectorAll('.trajet-ville').forEach(i => i.value = '');
@@ -4043,6 +4556,488 @@ async function submitRapat(e) {
   </div>
 </div>
 
+<!-- ── Modal édition rapatriement ── -->
+<div class="modal-overlay" id="rapat-edit-modal" onclick="if(event.target===this)closeRapatEditModal()" style="padding:20px;box-sizing:border-box">
+  <div class="modal-box" style="background:#fff;border-radius:16px;padding:0;width:100%;max-width:480px;box-shadow:0 16px 48px rgba(0,0,0,0.18);max-height:90vh;overflow-y:auto">
+    <div class="modal-header" style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid #eef1ec">
+      <div>
+        <div class="modal-header-title">Modifier le rapatriement</div>
+        <div class="modal-header-sub" id="rapat-edit-name"></div>
+      </div>
+      <button class="modal-close" onclick="closeRapatEditModal()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#aaa;line-height:1">×</button>
+    </div>
+    <div class="modal-body" style="padding:20px 22px;display:flex;flex-direction:column;gap:14px">
+      <div class="modal-field">
+        <label>Date(s) — une par ligne (YYYY-MM-DD)</label>
+        <textarea id="re-dates" rows="2" style="width:100%;padding:8px 10px;border:1.5px solid #dbe3dc;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box;font-family:monospace"></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="modal-field">
+          <label>Heure départ</label>
+          <input type="time" id="re-hdepart" style="width:100%;padding:8px 10px;border:1.5px solid #dbe3dc;border-radius:8px;font-size:13px;box-sizing:border-box">
+        </div>
+        <div class="modal-field">
+          <label>Heure arrivée</label>
+          <input type="time" id="re-harrivee" style="width:100%;padding:8px 10px;border:1.5px solid #dbe3dc;border-radius:8px;font-size:13px;box-sizing:border-box">
+        </div>
+      </div>
+      <div class="modal-field">
+        <label>Trajet — une ville par ligne</label>
+        <textarea id="re-trajet" rows="3" style="width:100%;padding:8px 10px;border:1.5px solid #dbe3dc;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box"></textarea>
+      </div>
+      <div class="modal-field">
+        <label>Distance (km)</label>
+        <input type="text" id="re-distance" style="width:100%;padding:8px 10px;border:1.5px solid #dbe3dc;border-radius:8px;font-size:13px;box-sizing:border-box">
+      </div>
+      <div class="modal-field">
+        <label>Notes</label>
+        <textarea id="re-notes" rows="2" style="width:100%;padding:8px 10px;border:1.5px solid #dbe3dc;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box"></textarea>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px">
+        <button onclick="closeRapatEditModal()" style="padding:9px 20px;border-radius:999px;border:1.5px solid #dbe3dc;background:#fff;font-size:13px;font-weight:600;color:#5b6b5e;cursor:pointer">Annuler</button>
+        <button id="rapat-edit-save" onclick="saveRapatEdit()" style="padding:9px 20px;border-radius:999px;border:none;background:#0c3d22;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal recadrage photo -->
+<div id="crop-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.75);align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">
+  <div style="background:#fff;border-radius:16px;overflow:hidden;max-width:480px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,0.3);">
+    <div style="padding:16px 20px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-weight:700;font-size:15px;color:#1a2e1e;">Recadrer la photo</span>
+      <button onclick="closeCropModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#666;padding:2px 6px;">✕</button>
+    </div>
+    <div style="padding:16px 20px;">
+      <div id="crop-container" style="position:relative;overflow:hidden;background:#111;user-select:none;touch-action:none;border-radius:8px;"></div>
+    </div>
+    <div style="padding:0 20px 16px;display:flex;gap:10px;justify-content:flex-end;">
+      <button onclick="closeCropModal()" style="padding:9px 20px;border-radius:999px;border:1.5px solid #dbe3dc;background:#fff;font-size:13px;font-weight:600;color:#5b6b5e;cursor:pointer;">Annuler</button>
+      <button onclick="confirmCrop()" style="padding:9px 20px;border-radius:999px;border:none;background:#0c3d22;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">Valider</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Recadrage photo ──────────────────────────────────────────────────────────
+let _cropState = null;
+
+function openCropModal(file, benevId) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const modal = document.getElementById('crop-modal');
+      const container = document.getElementById('crop-container');
+      modal.style.display = 'flex';
+
+      // Taille d'affichage max 440px
+      const maxW = Math.min(440, window.innerWidth - 80);
+      const scale = maxW / img.naturalWidth;
+      const dispW = maxW;
+      const dispH = img.naturalHeight * scale;
+
+      container.style.width = dispW + 'px';
+      container.style.height = dispH + 'px';
+      container.innerHTML = '';
+
+      // Image de fond
+      const bgImg = document.createElement('img');
+      bgImg.src = e.target.result;
+      bgImg.style.cssText = `width:${dispW}px;height:${dispH}px;display:block;pointer-events:none;`;
+      container.appendChild(bgImg);
+
+      // Crop carré initial = 80% du min(dispW, dispH)
+      const cropSize = Math.floor(Math.min(dispW, dispH) * 0.8);
+      let cx = Math.floor((dispW - cropSize) / 2);
+      let cy = Math.floor((dispH - cropSize) / 2);
+      let cs = cropSize;
+
+      // Overlay sombre (4 zones)
+      const overlays = [];
+      for (let i = 0; i < 4; i++) {
+        const d = document.createElement('div');
+        d.style.cssText = 'position:absolute;background:rgba(0,0,0,0.55);pointer-events:none;';
+        container.appendChild(d);
+        overlays.push(d);
+      }
+
+      // Boîte de crop
+      const cropBox = document.createElement('div');
+      cropBox.style.cssText = `position:absolute;border:2px solid rgba(255,255,255,0.8);box-sizing:border-box;cursor:move;border-radius:50%;`;
+      container.appendChild(cropBox);
+
+      // Poignées de coin
+      const handles = [];
+      [['nw','nw-resize'],['ne','ne-resize'],['sw','sw-resize'],['se','se-resize']].forEach(([pos, cur]) => {
+        const h = document.createElement('div');
+        h.dataset.pos = pos;
+        h.style.cssText = `position:absolute;width:14px;height:14px;background:#fff;border:2px solid #0c3d22;border-radius:50%;cursor:${cur};`;
+        cropBox.appendChild(h);
+        handles.push(h);
+      });
+
+      function updateUI() {
+        cropBox.style.left = cx + 'px';
+        cropBox.style.top = cy + 'px';
+        cropBox.style.width = cs + 'px';
+        cropBox.style.height = cs + 'px';
+        // Poignées
+        handles.forEach(h => {
+          const p = h.dataset.pos;
+          h.style.left = (p.includes('e') ? cs - 7 : -7) + 'px';
+          h.style.top  = (p.includes('s') ? cs - 7 : -7) + 'px';
+        });
+        // Overlays: top, bottom, left, right
+        overlays[0].style.cssText += `left:0;top:0;width:${dispW}px;height:${cy}px;position:absolute;background:rgba(0,0,0,0.55);pointer-events:none;`;
+        overlays[1].style.cssText += `left:0;top:${cy+cs}px;width:${dispW}px;height:${dispH-cy-cs}px;position:absolute;background:rgba(0,0,0,0.55);pointer-events:none;`;
+        overlays[2].style.cssText += `left:0;top:${cy}px;width:${cx}px;height:${cs}px;position:absolute;background:rgba(0,0,0,0.55);pointer-events:none;`;
+        overlays[3].style.cssText += `left:${cx+cs}px;top:${cy}px;width:${dispW-cx-cs}px;height:${cs}px;position:absolute;background:rgba(0,0,0,0.55);pointer-events:none;`;
+      }
+      updateUI();
+
+      // Drag logique
+      let drag = null;
+      function onDown(e) {
+        e.preventDefault();
+        const pt = e.touches ? e.touches[0] : e;
+        const rect = container.getBoundingClientRect();
+        const mx = pt.clientX - rect.left;
+        const my = pt.clientY - rect.top;
+        const target = e.target;
+        if (target === cropBox) {
+          drag = { type: 'move', startX: mx, startY: my, startCx: cx, startCy: cy };
+        } else if (target.dataset && target.dataset.pos) {
+          drag = { type: 'resize', pos: target.dataset.pos, startX: mx, startY: my, startCx: cx, startCy: cy, startCs: cs };
+        }
+      }
+      function onMove(e) {
+        if (!drag) return;
+        e.preventDefault();
+        const pt = e.touches ? e.touches[0] : e;
+        const rect = container.getBoundingClientRect();
+        const mx = pt.clientX - rect.left;
+        const my = pt.clientY - rect.top;
+        const dx = mx - drag.startX, dy = my - drag.startY;
+        const minSize = 40;
+        if (drag.type === 'move') {
+          cx = Math.max(0, Math.min(dispW - cs, drag.startCx + dx));
+          cy = Math.max(0, Math.min(dispH - cs, drag.startCy + dy));
+        } else {
+          const pos = drag.pos;
+          let newCs = drag.startCs, newCx = drag.startCx, newCy = drag.startCy;
+          if (pos === 'se') {
+            newCs = Math.max(minSize, drag.startCs + Math.min(dx, dy));
+            newCs = Math.min(newCs, dispW - drag.startCx, dispH - drag.startCy);
+          } else if (pos === 'sw') {
+            const d = Math.min(-dx, dy);
+            newCs = Math.max(minSize, drag.startCs + d);
+            newCs = Math.min(newCs, drag.startCx + drag.startCs, dispH - drag.startCy);
+            newCx = drag.startCx + drag.startCs - newCs;
+          } else if (pos === 'ne') {
+            const d = Math.min(dx, -dy);
+            newCs = Math.max(minSize, drag.startCs + d);
+            newCs = Math.min(newCs, dispW - drag.startCx, drag.startCy + drag.startCs);
+            newCy = drag.startCy + drag.startCs - newCs;
+          } else if (pos === 'nw') {
+            newCs = Math.max(minSize, drag.startCs - Math.max(dx, dy));
+            newCs = Math.min(newCs, drag.startCx + drag.startCs, drag.startCy + drag.startCs);
+            newCx = drag.startCx + drag.startCs - newCs;
+            newCy = drag.startCy + drag.startCs - newCs;
+          }
+          cs = newCs; cx = newCx; cy = newCy;
+        }
+        updateUI();
+      }
+      function onUp() { drag = null; }
+
+      cropBox.addEventListener('mousedown', onDown);
+      handles.forEach(h => h.addEventListener('mousedown', onDown));
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+      cropBox.addEventListener('touchstart', onDown, {passive:false});
+      handles.forEach(h => h.addEventListener('touchstart', onDown, {passive:false}));
+      document.addEventListener('touchmove', onMove, {passive:false});
+      document.addEventListener('touchend', onUp);
+
+      _cropState = { img, dispW, dispH, scale, benevId, getCrop: () => ({ cx, cy, cs }) };
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  _cropState = { benevId };
+}
+
+function closeCropModal() {
+  document.getElementById('crop-modal').style.display = 'none';
+  _cropState = null;
+}
+
+function confirmCrop() {
+  if (!_cropState || !_cropState.img) return;
+  const { img, scale, getCrop, benevId } = _cropState;
+  const { cx, cy, cs } = getCrop();
+  // Convertir en coordonnées image réelles
+  const srcX = Math.round(cx / scale);
+  const srcY = Math.round(cy / scale);
+  const srcS = Math.round(cs / scale);
+  const canvas = document.createElement('canvas');
+  canvas.width = 400;
+  canvas.height = 400;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, srcX, srcY, srcS, srcS, 0, 0, 400, 400);
+  canvas.toBlob(blob => {
+    closeCropModal();
+    if (benevId === '__edit__') {
+      window._onEditPhotoCropped(blob);
+    } else if (benevId === '__form__') {
+      window._onFormPhotoCropped(blob);
+    } else {
+      // Mode direct depuis le panneau de détail (non utilisé actuellement)
+      fetch(`/api/benevoles/photo/${benevId}`, {
+        method: 'POST', headers: { 'Content-Type': 'image/jpeg' }, body: blob
+      }).then(r => r.ok && _openDetailBenev && openDetail(_openDetailBenev));
+    }
+  }, 'image/jpeg', 0.88);
+}
+</script>
+
 <script src="/auth.js"></script>
+<script>fetch("/api/version").then(r=>r.json()).then(d=>{const el=document.createElement("div");el.style.cssText="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(0,0,0,0.25);font-family:monospace;z-index:9999;pointer-events:none";el.textContent="v"+d.commit+" · "+d.date;document.body.appendChild(el)}).catch(()=>{})</script>
+
+<!-- ═══ TOUR GUIDÉ ═══ -->
+<style>
+#tour-top,#tour-bottom,#tour-left,#tour-right{position:fixed;background:rgba(0,0,0,0.55);z-index:9001;transition:all .25s ease;pointer-events:none;}
+#tour-bubble{position:fixed;z-index:9002;background:#fff;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,.22);padding:20px 22px 16px;width:300px;max-width:calc(100vw - 32px);transition:opacity .2s,transform .2s;font-family:'Hanken Grotesk',-apple-system,sans-serif;}
+#tour-bubble.hidden{opacity:0;transform:scale(.95);pointer-events:none;}
+#tour-step-lbl{font-size:10.5px;font-weight:700;color:#8a9990;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;}
+#tour-title{font-size:15px;font-weight:800;color:#1a2e1e;margin-bottom:7px;line-height:1.3;}
+#tour-text{font-size:13px;color:#4a5e4e;line-height:1.55;margin-bottom:10px;}
+#tour-hint{display:none;font-size:12px;color:#ec6724;font-weight:600;background:#fff8f2;border:1.5px solid #f4d3bd;border-radius:8px;padding:7px 10px;margin-bottom:10px;}
+#tour-ok{display:none;font-size:13px;font-weight:700;color:#017a2f;background:#e7f4ec;border:1.5px solid #b9e0c6;border-radius:8px;padding:7px 10px;margin-bottom:10px;align-items:center;gap:7px;}
+#tour-actions{display:flex;align-items:center;gap:8px;}
+#tour-next{flex:1;padding:8px 14px;background:#019939;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;}
+#tour-next:hover{background:#017a2f;}
+#tour-next:disabled{background:#a8d4b4;cursor:not-allowed;}
+#tour-prev{padding:8px 12px;background:#f0f5f1;color:#3a5e42;border:1.5px solid #d0e4d5;border-radius:9px;font-size:12.5px;font-weight:600;cursor:pointer;}
+#tour-skip{font-size:11.5px;color:#9aaa9d;background:none;border:none;cursor:pointer;text-decoration:underline;margin-left:auto;}
+#tour-dots{display:flex;gap:5px;margin-bottom:12px;}
+.tdot{width:6px;height:6px;border-radius:50%;background:#dde8df;}
+.tdot.on{background:#019939;}
+.tdot.done{background:#a8d4b4;}
+#tour-modal{position:fixed;inset:0;z-index:9100;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:24px;}
+#tour-modal.hidden{display:none;}
+#tour-box{background:#fff;border-radius:20px;padding:28px 24px;max-width:400px;width:100%;box-shadow:0 12px 50px rgba(0,0,0,.25);font-family:'Hanken Grotesk',-apple-system,sans-serif;}
+.tbig{font-size:20px;font-weight:800;color:#1a2e1e;margin-bottom:4px;}
+.tsub{font-size:13px;color:#6b7f6e;margin-bottom:18px;line-height:1.5;}
+.tscen{display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;background:#f7f9f5;border:1.5px solid #e0e8e2;border-radius:12px;font-size:13.5px;font-weight:700;color:#1a2e1e;cursor:pointer;margin-bottom:9px;text-align:left;}
+.tscen:hover{background:#eaf2ec;border-color:#a8d4b4;}
+.tscen-ico{font-size:20px;flex-shrink:0;}
+.tscen-desc{font-size:11.5px;font-weight:400;color:#7a9080;margin-top:2px;}
+.tclose{display:block;width:100%;margin-top:4px;padding:9px;background:none;border:none;color:#9aaa9d;font-size:12.5px;cursor:pointer;}
+</style>
+
+<div id="tour-top"></div><div id="tour-bottom"></div>
+<div id="tour-left"></div><div id="tour-right"></div>
+<div id="tour-bubble" class="hidden">
+  <div id="tour-dots"></div>
+  <div id="tour-step-lbl"></div>
+  <div id="tour-title"></div>
+  <div id="tour-text"></div>
+  <div id="tour-hint"></div>
+  <div id="tour-ok"></div>
+  <div id="tour-actions">
+    <button id="tour-prev" onclick="tPrev()">&#8592;</button>
+    <button id="tour-next" onclick="tNext()">Suivant &#8594;</button>
+    <button id="tour-skip" onclick="tEnd()">Passer</button>
+  </div>
+</div>
+
+<div id="tour-modal" class="hidden">
+  <div id="tour-box">
+    <div class="tbig">Bienvenue dans le tuto &#x1F44B;</div>
+    <div class="tsub">Que voulez-vous apprendre ?</div>
+    <button class="tscen" onclick="tStart('search')">
+      <span class="tscen-ico">&#x1F50D;</span>
+      <div><div>Rechercher un benevole</div><div class="tscen-desc">Trouver une fiche, copier un numero, lire les infos</div></div>
+    </button>
+    <button class="tscen" onclick="tStart('add')">
+      <span class="tscen-ico">&#x2795;</span>
+      <div><div>Ajouter un benevole</div><div class="tscen-desc">Creer une fiche complete etape par etape</div></div>
+    </button>
+    <button class="tscen" onclick="tStart('rapat')">
+      <span class="tscen-ico">&#x1F697;</span>
+      <div><div>Enregistrer un rapatriement</div><div class="tscen-desc">Associer un transport a un benevole</div></div>
+    </button>
+    <button class="tclose" onclick="tModalClose()">Fermer sans tutoriel</button>
+  </div>
+</div>
+
+<script>
+(function(){
+var STEPS = {
+  search:[
+    {sel:"#search",pos:"bottom",title:"1. Tapez un prenom",text:"Cherchez Nadine ABADIE : tapez Nadine dans la barre de recherche.",hint:"Tapez Nadine dans le champ",
+     action:function(){goPage("page-liste");setTimeout(function(){var e=document.getElementById("search");if(e){e.value="";e.dispatchEvent(new Event("input"));}},200);},
+     wait:function(){return (document.getElementById("search")||{value:""}).value.toLowerCase().indexOf("nadine")>=0;},ok:"Les resultats apparaissent !"},
+    {sel:".benev-card",pos:"right",title:"2. Cliquez sur la carte",text:"Trouvez la carte de Nadine ABADIE dans la liste et cliquez dessus.",hint:"Cliquez sur la carte de Nadine ABADIE",
+     wait:function(){return !!(window._openDetailBenev && (window._openDetailBenev.nom||"").indexOf("ABADIE")>=0);},ok:"Panneau ouvert !"},
+    {sel:null,pos:null,title:"3. La fiche",text:"Vous voyez le nom, les roles et l anciennete. En dessous : contact, vehicule, competences.",hint:null},
+    {sel:null,pos:null,title:"4. Copier le telephone",text:"Dans la section Contact, cliquez sur le numero de telephone pour le copier dans le presse-papier.",hint:"Cliquez sur le numero dans Contact",
+     action:function(){window._tTelCopied=false;},
+     wait:function(){return !!window._tTelCopied;},ok:"Numero copie !"},
+    {sel:null,pos:null,title:"Bravo !",text:"Vous savez rechercher un benevole et copier son numero. Relancez le tuto via le bouton Tuto dans la nav.",isLast:true}
+  ],
+  add:[
+    {sel:"[data-page='page-ajouter']",pos:"bottom",title:"1. Ouvrir le formulaire",text:"Cliquez sur Ajouter dans la barre de navigation pour creer une nouvelle fiche.",hint:"Cliquez sur Ajouter dans la nav",
+     action:function(){goPage("page-liste");},
+     wait:function(){return !!(document.getElementById("page-ajouter")||{className:""}).className.match(/active/) && !window.editingBenev;},ok:"Formulaire ouvert !"},
+    {sel:".type-cards",pos:"bottom",title:"2. Choisir un role",text:"Obligatoire : selectionnez au moins un role parmi Sur centre, Rapatrieur ou Autre.",hint:"Cliquez sur un role",
+     wait:function(){return !!document.querySelector(".type-card.selected-centre,.type-card.selected-rapatrieur,.type-card.selected-autre");},ok:"Role selectionne !"},
+    {sel:null,pos:null,title:"3. Saisir le nom",text:"Tapez le nom de famille dans ce champ, puis le prenom a cote.",hint:"Tapez un nom dans le champ Nom de famille",
+     wait:function(){return ((document.querySelector("[name='nom']")||{value:""}).value||"").trim().length>=1;},ok:"Nom saisi !"},
+    {sel:null,pos:null,title:"4. Completer la fiche",text:"Vous pouvez remplir : email, telephone, commune, date de naissance, vehicule (immatriculation, puissance, motorisation), competences en soin, competences generales, et un commentaire libre. Aucun champ n est obligatoire en dehors du role et du nom.",hint:null},
+    {sel:null,pos:null,title:"5. Enregistrer",text:"Faites defiler jusqu en bas et cliquez sur Enregistrer la fiche. Vous allez revenir sur la liste.",hint:"Cliquez sur Enregistrer la fiche",action:function(){var b=document.getElementById("btn-submit");if(b)b.scrollIntoView({behavior:"smooth",block:"center"});},
+     wait:function(){var p=document.getElementById("page-liste");return !!(p&&p.classList.contains("active")&&!window.editingBenev);},ok:"Benevole enregistre !"},
+    {sel:"#search",pos:"bottom",title:"6. Retrouver la fiche",text:"Cherchez maintenant le benevole que vous venez de creer en tapant son nom dans la barre de recherche, puis cliquez sur sa carte.",hint:"Tapez le nom dans la recherche",
+     action:function(){setTimeout(function(){var e=document.getElementById("search");if(e){e.value="";e.dispatchEvent(new Event("input"));}},200);},
+     wait:function(){return !!(window._openDetailBenev);},ok:"Fiche ouverte !"},
+    {sel:"#dp-edit-btn",pos:"left",title:"7. Modifier la fiche",text:"Cliquez sur le bouton Modifier en haut a droite du panneau pour editer la fiche.",hint:"Cliquez sur Modifier",
+     wait:function(){return !!(window.editingBenev);},ok:"Mode edition !"},
+    {sel:"[name='commentaire']",pos:"bottom",title:"8. Faire une modification",text:"Ajoutez un commentaire ou modifiez n importe quel champ, puis faites defiler vers le bas pour enregistrer.",hint:"Tapez quelque chose dans le commentaire",
+     wait:function(){return ((document.querySelector("[name='commentaire']")||{value:""}).value||"").length>=1;},ok:"Modification faite !"},
+    {sel:null,pos:null,title:"9. Mettre a jour",text:"Faites defiler vers le bas et cliquez sur Mettre a jour la fiche pour sauvegarder les modifications.",hint:"Cliquez sur Mettre a jour la fiche",action:function(){var b=document.getElementById("btn-submit");if(b)b.scrollIntoView({behavior:"smooth",block:"center"});},
+     wait:function(){var p=document.getElementById("page-liste");return !!(p&&p.classList.contains("active")&&!window.editingBenev);},ok:"Fiche mise a jour !"},
+    {sel:"#search",pos:"bottom",title:"10. Rouvrir la fiche",text:"Recherchez a nouveau le benevole et cliquez sur sa carte pour rouvrir son panneau.",hint:"Tapez son nom et cliquez sur la carte",
+     action:function(){window._openDetailBenev=null;setTimeout(function(){var e=document.getElementById("search");if(e){e.value="";e.dispatchEvent(new Event("input"));}},200);},
+     wait:function(){return !!(window._openDetailBenev);},ok:"Panneau ouvert !"},
+    {sel:"#dp-edit-btn",pos:"left",title:"11. Aller dans Modifier",text:"Cliquez sur Modifier pour acceder aux options de suppression.",hint:"Cliquez sur Modifier",
+     wait:function(){return !!(window.editingBenev);},ok:"Mode edition !"},
+    {sel:null,pos:null,title:"12. Supprimer le benevole",text:"Faites defiler vers le bas et cliquez sur Supprimer ce benevole. Une boite de dialogue va apparaitre pour confirmer — cliquez OK. Le benevole sera efface definitivement.",hint:"Cliquez sur Supprimer ce benevole puis confirmez",action:function(){var b=document.getElementById("btn-delete-benev");if(b)b.scrollIntoView({behavior:"smooth",block:"center"});},
+     wait:function(){var p=document.getElementById("page-liste");return !!(p&&p.classList.contains("active")&&!window.editingBenev);},ok:"Benevole supprime !",isLast:true}
+  ],
+  rapat:[
+    {sel:"[data-page='page-rapat-add']",pos:"bottom",title:"1. Ouvrir le formulaire",text:"Cliquez sur Rapatriements dans la navigation. Le formulaire d ajout s ouvre directement.",hint:"Cliquez sur Rapatriements dans la nav",
+     action:function(){goPage("page-liste");},
+     wait:function(){return !!((document.getElementById("page-rapat-add")||{className:""}).className.match(/active/));},ok:"Formulaire ouvert !"},
+    {sel:null,pos:null,title:"2. Chercher le benevole",text:"Dans le champ Rapatrieur, tapez le nom du benevole et cliquez sur son nom dans la liste qui apparait.",hint:"Tapez un nom dans le champ Rapatrieur",
+     wait:function(){return !!((document.getElementById("rapat-benev-id")||{value:""}).value);},ok:"Benevole selectionne !"},
+    {sel:null,pos:null,title:"3. Date du transport",text:"Renseignez la date du rapatriement dans le champ Date.",hint:"Choisissez une date",
+     wait:function(){return !!((document.querySelector(".rapat-date-input")||{value:""}).value);},ok:"Date renseignee !"},
+    {sel:null,pos:null,title:"Tout bon !",text:"Cliquez sur Enregistrer en bas du formulaire pour valider. Le rapatriement sera associe au benevole.",isLast:true}
+  ]
+};
+
+var steps=[],idx=0,active=false,timer=null;
+
+function tModalOpen(){document.getElementById("tour-modal").classList.remove("hidden");}
+function tModalClose(){document.getElementById("tour-modal").classList.add("hidden");}
+window.tourShowModal=tModalOpen;
+
+function tStart(sc){
+  tModalClose();
+  steps=STEPS[sc]||[];idx=0;active=true;
+  window._tTelCopied=false;
+  tShow();
+}
+window.tStart=tStart;
+
+function tShow(){
+  if(!active||idx>=steps.length){tEnd();return;}
+  clearInterval(timer);
+  var s=steps[idx];
+  if(s.action){try{s.action();}catch(e){}setTimeout(function(){tRender(s);},400);}
+  else tRender(s);
+}
+
+function tRender(s){
+  if(!active)return;
+  var el=s.sel?document.querySelector(s.sel):null;
+  if(el){el.scrollIntoView({block:"center",behavior:"smooth"});}
+  tClear();
+
+  document.getElementById("tour-step-lbl").textContent="Etape "+(idx+1)+" sur "+steps.length;
+  document.getElementById("tour-title").textContent=s.title;
+  document.getElementById("tour-text").textContent=s.text;
+  var h=document.getElementById("tour-hint");
+  h.textContent=s.hint||"";h.style.display=s.hint?"block":"none";
+  document.getElementById("tour-ok").style.display="none";
+  var dots=document.getElementById("tour-dots");
+  dots.innerHTML=steps.map(function(_,i){
+    return "<div class='tdot"+(i<idx?" done":i===idx?" on":"")+"'></div>";
+  }).join("");
+  document.getElementById("tour-prev").style.display=idx===0?"none":"";
+  var nb=document.getElementById("tour-next");
+  nb.textContent=s.isLast?"Terminer":"Suivant →";
+  nb.disabled=!!(s.wait&&!s.isLast);
+  document.getElementById("tour-bubble").classList.remove("hidden");
+  setTimeout(function(){tPos(el,s.pos||"bottom");},300);
+  if(s.wait&&!s.isLast){
+    timer=setInterval(function(){
+      if(!active){clearInterval(timer);return;}
+      if(s.wait()){
+        clearInterval(timer);
+        var ok=document.getElementById("tour-ok");
+        ok.textContent="✓ "+(s.ok||"Parfait !");
+        ok.style.display="flex";
+        document.getElementById("tour-hint").style.display="none";
+        document.getElementById("tour-next").disabled=true;
+        setTimeout(function(){idx++;tShow();},900);
+      }
+    },300);
+  }
+}
+
+function tSpot(el){
+  var p=10,r=el.getBoundingClientRect();
+  var t=Math.max(0,r.top-p),l=Math.max(0,r.left-p);
+  var ri=Math.max(0,window.innerWidth-r.right-p),b=Math.max(0,window.innerHeight-r.bottom-p);
+  function ss(id,css){Object.assign(document.getElementById(id).style,css);}
+  ss("tour-top",{top:"0",left:"0",right:"0",bottom:"",width:"",height:t+"px"});
+  ss("tour-bottom",{bottom:"0",left:"0",right:"0",top:"",width:"",height:b+"px"});
+  ss("tour-left",{top:t+"px",left:"0",bottom:b+"px",right:"",width:l+"px",height:""});
+  ss("tour-right",{top:t+"px",right:"0",bottom:b+"px",left:"",width:ri+"px",height:""});
+}
+function tClear(){
+  ["tour-top","tour-bottom","tour-left","tour-right"].forEach(function(id){
+    document.getElementById(id).style.cssText="";
+  });
+}
+function tPos(el,pos){
+  var bub=document.getElementById("tour-bubble");
+  var bw=bub.offsetWidth,bh=bub.offsetHeight,p=18;
+  var vw=window.innerWidth,vh=window.innerHeight;
+  var top,left;
+  if(!el){top=(vh-bh)/2;left=(vw-bw)/2;}
+  else{
+    var r=el.getBoundingClientRect();
+    if(pos==="bottom"){top=r.bottom+p;left=r.left+(r.width-bw)/2;}
+    else if(pos==="top"){top=r.top-bh-p;left=r.left+(r.width-bw)/2;}
+    else if(pos==="right"){top=r.top+(r.height-bh)/2;left=r.right+p;}
+    else{top=r.top+(r.height-bh)/2;left=r.left-bw-p;}
+  }
+  left=Math.max(p,Math.min(left,vw-bw-p));
+  top=Math.max(p,Math.min(top,vh-bh-p));
+  bub.style.left=left+"px";bub.style.top=top+"px";
+}
+
+function tNext(){clearInterval(timer);idx++;tShow();}
+function tPrev(){if(idx>0){clearInterval(timer);idx--;tShow();}}
+function tEnd(){active=false;clearInterval(timer);document.getElementById("tour-bubble").classList.add("hidden");tClear();}
+window.tNext=tNext;window.tPrev=tPrev;window.tEnd=tEnd;
+
+// Hook copie telephone
+document.addEventListener("click",function(e){
+  if(e.target.closest(".tel-link,[onclick*='copyTel']"))window._tTelCopied=true;
+});
+
+// Bouton Tuto dans la nav (désactivé)
+// window.addEventListener("DOMContentLoaded",function(){ ... });
+
+// Lancement auto si ?tuto=1 (désactivé)
+// if(new URLSearchParams(location.search).get("tuto")==="1"){ ... }
+
+})();
+</script>
 </body>
 </html>

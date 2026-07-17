@@ -173,9 +173,13 @@
       display: flex; align-items: center; gap: 8px;
       font-size: 0.8rem; color: #333; line-height: 1; margin: 6px 0;
     }
+    .legend-icon-diamond-wrap {
+      width: 12px; height: 12px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
     .legend-icon-diamond {
-      width: 12px; height: 12px; background: #555;
-      transform: rotate(45deg); flex-shrink: 0;
+      width: 8px; height: 8px; background: #555;
+      transform: rotate(45deg);
     }
     .legend-icon-circle {
       width: 12px; height: 12px; background: #555;
@@ -185,6 +189,17 @@
       font-size: 1.1rem; font-weight: 700; line-height: 1; flex-shrink: 0;
       width: 14px; text-align: center;
     }
+    .legend-icon-cs {
+      width: 12px; height: 12px; border-radius: 50%;
+      border: 2px solid rgba(0,0,0,0.3); flex-shrink: 0;
+    }
+    .legend-icon-cs-tel {
+      width: 12px; height: 12px; border-radius: 50%;
+      border: 2px dashed rgba(0,0,0,0.4); flex-shrink: 0;
+    }
+    #legend-body { overflow: hidden; transition: max-height 0.25s ease, opacity 0.2s; max-height: 400px; opacity: 1; }
+    #legend.collapsed #legend-body { max-height: 0; opacity: 0; }
+    #legend.collapsed #legend-collapse-btn svg { transform: rotate(180deg); }
 
     /* Réactiver les clics sur les marqueurs dans les panes custom */
     .leaflet-hegalalPane img,
@@ -259,7 +274,7 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
     #veto-panel {
-      position: absolute;
+      position: fixed;
       top: 64px;
       right: -320px;
       width: 300px;
@@ -269,8 +284,9 @@
       box-shadow: 0 4px 16px rgba(0,0,0,0.2);
       transition: right 0.3s ease;
       overflow: hidden;
+      visibility: hidden;
     }
-    #veto-panel.open { right: 10px; }
+    #veto-panel.open { right: 10px; visibility: visible; }
     #veto-panel-header {
       display: flex;
       align-items: center;
@@ -524,7 +540,7 @@
 #rp-trajet-list .trajet-line { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; position: relative; }
 #rp-trajet-list .trajet-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
 #rp-trajet-list .trajet-wrap { flex: 1; position: relative; }
-#rp-trajet-list .trajet-ville.phantom { border-style: dashed !important; border-color: #e8d96a !important; background: #fffef0 !important; }
+#rp-trajet-list .trajet-ville.phantom { border-style: dashed !important; border-color: #d8d4ce !important; background: #fff !important; }
 .rp-ac-dropdown {
   display: none; position: absolute; top: 100%; left: 0; right: 0;
   background: #fff; border: 1.5px solid #d8d4ce; border-radius: 10px;
@@ -608,12 +624,15 @@
   /* Veto panel */
   #veto-panel {
     width: 100% !important;
-    right: 0 !important;
     left: 0 !important;
     bottom: 0 !important;
     top: auto !important;
     border-radius: 16px 16px 0 0;
     max-height: 60vh;
+    right: -100% !important;
+  }
+  #veto-panel.open {
+    right: 0 !important;
   }
 
   /* Rapatriement panel */
@@ -807,6 +826,15 @@
     </label>
   </div>
 
+  <div class="panel-toggle-row">
+    <span class="panel-toggle-label">Centres de soins France</span>
+    <label class="toggle-switch">
+      <input type="checkbox" id="toggle-centres-soins">
+      <span class="toggle-track"></span>
+      <span class="toggle-thumb"></span>
+    </label>
+  </div>
+
   <div class="slider-row">
     <span class="slider-label">Taille des cercles</span>
     <span class="slider-val" id="radius-num">35</span>
@@ -846,15 +874,21 @@
 </div>
 
 <div id="legend">
-  <div id="legend-title">Densité</div>
+  <div id="legend-header" onclick="toggleLegend()" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:8px;">
+    <div id="legend-title" style="margin-bottom:0">Densité</div>
+    <button id="legend-collapse-btn" style="background:none;border:none;cursor:pointer;padding:2px 4px;color:#aaa;display:flex;align-items:center;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.2s"><polyline points="18 15 12 9 6 15"/></svg>
+    </button>
+  </div>
   <div class="legend-bar"></div>
   <div class="legend-labels" id="legend-labels">
     <span>-</span><span>-</span><span>-</span><span>-</span><span>-</span>
   </div>
   <div class="legend-unit" id="legend-unit"></div>
+  <div id="legend-body">
   <hr class="legend-sep">
   <div class="legend-item">
-    <span class="legend-icon-diamond"></span> DCVR
+    <span class="legend-icon-diamond-wrap"><span class="legend-icon-diamond"></span></span> DCVR
   </div>
   <div class="legend-item">
     <span class="legend-icon-circle"></span> Clinique vétérinaire
@@ -869,6 +903,19 @@
   <div class="legend-item">
     <span class="legend-icon-plus" style="color:#ff3b30">✚</span> À éviter
   </div>
+  <div id="legend-centres-soins" style="display:none">
+  <hr class="legend-sep">
+  <div class="legend-item">
+    <div style="width:18px;height:18px;background:#43a047;border:2px solid rgba(0,0,0,0.35);border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div> Centre de soins ouvert
+  </div>
+  <div class="legend-item">
+    <div style="width:18px;height:18px;background:#e53935;border:2px solid rgba(0,0,0,0.35);border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div> Centre de soins fermé
+  </div>
+  <div class="legend-item">
+    <div style="width:18px;height:18px;background:#43a047;border:2px dashed rgba(0,0,0,0.4);border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg></div> Conseil tél. uniquement
+  </div>
+  </div>
+  </div>
 </div>
 
 <script>
@@ -876,7 +923,7 @@ const SHEET_ID = '1VpN669xp2u34Itapwz5UWuEIi2UmoxTTWfrPQP83rhE';
 const GEO_CACHE_KEY = 'heatmap_geo_cache_v1';
 
 // Coordonnées pré-géocodées — chargement instantané, zéro requête Nominatim
-const GEO_PRELOADED = {"Andoins":{"lat":43.3041615,"lon":-0.2291714},"Anglet":{"lat":43.4813927,"lon":-1.5149935},"Anibio":{"lat":43.4004714,"lon":-0.3694297},"Argelès-Gazost":{"lat":43.00511,"lon":-0.0997681},"Assat":{"lat":43.2495978,"lon":-0.2990176},"Bagnères-de-Bigorre":{"lat":43.0658212,"lon":0.1530914},"Biarritz":{"lat":43.4711437,"lon":-1.5527266},"Bidache":{"lat":43.4839874,"lon":-1.1408913},"Billère":{"lat":43.3030044,"lon":-0.3905556},"Bordes":{"lat":43.234542,"lon":-0.2817162},"Boucau":{"lat":43.5236127,"lon":-1.4857538},"Briscous":{"lat":43.4602151,"lon":-1.3339998},"Capbreton":{"lat":43.6403659,"lon":-1.4315213},"Ciboure":{"lat":43.3844003,"lon":-1.6676238},"Coarraze":{"lat":43.1693043,"lon":-0.2313527},"Dax":{"lat":43.7084065,"lon":-1.0518771},"Gan":{"lat":43.2270903,"lon":-0.3878291},"Guiche":{"lat":43.5123509,"lon":-1.2045243},"Guéthary":{"lat":43.423001,"lon":-1.6062693},"Hagetmau":{"lat":43.65506,"lon":-0.59393},"Hasparren":{"lat":43.3838917,"lon":-1.3050408},"Herrère":{"lat":43.1685106,"lon":-0.5405624},"La Barthe-de-Neste":{"lat":43.0810539,"lon":0.3841668},"Labenne":{"lat":43.5977,"lon":-1.42811},"Lacq":{"lat":43.4247479,"lon":-0.6137677},"Lanne":{"lat":43.1653847,"lon":0.0149161},"Lannemezan":{"lat":43.1252298,"lon":0.384241},"Lons":{"lat":43.3043,"lon":-0.3837},"Lourdes":{"lat":43.0940904,"lon":-0.0464975},"Lucq-de-Béarn":{"lat":43.2879229,"lon":-0.6586027},"Mirepeix":{"lat":43.1899724,"lon":-0.249522},"Mouguerre":{"lat":43.4694806,"lon":-1.4149834},"Nay Piémont":{"lat":43.1756,"lon":-0.2636},"Nousty":{"lat":43.2674411,"lon":-0.2094011},"Oloron":{"lat":43.1922408,"lon":-0.6115586},"Oloron-Sainte-Marie":{"lat":43.1922408,"lon":-0.6115586},"Ondres":{"lat":43.5651547,"lon":-1.453883},"Orincles":{"lat":43.1300443,"lon":0.0387612},"Orthez":{"lat":43.4874963,"lon":-0.7738363},"Pau":{"lat":43.2957547,"lon":-0.3685668},"Peyrehorade":{"lat":43.5440941,"lon":-1.105088},"Pontacq":{"lat":43.1856262,"lon":-0.1144186},"Saint-Martin-de-Hinx":{"lat":43.5815313,"lon":-1.2699076},"Saint-Martin-de-Seignanx":{"lat":43.5415353,"lon":-1.3870972},"Saint-Palais":{"lat":43.3273438,"lon":-1.0345115},"Saint-Pierre-d'Irube":{"lat":43.4731208,"lon":-1.4474527},"Saint-Vincent-de-Tyrosse":{"lat":43.6604837,"lon":-1.3029669},"Salies-de-Béarn":{"lat":43.4703515,"lon":-0.9234025},"Sare":{"lat":43.3129609,"lon":-1.5793011},"Seignosse":{"lat":43.68866,"lon":-1.37328},"Séméac":{"lat":43.2284141,"lon":0.1046315},"Tarbes":{"lat":43.232858,"lon":0.0781021},"Tarnos":{"lat":43.5405622,"lon":-1.4611915},"Tournay":{"lat":43.1838447,"lon":0.2441345},"Urt":{"lat":43.4942669,"lon":-1.2913084},"Ustaritz":{"lat":43.39876,"lon":-1.4562207},"Vic-en-Bigorre":{"lat":43.3860159,"lon":0.0548805},"Les pattes de l'adour":{"lat":43.2329,"lon":0.0781},"Cagnotte":{"lat":43.5863,"lon":-1.0269},"Barry":{"lat":43.4635,"lon":-0.0955},"Port-de-Lanne":{"lat":43.5648723,"lon":-1.1800387},"Sauvagnon":{"lat":43.404401,"lon":-0.3858932},"Urrugne":{"lat":43.3624715,"lon":-1.7003017},"Orx (Marais d'Orx)":{"lat":43.60226,"lon":-1.37041},"Amou (Bio'vet)":{"lat":43.59266,"lon":-0.7475291},"Ciboure (ZUBI BURU)":{"lat":43.3844003,"lon":-1.6676238},"Hagetmau (Anibio)":{"lat":43.65506,"lon":-0.59393},"Susmiou (Playoust)":{"lat":43.3155116,"lon":-0.7772388},"Tournay (Anivet)":{"lat":43.1838447,"lon":0.2441345},"Juillan (L'ami fidèle)":{"lat":43.2011,"lon":0.024292},"Sauveterre-de-Béarn (Mauduit-Sartre)":{"lat":43.3993587,"lon":-0.9387697},"Soorts-Hossegor (COURTES Isabelle)":{"lat":43.6584045,"lon":-1.4262382},"Urrugne (Ekidocs)":{"lat":43.3624715,"lon":-1.7003017},"Bardos (Bardovet)":{"lat":43.4752189,"lon":-1.2037757},"Angresse (Vét' in Land)":{"lat":43.65801,"lon":-1.37342},"Mauléon-Licharre (Belzunce)":{"lat":43.2233373,"lon":-0.8885873},"Oloron (Haut Bearn)":{"lat":43.1922408,"lon":-0.6115586},"Gan (Gat y Câ)":{"lat":43.2270903,"lon":-0.3878291},"Mirepeix (Piemont)":{"lat":43.1899724,"lon":-0.249522},"Saint-Martin-de-Seignanx (Bio'vet)":{"lat":43.5415353,"lon":-1.3870972},"Arzacq-Arraziguet (Abiopole)":{"lat":43.5362569,"lon":-0.4116715},"Morlaas (La Bastide)":{"lat":43.3454394,"lon":-0.2649452},"Saint-Jean-le-Vieux (Garaziko Marexalak)":{"lat":43.165404,"lon":-1.1940594},"Hasparren (ARTA LEKU)":{"lat":43.3951,"lon":-1.3196},"Bizanos (Coq À l'Âne)":{"lat":43.2951,"lon":-0.3363},"Bizanos (Merle Gilles)":{"lat":43.2951,"lon":-0.3363},"Dax (Vétérinaire du Lac)":{"lat":43.7025,"lon":-1.0637},"Briscous (L'épervier)":{"lat":43.46,"lon":-1.3274},"Ibos (Vétérinaire la Croix des Pyrénées)":{"lat":43.2464,"lon":-0.0013},"Lannemezan (Gypaète)":{"lat":43.1248,"lon":0.3966},"Lons (Mail)":{"lat":43.3253,"lon":-0.4067},"Mauléon-Licharre (Vet'Avenir 64)":{"lat":43.214,"lon":-0.8842},"Saint-Gaudens (Anselme Arrieu)":{"lat":43.1209,"lon":0.7254},"Ondres (Faure Antoine)":{"lat":43.5624,"lon":-1.4581},"Saint-Palais (Amikuze)":{"lat":43.3173,"lon":-1.041},"Peyrehorade (Bio'vet)":{"lat":43.5612,"lon":-1.1106},"Sauvagnon (Anibio)":{"lat":43.3916,"lon":-0.3872},"Saint-Gaudens (Cave Canem)":{"lat":43.1209,"lon":0.7254},"Saint-Paul-Lès-Dax (Bio'vet)":{"lat":43.7485,"lon":-1.0941},"Oloron (Porte d'Aspe)":{"lat":43.1679,"lon":-0.5954},"Argeles-Gazost (7 vallées)":{"lat":43.0071,"lon":-0.0966},"Saint-Pierre-d'Irube (Saint Pierre)":{"lat":43.4628,"lon":-1.4447},"Séméac (Bigot Bonamy)":{"lat":43.2248,"lon":0.1108},"Saint-Vincent-de-Tyrosse (Scoobby)":{"lat":43.663,"lon":-1.3013},"Ascain (Vétérinaire de la Rhune)":{"lat":43.3383,"lon":-1.6283},"Tarbes (Les pattes de l'adour)":{"lat":43.2387,"lon":0.0653},"Serres-Castet (Luy de Bearn)":{"lat":43.3785,"lon":-0.3648},"Tosse (Maremne)":{"lat":43.6952,"lon":-1.316},"Urrugne (Océan)":{"lat":43.3507,"lon":-1.7018},"Vic-en-Bigorre (Vic)":{"lat":43.3926,"lon":0.0481},"Pomps":{"lat":43.4864,"lon":-0.5547},"Arnos":{"lat":43.4584,"lon":-0.5328},"Urost":{"lat":43.3395,"lon":-0.1498},"Saint-Jean-de-Marsacq":{"lat":43.6161,"lon":-1.2545},"Buros":{"lat":43.3469,"lon":-0.3105},"Bizanos":{"lat":43.2951,"lon":-0.3363},"Lescar":{"lat":43.3412,"lon":-0.4303},"Itxassou":{"lat":43.3096,"lon":-1.4046},"Bonnefont":{"lat":43.242,"lon":0.3499},"Bénéjacq":{"lat":43.1977,"lon":-0.1949},"Laloubère":{"lat":43.2079,"lon":0.0766},"Marsac":{"lat":43.3312,"lon":0.0856},"Escos":{"lat":43.4451,"lon":-1.0043},"Jurançon":{"lat":43.2716,"lon":-0.4117},"Idron":{"lat":43.3008,"lon":-0.3078},"Aries-Espénan":{"lat":43.2769,"lon":0.5299},"Mées":{"lat":43.7106,"lon":-1.1291},"Souraïde":{"lat":43.3431,"lon":-1.4892},"Boueilh-Boueilho-Lasque":{"lat":43.5406,"lon":-0.3205},"Castetpugon":{"lat":43.5613,"lon":-0.2238},"Cizos":{"lat":43.2629,"lon":0.4898},"Saint-Médard":{"lat":43.5353,"lon":-0.5927},"Hagetaubin":{"lat":43.5128,"lon":-0.6144},"Bidarray":{"lat":43.2682,"lon":-1.353},"Ahetze":{"lat":43.4059,"lon":-1.5658},"Buzy":{"lat":43.1421,"lon":-0.4462},"Macaye":{"lat":43.3187,"lon":-1.327},"Abos":{"lat":43.3548,"lon":-0.5493},"Ossès":{"lat":43.2462,"lon":-1.2735},"Lescun":{"lat":42.9166,"lon":-0.6731},"Orègue":{"lat":43.4033,"lon":-1.1692},"Luquet":{"lat":43.2615,"lon":-0.1175},"Azereix":{"lat":43.2027,"lon":-0.0233},"Monfort":{"lat":43.788,"lon":0.8127},"Pouillon":{"lat":43.6067,"lon":-1.0},"Bours":{"lat":43.2771,"lon":0.0905},"Simacourbe":{"lat":43.4455,"lon":-0.165},"Arthez-de-Béarn":{"lat":43.4693,"lon":-0.6242},"Sarrancolin":{"lat":42.9593,"lon":0.4043},"Béhasque-Lapiste":{"lat":43.3188,"lon":-1.0085},"Gagnières":{"lat":44.3157,"lon":4.1175},"Aureilhan":{"lat":43.2488,"lon":0.1065},"Monein":{"lat":43.2905,"lon":-0.5628},"Momas":{"lat":43.4409,"lon":-0.4361}};
+const GEO_PRELOADED = {"Andoins":{"lat":43.3041615,"lon":-0.2291714},"Anglet":{"lat":43.4813927,"lon":-1.5149935},"Anibio":{"lat":43.4004714,"lon":-0.3694297},"Argelès-Gazost":{"lat":43.00511,"lon":-0.0997681},"Assat":{"lat":43.2495978,"lon":-0.2990176},"Bagnères-de-Bigorre":{"lat":43.0658212,"lon":0.1530914},"Biarritz":{"lat":43.4711437,"lon":-1.5527266},"Bidache":{"lat":43.4839874,"lon":-1.1408913},"Billère":{"lat":43.3030044,"lon":-0.3905556},"Bordes":{"lat":43.234542,"lon":-0.2817162},"Boucau":{"lat":43.5236127,"lon":-1.4857538},"Briscous":{"lat":43.4602151,"lon":-1.3339998},"Capbreton":{"lat":43.6403659,"lon":-1.4315213},"Ciboure":{"lat":43.3844003,"lon":-1.6676238},"Coarraze":{"lat":43.1693043,"lon":-0.2313527},"Dax":{"lat":43.7084065,"lon":-1.0518771},"Gan":{"lat":43.2270903,"lon":-0.3878291},"Guiche":{"lat":43.5123509,"lon":-1.2045243},"Guéthary":{"lat":43.423001,"lon":-1.6062693},"Hagetmau":{"lat":43.65506,"lon":-0.59393},"Hasparren":{"lat":43.3838917,"lon":-1.3050408},"Herrère":{"lat":43.1685106,"lon":-0.5405624},"La Barthe-de-Neste":{"lat":43.0810539,"lon":0.3841668},"Labenne":{"lat":43.5977,"lon":-1.42811},"Lacq":{"lat":43.4247479,"lon":-0.6137677},"Lanne":{"lat":43.1653847,"lon":0.0149161},"Lannemezan":{"lat":43.1252298,"lon":0.384241},"Lons":{"lat":43.3043,"lon":-0.3837},"Lourdes":{"lat":43.0940904,"lon":-0.0464975},"Lucq-de-Béarn":{"lat":43.2879229,"lon":-0.6586027},"Mirepeix":{"lat":43.1899724,"lon":-0.249522},"Mouguerre":{"lat":43.4694806,"lon":-1.4149834},"Nay Piémont":{"lat":43.1756,"lon":-0.2636},"Nousty":{"lat":43.2674411,"lon":-0.2094011},"Oloron":{"lat":43.1922408,"lon":-0.6115586},"Oloron-Sainte-Marie":{"lat":43.1922408,"lon":-0.6115586},"Ondres":{"lat":43.5651547,"lon":-1.453883},"Orincles":{"lat":43.1300443,"lon":0.0387612},"Orthez":{"lat":43.4874963,"lon":-0.7738363},"Pau":{"lat":43.2957547,"lon":-0.3685668},"Peyrehorade":{"lat":43.5440941,"lon":-1.105088},"Pontacq":{"lat":43.1856262,"lon":-0.1144186},"Saint-Martin-de-Hinx":{"lat":43.5815313,"lon":-1.2699076},"Saint-Martin-de-Seignanx":{"lat":43.5415353,"lon":-1.3870972},"Saint-Palais":{"lat":43.3273438,"lon":-1.0345115},"Saint-Pierre-d'Irube":{"lat":43.4731208,"lon":-1.4474527},"Saint-Vincent-de-Tyrosse":{"lat":43.6604837,"lon":-1.3029669},"Salies-de-Béarn":{"lat":43.4703515,"lon":-0.9234025},"Sare":{"lat":43.3129609,"lon":-1.5793011},"Seignosse":{"lat":43.68866,"lon":-1.37328},"Séméac":{"lat":43.2284141,"lon":0.1046315},"Tarbes":{"lat":43.232858,"lon":0.0781021},"Tarnos":{"lat":43.5405622,"lon":-1.4611915},"Tournay":{"lat":43.1838447,"lon":0.2441345},"Urt":{"lat":43.4942669,"lon":-1.2913084},"Ustaritz":{"lat":43.39876,"lon":-1.4562207},"Vic-en-Bigorre":{"lat":43.3860159,"lon":0.0548805},"Les pattes de l'adour":{"lat":43.2329,"lon":0.0781},"Cagnotte":{"lat":43.5863,"lon":-1.0269},"Barry":{"lat":43.4635,"lon":-0.0955},"Port-de-Lanne":{"lat":43.5648723,"lon":-1.1800387},"Sauvagnon":{"lat":43.404401,"lon":-0.3858932},"Urrugne":{"lat":43.3624715,"lon":-1.7003017},"Orx (Marais d'Orx)":{"lat":43.60226,"lon":-1.37041},"Amou (Bio'vet)":{"lat":43.59266,"lon":-0.7475291},"Ciboure (ZUBI BURU)":{"lat":43.3844003,"lon":-1.6676238},"Hagetmau (Anibio)":{"lat":43.65506,"lon":-0.59393},"Susmiou (Playoust)":{"lat":43.3155116,"lon":-0.7772388},"Tournay (Anivet)":{"lat":43.1838447,"lon":0.2441345},"Juillan (L'ami fidèle)":{"lat":43.2011,"lon":0.024292},"Sauveterre-de-Béarn (Mauduit-Sartre)":{"lat":43.3993587,"lon":-0.9387697},"Soorts-Hossegor (COURTES Isabelle)":{"lat":43.6584045,"lon":-1.4262382},"Urrugne (Ekidocs)":{"lat":43.3624715,"lon":-1.7003017},"Bardos (Bardovet)":{"lat":43.4752189,"lon":-1.2037757},"Angresse (Vét' in Land)":{"lat":43.65801,"lon":-1.37342},"Mauléon-Licharre (Belzunce)":{"lat":43.2233373,"lon":-0.8885873},"Oloron (Haut Bearn)":{"lat":43.1922408,"lon":-0.6115586},"Gan (Gat y Câ)":{"lat":43.2270903,"lon":-0.3878291},"Mirepeix (Piemont)":{"lat":43.1899724,"lon":-0.249522},"Saint-Martin-de-Seignanx (Bio'vet)":{"lat":43.5415353,"lon":-1.3870972},"Arzacq-Arraziguet (Abiopole)":{"lat":43.5362569,"lon":-0.4116715},"Morlaas (La Bastide)":{"lat":43.3454394,"lon":-0.2649452},"Saint-Jean-le-Vieux (Garaziko Marexalak)":{"lat":43.165404,"lon":-1.1940594},"Hasparren (ARTA LEKU)":{"lat":43.3951,"lon":-1.3196},"Bizanos (Coq À l'Âne)":{"lat":43.2951,"lon":-0.3363},"Bizanos (Merle Gilles)":{"lat":43.2951,"lon":-0.3363},"Dax (Vétérinaire du Lac)":{"lat":43.7025,"lon":-1.0637},"Briscous (L'épervier)":{"lat":43.46,"lon":-1.3274},"Ibos (Vétérinaire la Croix des Pyrénées)":{"lat":43.2464,"lon":-0.0013},"Lannemezan (Gypaète)":{"lat":43.1248,"lon":0.3966},"Lons (Mail)":{"lat":43.3253,"lon":-0.4067},"Mauléon-Licharre (Vet'Avenir 64)":{"lat":43.214,"lon":-0.8842},"Saint-Gaudens (Anselme Arrieu)":{"lat":43.1209,"lon":0.7254},"Ondres (Faure Antoine)":{"lat":43.5624,"lon":-1.4581},"Saint-Palais (Amikuze)":{"lat":43.3173,"lon":-1.041},"Peyrehorade (Bio'vet)":{"lat":43.5612,"lon":-1.1106},"Sauvagnon (Anibio)":{"lat":43.3916,"lon":-0.3872},"Saint-Gaudens (Cave Canem)":{"lat":43.1209,"lon":0.7254},"Saint-Paul-Lès-Dax (Bio'vet)":{"lat":43.7485,"lon":-1.0941},"Oloron (Porte d'Aspe)":{"lat":43.1679,"lon":-0.5954},"Argeles-Gazost (7 vallées)":{"lat":43.0071,"lon":-0.0966},"Saint-Pierre-d'Irube (Saint Pierre)":{"lat":43.4628,"lon":-1.4447},"Séméac (Bigot Bonamy)":{"lat":43.2248,"lon":0.1108},"Saint-Vincent-de-Tyrosse (Scoobby)":{"lat":43.663,"lon":-1.3013},"Ascain (Vétérinaire de la Rhune)":{"lat":43.3383,"lon":-1.6283},"Tarbes (Les pattes de l'adour)":{"lat":43.2387,"lon":0.0653},"Serres-Castet (Luy de Bearn)":{"lat":43.3785,"lon":-0.3648},"Tosse (Maremne)":{"lat":43.6952,"lon":-1.316},"Urrugne (Océan)":{"lat":43.3507,"lon":-1.7018},"Vic-en-Bigorre (Vic)":{"lat":43.3926,"lon":0.0481},"Pomps":{"lat":43.4864,"lon":-0.5547},"Arnos":{"lat":43.4584,"lon":-0.5328},"Urost":{"lat":43.3395,"lon":-0.1498},"Saint-Jean-de-Marsacq":{"lat":43.6161,"lon":-1.2545},"Buros":{"lat":43.3469,"lon":-0.3105},"Bizanos":{"lat":43.2951,"lon":-0.3363},"Lescar":{"lat":43.3412,"lon":-0.4303},"Itxassou":{"lat":43.3096,"lon":-1.4046},"Bonnefont":{"lat":43.242,"lon":0.3499},"Bénéjacq":{"lat":43.1977,"lon":-0.1949},"Laloubère":{"lat":43.2079,"lon":0.0766},"Marsac":{"lat":43.3312,"lon":0.0856},"Escos":{"lat":43.4451,"lon":-1.0043},"Jurançon":{"lat":43.2716,"lon":-0.4117},"Idron":{"lat":43.3008,"lon":-0.3078},"Aries-Espénan":{"lat":43.2769,"lon":0.5299},"Mées":{"lat":43.7106,"lon":-1.1291},"Souraïde":{"lat":43.3431,"lon":-1.4892},"Boueilh-Boueilho-Lasque":{"lat":43.5406,"lon":-0.3205},"Castetpugon":{"lat":43.5613,"lon":-0.2238},"Cizos":{"lat":43.2629,"lon":0.4898},"Saint-Médard":{"lat":43.5353,"lon":-0.5927},"Hagetaubin":{"lat":43.5128,"lon":-0.6144},"Bidarray":{"lat":43.2682,"lon":-1.353},"Ahetze":{"lat":43.4059,"lon":-1.5658},"Buzy":{"lat":43.1421,"lon":-0.4462},"Macaye":{"lat":43.3187,"lon":-1.327},"Abos":{"lat":43.3548,"lon":-0.5493},"Ossès":{"lat":43.2462,"lon":-1.2735},"Lescun":{"lat":42.9166,"lon":-0.6731},"Orègue":{"lat":43.4033,"lon":-1.1692},"Luquet":{"lat":43.2615,"lon":-0.1175},"Azereix":{"lat":43.2027,"lon":-0.0233},"Monfort":{"lat":43.788,"lon":0.8127},"Pouillon":{"lat":43.6067,"lon":-1.0},"Bours":{"lat":43.2771,"lon":0.0905},"Simacourbe":{"lat":43.4455,"lon":-0.165},"Arthez-de-Béarn":{"lat":43.4693,"lon":-0.6242},"Sarrancolin":{"lat":42.9593,"lon":0.4043},"Béhasque-Lapiste":{"lat":43.3188,"lon":-1.0085},"Gagnières":{"lat":44.3157,"lon":4.1175},"Aureilhan":{"lat":43.2488,"lon":0.1065},"Monein":{"lat":43.2905,"lon":-0.5628},"Momas":{"lat":43.4409,"lon":-0.4361},"Rontignon":{"lat":43.2501,"lon":-0.34},"Carresse-Cassaber":{"lat":43.4848,"lon":-1.0008},"Sévignacq-Meyracq":{"lat":43.1401,"lon":-0.3874},"Mont-de-Marsan":{"lat":43.8931,"lon":-0.5009},"Paris":{"lat":48.8589,"lon":2.347},"Bosdarros":{"lat":43.2011,"lon":-0.356},"Préchacq-Josbaig":{"lat":43.2567,"lon":-0.7348},"Boeil-Bezing":{"lat":43.2274,"lon":-0.2437},"Artix":{"lat":43.3984,"lon":-0.5728},"Aventignan":{"lat":43.0607,"lon":0.5219},"Isturits":{"lat":43.3698,"lon":-1.2021},"Cauneille":{"lat":43.563,"lon":-1.0678},"Montardon":{"lat":43.3657,"lon":-0.352},"Accous":{"lat":42.9216,"lon":-0.5993},"Arraute-Charritte":{"lat":43.4155,"lon":-1.1168},"Asson":{"lat":43.1035,"lon":-0.2432},"Limendous":{"lat":43.2786,"lon":-0.1829},"Escou":{"lat":43.1834,"lon":-0.5284},"Irissarry":{"lat":43.2559,"lon":-1.2447},"Etsaut":{"lat":42.8901,"lon":-0.5318},"Louvie-Juzon":{"lat":43.0692,"lon":-0.3428},"Mazères-Lezons":{"lat":43.2701,"lon":-0.3524},"Vielle-Louron":{"lat":42.8346,"lon":0.3965},"Viellenave-de-Navarrenx":{"lat":43.3369,"lon":-0.8069},"Laruns":{"lat":42.907,"lon":-0.4087},"Lahontan":{"lat":43.5207,"lon":-0.9684},"Ogeu-les-Bains":{"lat":43.1547,"lon":-0.508},"Lasseube":{"lat":43.2118,"lon":-0.4855},"Orthevielle":{"lat":43.5675,"lon":-1.1448},"Aast":{"lat":43.2922,"lon":-0.0829},"Benque-Molere":{"lat":43.0966,"lon":0.2923},"gers":{"lat":48.3808,"lon":7.693},"Lies":{"lat":43.0606,"lon":0.2059},"Bougarber":{"lat":43.391,"lon":-0.473},"Barzun":{"lat":43.2165,"lon":-0.1335}};
 
 // Tous les vétérinaires — partenaires en vert, autres en gris
 const VETOS_PARTENAIRES = [
@@ -1055,6 +1102,10 @@ function buildVetoMarkers() {
 }
 
 loadVetos();
+// Précharger les centres de soins en arrière-plan pour le panneau "proches"
+fetch('/api/centres_soins').then(r => r.json()).then(data => {
+  allCentresSoins = data.filter(c => c.lat && c.lon && c.nom !== 'HEGALALDIA');
+}).catch(() => {});
 
 // ── Centre Hegalaldia ──────────────────────────────────────────
 const HEGALALDIA = { lat: 43.402226, lon: -1.503324, nom: 'Centre de soins Hegalaldia', ville: 'Ustaritz' };
@@ -1087,6 +1138,78 @@ function buildHegalaldia() {
     .addTo(map);
 }
 buildHegalaldia();
+
+// ── Centres de soins faune sauvage (annuaire national) ────────────────────────
+const centresSoinsLayer = L.layerGroup();
+let centresSoinsLoaded = false;
+let allCentresSoins = [];
+
+const CENTRES_TEL_ONLY = new Set(['SOS Faune Sauvage Bretagne', 'CSFS LPO Occitanie - Hérault']);
+
+function centresSoinsIcon(statut, telOnly) {
+  const c = statut === 'ferme' ? '#e53935' : '#43a047';
+  const inner = telOnly
+    ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>`
+    : `<svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`;
+  const border = telOnly ? '2px dashed rgba(0,0,0,0.4)' : '2px solid rgba(0,0,0,0.35)';
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:18px;height:18px;background:${c};border:${border};border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;">${inner}</div>`,
+    iconSize: [18, 18], iconAnchor: [9, 9]
+  });
+}
+
+async function loadCentresSoins() {
+  if (centresSoinsLoaded) return;
+  try {
+    const r = await fetch('/api/centres_soins');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    allCentresSoins = data.filter(c => c.lat && c.lon && c.nom !== 'HEGALALDIA');
+    data.forEach(c => {
+      if (!c.lat || !c.lon) return;
+      if (c.nom === 'HEGALALDIA') return;
+      const statutColor = c.statut === 'ferme' ? '#e53935' : '#43a047';
+      const statutText  = c.statut === 'ferme' ? 'Fermé' : 'Ouvert';
+      const svgDot = `<svg width="8" height="8" viewBox="0 0 8 8" style="vertical-align:middle;margin-right:4px"><circle cx="4" cy="4" r="4" fill="${statutColor}"/></svg>`;
+      const svgPin  = `<svg width="12" height="12" viewBox="0 0 24 24" fill="#888" style="vertical-align:middle;margin-right:4px;flex-shrink:0"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>`;
+      const svgTel  = `<svg width="12" height="12" viewBox="0 0 24 24" fill="#888" style="vertical-align:middle;margin-right:4px;flex-shrink:0"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>`;
+      const svgMail = `<svg width="12" height="12" viewBox="0 0 24 24" fill="#888" style="vertical-align:middle;margin-right:4px;flex-shrink:0"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>`;
+      const svgWeb  = `<svg width="12" height="12" viewBox="0 0 24 24" fill="#888" style="vertical-align:middle;margin-right:4px;flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>`;
+      const svgBird = `<svg width="12" height="12" viewBox="0 0 24 24" fill="#888" style="vertical-align:middle;margin-right:4px;flex-shrink:0"><path d="M4.5 11c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm3-5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm3 5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM11.5 12c-2.5 0-7.5 1.3-7.5 4v2h15v-2c0-2.7-5-4-7.5-4z"/></svg>`;
+      let popup = `<div style="font-family:sans-serif;padding:8px 12px;min-width:220px">
+        <b style="font-size:0.95rem">${c.nom}</b><br>
+        <span style="font-size:0.78rem;color:#666">${svgDot}${statutText}</span>`;
+      if (c.adresse) popup += `<div style="font-size:0.8rem;color:#555;margin-top:5px;display:flex;align-items:flex-start">${svgPin}${c.adresse}</div>`;
+      if (c.tel)     popup += `<div style="font-size:0.8rem;margin-top:3px;display:flex;align-items:center">${svgTel}${c.tel}</div>`;
+      if (c.mail)    popup += `<div style="font-size:0.8rem;margin-top:3px;display:flex;align-items:center">${svgMail}<a href="mailto:${c.mail}">${c.mail}</a></div>`;
+      if (c.site)    popup += `<div style="font-size:0.8rem;margin-top:3px;display:flex;align-items:center">${svgWeb}<a href="${c.site}" target="_blank">Site web</a></div>`;
+      if (c.especes) popup += `<div style="font-size:0.78rem;color:#777;margin-top:5px;display:flex;align-items:flex-start">${svgBird}${c.especes}</div>`;
+      if (c.departements) popup += `<div style="font-size:0.75rem;color:#aaa;margin-top:3px">Dép. couverts : ${c.departements}</div>`;
+      popup += `</div>`;
+      const telOnly = CENTRES_TEL_ONLY.has(c.nom);
+      const tooltip = telOnly ? `<b>${c.nom}</b><br><i style="color:#aaa">Conseil téléphonique uniquement</i>` : `<b>${c.nom}</b>`;
+      L.marker([c.lat, c.lon], { icon: centresSoinsIcon(c.statut, telOnly), zIndexOffset: 2500 })
+        .bindTooltip(tooltip, { direction: 'top' })
+        .bindPopup(popup, { maxWidth: 320 })
+        .addTo(centresSoinsLayer);
+    });
+    centresSoinsLoaded = true;
+  } catch(e) {
+    console.warn('Impossible de charger les centres de soins :', e);
+  }
+}
+
+document.getElementById('toggle-centres-soins').addEventListener('change', function() {
+  if (this.checked) {
+    centresSoinsLayer.addTo(map);
+    loadCentresSoins();
+    document.getElementById('legend-centres-soins').style.display = '';
+  } else {
+    centresSoinsLayer.remove();
+    document.getElementById('legend-centres-soins').style.display = 'none';
+  }
+});
 
 // ── Rapatriements en cours ─────────────────────────────────────
 const rapatLayer = L.layerGroup().addTo(map);
@@ -1838,7 +1961,7 @@ async function main() {
     // Exclure les "à éviter" des suggestions
     const candidats = allVetos
       .filter(v => v.statut !== 'Eviter')
-      .map(v => ({ ...v, dist: distKm(lat, lon, v.lat, v.lon) }));
+      .map(v => ({ ...v, dist: distKm(lat, lon, v.lat, v.lon), _type: 'veto' }));
 
     // Dédupliquer par coordonnées
     const seen = {}, dedup = [];
@@ -1847,27 +1970,42 @@ async function main() {
       if (!seen[key]) { seen[key] = true; dedup.push(v); }
     });
 
-    // Partenaires en premier (3 max), puis autres (3 max)
-    const partenaires = dedup.filter(v => v.statut === 'Partenaire').slice(0, 3);
-    const autres      = dedup.filter(v => v.statut !== 'Partenaire').slice(0, 3);
-    const resultats   = [...partenaires, ...autres];
+    // Tout mélanger et trier par distance (8 max)
+    const centresCandidats = allCentresSoins
+      .filter(c => c.statut !== 'ferme')
+      .map(c => ({ ...c, dist: distKm(lat, lon, c.lat, c.lon), _type: 'centre' }));
+
+    const resultats = [...dedup.map(v => ({ ...v, _type: 'veto' })), ...centresCandidats]
+      .sort((a, b) => a.dist - b.dist)
+      .slice(0, 8);
 
     const list = document.getElementById('veto-panel-list');
     list.innerHTML = '';
-    document.getElementById('veto-panel-title').textContent = `Vétérinaires près de ${ville}`;
+    document.getElementById('veto-panel-title').textContent = `Proches de ${ville}`;
 
-    resultats.forEach(v => {
-      const color = v.statut === 'Partenaire' ? '#22cc66' : '#999';
-      const item  = document.createElement('div');
-      item.className = 'veto-item';
-      item.innerHTML = `
-        <span style="font-size:16px;font-weight:bold;color:${color}">✚</span>
-        <span>${v.nom}</span>
-        <span class="veto-dist">${v.dist < 10 ? v.dist.toFixed(1) : Math.round(v.dist)} km</span>
-      `;
-      item.style.cursor = 'pointer';
-      item.addEventListener('click', () => map.setView([v.lat, v.lon], 15));
-      list.appendChild(item);
+    resultats.forEach(item => {
+      const el = document.createElement('div');
+      el.className = 'veto-item';
+      if (item._type === 'centre') {
+        const telOnly = CENTRES_TEL_ONLY.has(item.nom);
+        el.innerHTML = `
+          <div style="width:18px;height:18px;background:#43a047;border:${telOnly ? '2px dashed rgba(0,0,0,0.4)' : '2px solid rgba(0,0,0,0.35)'};border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="${telOnly ? 'M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z' : 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'}"/></svg>
+          </div>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.nom}</span>
+          <span class="veto-dist">${item.dist < 10 ? item.dist.toFixed(1) : Math.round(item.dist)} km</span>`;
+        el.style.cursor = 'pointer';
+        el.addEventListener('click', () => map.setView([item.lat, item.lon], 13));
+      } else {
+        const color = item.statut === 'Partenaire' ? '#22cc66' : '#999';
+        el.innerHTML = `
+          <span style="font-size:16px;font-weight:bold;color:${color}">✚</span>
+          <span>${item.nom}</span>
+          <span class="veto-dist">${item.dist < 10 ? item.dist.toFixed(1) : Math.round(item.dist)} km</span>`;
+        el.style.cursor = 'pointer';
+        el.addEventListener('click', () => map.setView([item.lat, item.lon], 15));
+      }
+      list.appendChild(el);
     });
 
     document.getElementById('veto-panel').classList.add('open');
@@ -1942,6 +2080,41 @@ async function main() {
       searchResults.style.display = 'none';
     }
   });
+
+  let searchSelectedIdx = -1;
+
+  function getSearchItems() {
+    return Array.from(searchResults.querySelectorAll('.search-item'));
+  }
+
+  function highlightSearchItem(idx) {
+    getSearchItems().forEach((el, i) => {
+      el.style.background = i === idx ? '#f0f7f2' : '';
+    });
+  }
+
+  searchInput.addEventListener('keydown', e => {
+    const items = getSearchItems();
+    if (!items.length) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      searchSelectedIdx = Math.min(searchSelectedIdx + 1, items.length - 1);
+      highlightSearchItem(searchSelectedIdx);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      searchSelectedIdx = Math.max(searchSelectedIdx - 1, 0);
+      highlightSearchItem(searchSelectedIdx);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      const idx = searchSelectedIdx >= 0 ? searchSelectedIdx : (items.length === 1 ? 0 : -1);
+      if (idx >= 0) items[idx].click();
+    } else if (e.key === 'Escape') {
+      searchResults.style.display = 'none';
+      searchSelectedIdx = -1;
+    }
+  });
+
+  searchInput.addEventListener('input', () => { searchSelectedIdx = -1; });
 
   document.getElementById('search-clear').addEventListener('click', () => {
     searchInput.value = '';
@@ -2232,6 +2405,10 @@ function updateStatsMini() {
   const full = document.getElementById('stats').innerHTML;
   document.getElementById('panel-stats-mini').innerHTML = full;
 }
+function toggleLegend() {
+  document.getElementById('legend').classList.toggle('collapsed');
+}
+
 function togglePanel() {
   document.getElementById('panel').classList.toggle('collapsed');
   updateStatsMini();
@@ -2530,5 +2707,5 @@ function rpShowToast(msg) {
 }
 </script>
 <script src="/auth.js"></script>
-</body>
+<script>fetch("/api/version").then(r=>r.json()).then(d=>{const el=document.createElement("div");el.style.cssText="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(0,0,0,0.25);font-family:monospace;z-index:9999;pointer-events:none";el.textContent="v"+d.commit+" · "+d.date;document.body.appendChild(el)}).catch(()=>{})</script></body>
 </html>

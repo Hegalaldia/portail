@@ -17,7 +17,10 @@ body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Hel
   .hg-mobile-nav{display:flex}
   .hg-dashboard-scroll{padding-bottom:76px}
 }
-.hg-admin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px;align-items:start}
+.hg-admin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;align-items:start}
+@media(max-width:1100px){.hg-admin-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:760px){.hg-admin-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:500px){.hg-admin-grid{grid-template-columns:1fr}}
 .hg-header-inner{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
 .ac-wrap{position:relative}
 .ac-drop{position:absolute;left:0;right:0;top:100%;margin-top:3px;background:#fff;border:1.5px solid #dbe3dc;border-radius:9px;box-shadow:0 4px 16px rgba(0,0,0,.10);z-index:999;overflow:hidden;display:none}
@@ -52,7 +55,7 @@ button:hover{opacity:0.88}
       <div style="font-size:13px;color:#5b6b5e;margin-top:4px;margin-bottom:32px">Portail des cliniques partenaires</div>
       <form id="login-form" onsubmit="handleLogin(event)" style="text-align:left">
         <label style="display:block;font-size:13px;font-weight:600;color:#1a2e1e;margin-bottom:6px">Code clinique</label>
-        <input id="clinic-code-input" type="text" placeholder="Ex. BAY-042" style="width:100%;padding:13px 14px;border-radius:10px;border:1.5px solid #dbe3dc;font-size:15px;color:#1a2e1e;outline:none;margin-bottom:8px" onfocus="this.style.borderColor='#019939'" onblur="this.style.borderColor='#dbe3dc'">
+        <input id="clinic-code-input" type="text" placeholder="Ex. BAY-042" style="width:100%;padding:13px 14px;border-radius:10px;border:1.5px solid #dbe3dc;font-size:15px;color:#1a2e1e;outline:none;margin-bottom:8px;box-sizing:border-box" onfocus="this.style.borderColor='#019939'" onblur="this.style.borderColor='#dbe3dc'">
         <div id="login-error" style="font-size:12.5px;color:#ec6724;margin-bottom:6px;display:none"></div>
         <button type="submit" style="width:100%;margin-top:10px;padding:14px;border:none;border-radius:999px;background:#0c3d22;color:#ffffff;font-size:15px;font-weight:600;cursor:pointer">Accéder</button>
       </form>
@@ -216,13 +219,39 @@ button:hover{opacity:0.88}
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
             Accueil
           </a>
+          <button id="notif-btn" onclick="enableNotifications()" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);color:#ffffff;padding:8px 16px;border-radius:999px;font-size:13px;font-weight:600;border:none;cursor:pointer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span id="notif-btn-label">Activer les notifs</span>
+          </button>
+          <button onclick="goLogin()" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);color:#ffffff;padding:8px 16px;border-radius:999px;font-size:13px;font-weight:600;border:none;cursor:pointer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Déconnexion
+          </button>
         </div>
       </div>
     </div>
-    <div style="max-width:1180px;margin:0 auto;padding:28px 32px 60px" class="hg-page-content">
-      <div style="margin-bottom:20px;position:relative;max-width:480px">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8a9a8d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:14px;top:50%;transform:translateY(-50%)"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input id="admin-search" type="text" placeholder="Rechercher une clinique, une espèce, une commune…" oninput="renderAdmin()" style="width:100%;padding:11px 14px 11px 40px;border-radius:999px;border:1.5px solid #dbe3dc;background:#ffffff;font-size:14px;color:#1a2e1e;outline:none" onfocus="this.style.borderColor='#019939'" onblur="this.style.borderColor='#dbe3dc'">
+    <div style="max-width:1600px;margin:0 auto;padding:28px 16px 60px" class="hg-page-content">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+        <div style="position:relative;flex:1;min-width:240px;max-width:480px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8a9a8d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:14px;top:50%;transform:translateY(-50%)"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input id="admin-search" type="text" placeholder="Rechercher une clinique, une espèce, une commune…" oninput="renderAdmin()" style="width:100%;padding:11px 14px 11px 40px;border-radius:999px;border:1.5px solid #dbe3dc;background:#ffffff;font-size:14px;color:#1a2e1e;outline:none;box-sizing:border-box" onfocus="this.style.borderColor='#019939'" onblur="this.style.borderColor='#dbe3dc'">
+        </div>
+        <div style="position:relative">
+          <button onclick="togglePrefsDropdown()" style="display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;border:1.5px solid #b8ccc0;background:#e8f0ea;font-size:13px;font-weight:600;color:#2a5438;cursor:pointer">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+            Inscription logiciel
+          </button>
+          <div id="prefs-panel" style="display:none;position:absolute;top:calc(100% + 8px);left:0;width:360px;background:#fff;border:1.5px solid #dbe3dc;border-radius:12px;box-shadow:0 8px 28px rgba(12,61,34,0.12);z-index:200;padding:12px 16px;max-height:420px;overflow-y:auto">
+            <div style="font-size:11px;font-weight:700;color:#8a9a8d;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">Utilisation du logiciel clinique</div>
+            <div id="prefs-list"></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap" id="admin-sort-btns">
+          <button onclick="setAdminSort('animaux')" id="sort-btn-animaux" style="padding:7px 14px;border-radius:999px;border:1.5px solid #dbe3dc;background:#fff;font-size:13px;font-weight:600;color:#5b6b5e;cursor:pointer;transition:all .15s">Animaux</button>
+          <button onclick="setAdminSort('deces')" id="sort-btn-deces" style="padding:7px 14px;border-radius:999px;border:1.5px solid #dbe3dc;background:#fff;font-size:13px;font-weight:600;color:#5b6b5e;cursor:pointer;transition:all .15s">Sorties</button>
+          <button onclick="setAdminSort('enRoute')" id="sort-btn-enRoute" style="padding:7px 14px;border-radius:999px;border:1.5px solid #dbe3dc;background:#fff;font-size:13px;font-weight:600;color:#5b6b5e;cursor:pointer;transition:all .15s">En route</button>
+          <button onclick="setAdminSort('depots')" id="sort-btn-depots" style="padding:7px 14px;border-radius:999px;border:1.5px solid #dbe3dc;background:#fff;font-size:13px;font-weight:600;color:#5b6b5e;cursor:pointer;transition:all .15s">Dépôts</button>
+        </div>
       </div>
       <div id="admin-messages-panel"></div>
       <div id="admin-empty" style="font-size:14px;color:#8a9a8d;padding:20px 0;display:none">Aucun résultat pour cette recherche (clinique, espèce ou commune).</div>
@@ -269,6 +298,7 @@ button:hover{opacity:0.88}
             <button type="button" id="btn-relache" onclick="setOutcomeType('relache')" style="flex:1;padding:10px;border-radius:999px;border:1.5px solid #dbe3dc;background:#ffffff;color:#1a2e1e;font-size:13px;font-weight:600;cursor:pointer">Relâché</button>
             <button type="button" id="btn-deces" onclick="setOutcomeType('deces')" style="flex:1;padding:10px;border-radius:999px;border:1.5px solid #5b6b5e;background:#e3e3df;color:#3f4a41;font-size:13px;font-weight:600;cursor:pointer">Décès</button>
             <button type="button" id="btn-euthanasie" onclick="setOutcomeType('euthanasie')" style="flex:1;padding:10px;border-radius:999px;border:1.5px solid #dbe3dc;background:#ffffff;color:#1a2e1e;font-size:13px;font-weight:600;cursor:pointer">Euthanasié</button>
+            <button type="button" id="btn-rapatrie" onclick="setOutcomeType('rapatrie')" style="flex:1;padding:10px;border-radius:999px;border:1.5px solid #dbe3dc;background:#ffffff;color:#1a2e1e;font-size:13px;font-weight:600;cursor:pointer">Rapatrié</button>
           </div>
         </div>
         <div style="margin-bottom:14px">
@@ -347,15 +377,6 @@ button:hover{opacity:0.88}
   </div>
 </div>
 
-<!-- ==================== PAGE SWITCHER ==================== -->
-<div class="hg-page-switcher" style="background:#ffffff;border:1px dashed #b7cdbc;border-radius:12px;padding:7px;display:flex;flex-direction:column;gap:4px;box-shadow:0 4px 16px rgba(12,61,34,0.15)">
-  <div style="font-size:9.5px;font-weight:600;color:#8a9a8d;text-transform:uppercase;letter-spacing:0.04em;padding:2px 6px">Aperçu des 3 pages</div>
-  <div style="display:flex;gap:4px">
-    <button id="nav-btn-login" onclick="goLogin()" style="padding:7px 12px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:#0c3d22;color:#ffffff">Connexion</button>
-    <button id="nav-btn-dashboard" onclick="goDashboard()" style="padding:7px 12px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:#5b6b5e">Dashboard</button>
-    <button id="nav-btn-admin" onclick="goAdmin()" style="padding:7px 12px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:#5b6b5e">Vue Hegalaldia</button>
-  </div>
-</div>
 
 <script>
 // ==================== STATE ====================
@@ -375,20 +396,90 @@ const state = {
   outcomeType: 'deces',
   enrouteType: 'depose',
   adminExpandedIds: [],
-  adminClinics: []
+  adminClinics: [],
+  adminSortKey: 'animaux',
+  clinicPrefs: {}
 };
 
 // ==================== CHARGEMENT CLINIQUES PARTENAIRES ====================
+async function loadClinicPrefs() {
+  try {
+    const r = await fetch('/api/clinics/prefs');
+    state.clinicPrefs = await r.json();
+  } catch(e) { state.clinicPrefs = {}; }
+}
+
+async function setClinicPref(nom, val) {
+  state.clinicPrefs[nom] = val;
+  renderAdmin();
+  renderPrefsDropdown();
+  await fetch('/api/clinics/prefs', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({nom, val})
+  });
+}
+
+function renderPrefsDropdown() {
+  const list = document.getElementById('prefs-list');
+  if (!list) return;
+  const clinics = [...state.adminClinics].sort((a,b) => {
+    if (a.statut === 'Partenaire' && b.statut !== 'Partenaire') return -1;
+    if (a.statut !== 'Partenaire' && b.statut === 'Partenaire') return 1;
+    return a.name.localeCompare(b.name);
+  });
+  list.innerHTML = clinics.map(c => {
+    const v = state.clinicPrefs[c.name];
+    const inscrit = v !== false;
+    const btnStyle = (active, col) => `padding:3px 10px;border-radius:999px;border:1.5px solid ${active ? col : '#dbe3dc'};background:${active ? col : '#fff'};color:${active ? '#fff' : '#5b6b5e'};font-size:11px;font-weight:600;cursor:pointer`;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid #f2f2ef">
+      <span style="font-size:13px;color:#1a2e1e;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(c.name)}">${esc(c.name)}</span>
+      <div style="display:flex;gap:4px;flex:none">
+        <button onclick="setClinicPref('${c.name.replace(/'/g,"\\'")}', true)" style="${btnStyle(inscrit,'#019939')}">✓ Oui</button>
+        <button onclick="setClinicPref('${c.name.replace(/'/g,"\\'")}', false)" style="${btnStyle(!inscrit,'#c0392b')}">✗ Non</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function togglePrefsDropdown() {
+  const panel = document.getElementById('prefs-panel');
+  const open = panel.style.display !== 'none';
+  panel.style.display = open ? 'none' : 'block';
+  if (!open) {
+    renderPrefsDropdown();
+    setTimeout(() => {
+      document.addEventListener('click', _closePrefsOnOutside);
+    }, 0);
+  }
+}
+
+function _closePrefsOnOutside(e) {
+  const panel = document.getElementById('prefs-panel');
+  const wrap = panel && panel.closest('[style*="position:relative"]');
+  if (!panel || (wrap && wrap.contains(e.target))) return;
+  panel.style.display = 'none';
+  document.removeEventListener('click', _closePrefsOnOutside);
+}
+
 async function loadPartenaires() {
   try {
     const r = await fetch('/api/vetos');
     const vetos = await r.json();
-    const partenaires = vetos.filter(v => v.statut === 'Partenaire' && v.code);
-    state.adminClinics = partenaires.map((v, i) => ({
+    const visibles = vetos.filter(v => v.statut !== 'Eviter');
+    let codesMap = {};
+    try {
+      const cr = await fetch('/api/clinics/codes');
+      const cd = await cr.json();
+      cd.clinics.forEach(c => { codesMap[c.nom] = c.code; });
+    } catch(e) {}
+
+    state.adminClinics = visibles.map((v, i) => ({
       id: i + 1,
       name: v.nom,
       ville: v.nom.split('(')[0].trim(),
-      code: v.code,
+      statut: v.statut,
+      code: codesMap[v.nom] || '',
       animaux: 0, deces: 0, enRoute: 0, depots: 0,
       animalsList: [], outcomesList: [], depotsList: []
     }));
@@ -426,35 +517,54 @@ function updateNavButtons() {
 
 function goLogin() { showScreen('login'); }
 function goDashboard() { showScreen('dashboard'); }
-function goAdmin() { showScreen('admin'); startAdminPolling(); }
+async function goAdmin() { await loadClinicPrefs(); showScreen('admin'); startAdminPolling(); }
 
-function handleLogin(e) {
+async function handleLogin(e) {
   e.preventDefault();
   const code = document.getElementById('clinic-code-input').value.trim();
   const errEl = document.getElementById('login-error');
+  const btn = document.querySelector('#login-form button[type=submit]');
   if (!code) {
     errEl.textContent = 'Veuillez saisir votre code clinique.';
     errEl.style.display = 'block';
     return;
   }
   errEl.style.display = 'none';
-  const codeUp = code.toUpperCase();
-  if (codeUp === 'HEGA-ADMIN') {
-    goAdmin();
-    return;
-  }
-  const match = state.adminClinics.find(v => v.code === codeUp);
-  if (!match) {
-    errEl.textContent = 'Code clinique non reconnu. Vérifiez votre code ou contactez Hegalaldia.';
+  btn.disabled = true;
+  btn.textContent = 'Vérification…';
+  try {
+    const res = await fetch('/api/clinics/verify-code', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({code})
+    });
+    const data = await res.json();
+    if (!data.ok) {
+      const rem = data.remaining != null ? ` (${data.remaining} essai${data.remaining > 1 ? 's' : ''} restant)` : '';
+      errEl.textContent = data.error === 'too_many_attempts'
+        ? `Trop de tentatives. Réessayez dans ${data.retry_after}s.`
+        : `Code clinique non reconnu. Vérifiez votre code ou contactez Hegalaldia.${rem}`;
+      errEl.style.display = 'block';
+      return;
+    }
+    if (data.type === 'admin') {
+      goAdmin();
+    } else {
+      const codeUp = code.toUpperCase();
+      state.clinicCode = codeUp;
+      state.clinicName = data.nom;
+      loadClinicState();
+      document.getElementById('dash-clinic-name').textContent = data.nom;
+      document.getElementById('dash-clinic-code').textContent = codeUp;
+      goDashboard();
+    }
+  } catch (err) {
+    errEl.textContent = 'Erreur réseau. Vérifiez votre connexion.';
     errEl.style.display = 'block';
-    return;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Accéder';
   }
-  state.clinicCode = codeUp;
-  state.clinicName = match.name;
-  loadClinicState();
-  document.getElementById('dash-clinic-name').textContent = match.name;
-  document.getElementById('dash-clinic-code').textContent = codeUp;
-  goDashboard();
 }
 
 function scrollToSection(id) {
@@ -491,7 +601,7 @@ function renderPresent() {
     const escapedNum = esc(item.num||'').replace(/'/g,"\\'");
     const escapedCommune = esc(item.commune||'').replace(/'/g,"\\'");
     const escapedTel = esc(item.tel||'').replace(/'/g,"\\'");
-    const telHtml = item.tel ? `<div style="font-size:12.5px;color:#5b6b5e;margin-top:2px">${esc(item.tel)}</div>` : '';
+    const telHtml = item.tel ? telCopyHtml(item.tel, '#5b6b5e') : '';
     const ficheUrl = 'fiche.html?'
       + 'species=' + encodeURIComponent(item.species || '')
       + '&date='    + encodeURIComponent(item.arrivalDate || '')
@@ -523,14 +633,15 @@ function renderOutcomes() {
   const styles = {
     deces: ['Décès', '#e3e3df', '#5b6b5e'],
     relache: ['Relâché', '#e8f5e9', '#019939'],
-    euthanasie: ['Euthanasié', '#fff3ec', '#ec6724']
+    euthanasie: ['Euthanasié', '#fff3ec', '#ec6724'],
+    rapatrie: ['Rapatrié', '#e8f0ff', '#3b5bdb']
   };
   const el = document.getElementById('outcomes-list');
   el.innerHTML = list.map(item => {
     const st = styles[item.type] || styles.deces;
     const numStr = item.num ? `<span style="color:#8a9a8d;font-size:11.5px;margin-left:6px">${esc(item.num)}</span>` : '';
     const communeStr = item.commune ? ` · ${esc(item.commune)}` : '';
-    const telHtml = item.tel ? `<div style="font-size:12px;color:#7a847c;margin-top:2px"><a href="tel:${item.tel.replace(/\s/g,'')}" style="color:#7a847c;text-decoration:none">📞 ${esc(item.tel)}</a></div>` : '';
+    const telHtml = item.tel ? telCopyHtml(item.tel, '#7a847c') : '';
     return `<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #e3e3df;gap:10px">
       <div>
         <div style="font-size:14.5px;font-weight:600;color:#3f4a41">${esc(item.species)}${numStr}</div>
@@ -816,12 +927,22 @@ async function sendMessage() {
   }
 }
 
+let _knownMsgIds = null;
 async function loadAdminMessages() {
   const el = document.getElementById('admin-messages-panel');
   if (!el) return;
   try {
     const r = await fetch('/api/messages');
     const msgs = await r.json();
+    const ids = new Set(msgs.map(m => m.id));
+    if (_knownMsgIds !== null) {
+      msgs.forEach(m => {
+        if (!_knownMsgIds.has(m.id)) {
+          notify(`💬 Message de ${m.clinic_name || m.clinic_code}`, m.text?.slice(0, 100) || '');
+        }
+      });
+    }
+    _knownMsgIds = ids;
     const unread = msgs.filter(m => !m.read).length;
     el.innerHTML = `
       <div style="background:#fff;border-radius:16px;border:1.5px solid #e4ece5;padding:20px 24px;box-shadow:0 2px 8px rgba(12,61,34,0.06);margin-bottom:24px">
@@ -830,15 +951,19 @@ async function loadAdminMessages() {
           ${unread > 0 ? `<span style="background:#e74c3c;color:#fff;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:700">${unread} non lu${unread>1?'s':''}</span>` : '<span style="font-size:13px;color:#9aaa9d">Aucun message non lu</span>'}
         </div>
         ${msgs.length === 0 ? '<div style="font-size:13px;color:#9aaa9d">Aucun message reçu.</div>' : ''}
-        ${msgs.map(m => `
-          <div id="msg-${m.id}" style="border-left:3px solid ${m.read ? '#dbe3dc' : '#019939'};padding:10px 14px;margin-bottom:10px;background:${m.read ? '#fafafa' : '#f0faf4'};border-radius:0 8px 8px 0">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        ${[...msgs].sort((a,b) => (b.pinned?1:0)-(a.pinned?1:0)).map(m => `
+          <div id="msg-${m.id}" style="border-left:3px solid ${m.pinned ? '#ec6724' : m.read ? '#dbe3dc' : '#019939'};padding:10px 14px;margin-bottom:10px;background:${m.pinned ? '#fff8f5' : m.read ? '#fafafa' : '#f0faf4'};border-radius:0 8px 8px 0">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
               <span style="font-weight:700;font-size:13px;color:#1a2e1e">${m.clinic_name || m.clinic_code}</span>
               <span style="font-size:11px;color:#9aaa9d">${m.timestamp}</span>
               ${!m.read ? '<span style="background:#e8f5e9;color:#0c3d22;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:700">Nouveau</span>' : ''}
+              ${m.pinned ? '<span style="background:#fff0e6;color:#ec6724;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M16 3a1 1 0 0 1 .7 1.7L15 6.4l.6 5.6H17a1 1 0 0 1 0 2h-4v5l-1 3-1-3v-5H7a1 1 0 0 1 0-2h1.4L9 6.4 7.3 4.7A1 1 0 0 1 8 3z"/></svg> Épinglé</span>' : ''}
             </div>
             <div style="font-size:13px;color:#3a4a3c;line-height:1.5;white-space:pre-wrap">${m.text}</div>
-            ${!m.read ? `<button onclick="markRead('${m.id}')" style="margin-top:8px;background:none;border:1px solid #dbe3dc;border-radius:999px;padding:4px 12px;font-size:12px;color:#5b6b5e;cursor:pointer">✓ Marquer comme lu</button>` : ''}
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+              ${!m.read ? `<button onclick="markRead('${m.id}')" style="display:inline-flex;align-items:center;gap:5px;background:none;border:1px solid #dbe3dc;border-radius:999px;padding:4px 12px;font-size:12px;color:#5b6b5e;cursor:pointer"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Lu</button>` : `<button onclick="markUnread('${m.id}')" style="display:inline-flex;align-items:center;gap:5px;background:none;border:1px solid #dbe3dc;border-radius:999px;padding:4px 12px;font-size:12px;color:#5b6b5e;cursor:pointer"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.5 15a9 9 0 1 0 .5-5.5"/></svg> Non lu</button><button onclick="archiveMsg('${m.id}')" style="display:inline-flex;align-items:center;gap:5px;background:none;border:1px solid #e0c4c4;border-radius:999px;padding:4px 12px;font-size:12px;color:#a05050;cursor:pointer"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg> Archiver</button>`}
+              <button onclick="togglePin('${m.id}', ${!m.pinned})" style="display:inline-flex;align-items:center;gap:5px;background:none;border:1px solid ${m.pinned ? '#ec6724' : '#dbe3dc'};border-radius:999px;padding:4px 12px;font-size:12px;color:${m.pinned ? '#ec6724' : '#5b6b5e'};cursor:pointer">${m.pinned ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Désépingler` : `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M16 3a1 1 0 0 1 .7 1.7L15 6.4l.6 5.6H17a1 1 0 0 1 0 2h-4v5l-1 3-1-3v-5H7a1 1 0 0 1 0-2h1.4L9 6.4 7.3 4.7A1 1 0 0 1 8 3z"/></svg> Épingler`}</button>
+            </div>
           </div>`).join('')}
       </div>`;
   } catch(e) {
@@ -851,6 +976,33 @@ async function markRead(id) {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify({id})
+  });
+  loadAdminMessages();
+}
+
+async function markUnread(id) {
+  await fetch('/api/messages/unread', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({id})
+  });
+  loadAdminMessages();
+}
+
+async function archiveMsg(id) {
+  await fetch('/api/messages/archive', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({id})
+  });
+  loadAdminMessages();
+}
+
+async function togglePin(id, pinned) {
+  await fetch('/api/messages/pin', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({id, pinned})
   });
   loadAdminMessages();
 }
@@ -893,9 +1045,9 @@ function openModal(type) {
 }
 
 function openOutcomeFor(id, species, num, commune, tel) {
+  openModal('outcome');
   state.outcomeSourceId = id;
   state.outcomeSourceNum = num || '';
-  openModal('outcome');
   document.getElementById('form-outcome-species').value = species;
   document.getElementById('form-outcome-commune').value = commune || '';
   document.getElementById('form-outcome-tel').value = tel || '';
@@ -912,11 +1064,12 @@ function setOutcomeType(t) {
   updateOutcomeButtons();
 }
 function updateOutcomeButtons() {
-  const types = ['relache','deces','euthanasie'];
+  const types = ['relache','deces','euthanasie','rapatrie'];
   const activeStyles = {
-    relache: ['#019939','#e8f5e9','#019939'],
-    deces: ['#5b6b5e','#e3e3df','#3f4a41'],
-    euthanasie: ['#ec6724','#fff3ec','#ec6724']
+    relache:    ['#019939','#e8f5e9','#019939'],
+    deces:      ['#5b6b5e','#e3e3df','#3f4a41'],
+    euthanasie: ['#ec6724','#fff3ec','#ec6724'],
+    rapatrie:   ['#3b5bdb','#e8f0ff','#3b5bdb']
   };
   types.forEach(t => {
     const btn = document.getElementById('btn-' + t);
@@ -1029,7 +1182,8 @@ function submitModal(e) {
     const species = document.getElementById('form-depot-species').value.trim() || 'Espèce non précisée';
     const eta = document.getElementById('form-eta').value.trim() || 'À préciser';
     const contact = document.getElementById('form-contact').value.trim() || 'Particulier';
-    state.depots.unshift({ id, species, eta, contact });
+    const now = new Date(); const dateStr = now.getDate() + '/' + (now.getMonth()+1) + '/' + now.getFullYear();
+    state.depots.unshift({ id, species, eta, contact, date: dateStr });
     saveClinicState(); renderDepots();
   }
   closeModal();
@@ -1068,7 +1222,25 @@ function _clinicMatchesAnimal(c, q) {
   ));
 }
 
+function setAdminSort(key) {
+  state.adminSortKey = key;
+  document.querySelectorAll('#admin-sort-btns button').forEach(b => {
+    const k = b.id.replace('sort-btn-', '');
+    const active = k === state.adminSortKey;
+    b.style.background = active ? '#0c3d22' : '#fff';
+    b.style.color = active ? '#fff' : '#5b6b5e';
+    b.style.borderColor = active ? '#0c3d22' : '#dbe3dc';
+  });
+  renderAdmin();
+}
+
 function renderAdmin() {
+  document.querySelectorAll('#admin-sort-btns button').forEach(b => {
+    const active = b.id.replace('sort-btn-', '') === state.adminSortKey;
+    b.style.background = active ? '#0c3d22' : '#fff';
+    b.style.color = active ? '#fff' : '#5b6b5e';
+    b.style.borderColor = active ? '#0c3d22' : '#dbe3dc';
+  });
   const q = (document.getElementById('admin-search') || {value:''}).value.trim().toLowerCase();
 
   // Clinics matched by name/ville OR by animal content
@@ -1076,11 +1248,18 @@ function renderAdmin() {
     if (!q) return true;
     if (c.name.toLowerCase().includes(q) || c.ville.toLowerCase().includes(q)) return true;
     return _clinicMatchesAnimal(c, q);
-  }).sort((a, b) => b.animaux - a.animaux);
+  }).sort((a, b) => {
+    if (a.statut === 'Partenaire' && b.statut !== 'Partenaire') return -1;
+    if (a.statut !== 'Partenaire' && b.statut === 'Partenaire') return 1;
+    if (state.adminSortKey) return b[state.adminSortKey] - a[state.adminSortKey];
+    if (a.statut === 'Partenaire') return b.animaux - a.animaux;
+    return a.name.localeCompare(b.name);
+  });
 
-  const totalAnimals = state.adminClinics.reduce((s,c) => s + c.animaux, 0);
-  const totalDeaths = state.adminClinics.reduce((s,c) => s + c.deces, 0);
-  const totalEnRoute = state.adminClinics.reduce((s,c) => s + c.enRoute, 0);
+  const partenaires = state.adminClinics.filter(c => c.statut === 'Partenaire');
+  const totalAnimals = partenaires.reduce((s,c) => s + c.animaux, 0);
+  const totalDeaths = partenaires.reduce((s,c) => s + c.deces, 0);
+  const totalEnRoute = partenaires.reduce((s,c) => s + c.enRoute, 0);
   document.getElementById('admin-total-animals').textContent = totalAnimals;
   document.getElementById('admin-total-deaths').textContent = totalDeaths;
   document.getElementById('admin-total-enroute').textContent = totalEnRoute;
@@ -1129,29 +1308,25 @@ function renderAdmin() {
         if (d.fromSheet) {
           return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f2f2ef;gap:8px">'
             + '<div><div style="font-size:13.5px;font-weight:600">' + esc(d.species) + ' <span style="font-size:11px;color:#8a9a8d;font-family:monospace">' + esc(d.contact) + '</span></div>'
-            + '<div style="font-size:11.5px;color:#5b6b5e;margin-top:1px">Dépôt particulier · Google Sheet</div></div>'
-            + '<span style="font-size:11px;color:#b0b8b2;font-style:italic">Sheet</span>'
+            + '<div style="font-size:11.5px;color:#5b6b5e;margin-top:1px">Dépôt particulier · Google Sheet' + (d.date ? ' · ' + esc(d.date) : '') + '</div></div>'
+            + ''
             + '</div>';
         }
-        return adminRow(ccode, 'depotsList', d.id, esc(d.species), esc(d.eta) + ' · ' + esc(d.contact));
+        return adminRow(ccode, 'depotsList', d.id, esc(d.species), esc(d.eta) + ' · ' + esc(d.contact) + (d.date ? ' · ' + esc(d.date) : ''));
       }))
     ) : '';
 
-    return `<div onclick="toggleClinic(${c.id})" style="background:#ffffff;border-radius:14px;padding:20px;cursor:pointer;transition:box-shadow .15s ease;box-shadow:${shadow}">
-      <div class="hg-clinic-card-head">
-        <div>
-          <div style="font-size:15px;font-weight:700">${esc(c.name)}</div>
-          <div style="font-size:12px;color:#8a9a8d;margin-top:3px">Code <span style="font-family:monospace;color:#5b6b5e">${esc(c.code||'')}</span>${c.lastSeen ? ' · ' + ((() => { const diff = Math.floor((Date.now() - c.lastSeen)/60000); if (diff < 2) return '<span style="color:#019939">en ligne</span>'; if (diff < 60) return 'il y a ' + diff + ' min'; if (diff < 1440) return 'il y a ' + Math.floor(diff/60) + 'h'; return 'il y a ' + Math.floor(diff/1440) + 'j'; })()) : ' · <span style="color:#c0c8c2">jamais connectée</span>'}</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;flex:none">
-          <div style="display:flex;align-items:center;gap:6px">
-            <span style="width:8px;height:8px;border-radius:50%;background:${statusColor};display:inline-block"></span>
-            <span style="font-size:12px;font-weight:600;color:${statusColor}">${statusLabel}</span>
-          </div>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8a9a8d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s ease;transform:rotate(${isExpanded ? '180' : '0'}deg)"><polyline points="6 9 12 15 18 9"/></svg>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+    const isPartenaire = c.statut === 'Partenaire';
+    const cardBg = isPartenaire ? '#ffffff' : '#f7f9f7';
+    const statutBadge = '';
+    const pref = state.clinicPrefs[c.name];
+    const inscrit = pref !== false; // par défaut Oui
+
+    const cardBgFinal = !inscrit ? '#fff8f8' : cardBg;
+    const shadowFinal = !inscrit ? '0 2px 8px rgba(192,57,43,0.10)' : shadow;
+
+    const statsBlock = inscrit
+      ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         <div style="display:flex;align-items:center;gap:5px;background:#e8f5e9;color:#019939;padding:6px 12px;border-radius:10px;font-size:12.5px;font-weight:600">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#019939" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="16" r="5"/><circle cx="7" cy="7" r="2.1"/><circle cx="12" cy="5" r="2.1"/><circle cx="17" cy="7" r="2.1"/></svg>
           ${c.animaux} animaux
@@ -1168,8 +1343,37 @@ function renderAdmin() {
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2c6b3a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="1.5"/><line x1="12" y1="8" x2="12" y2="20"/><line x1="4" y1="13" x2="20" y2="13"/></svg>
           ${c.depots} dépôts attendus
         </div>
+      </div>`
+      : `<div style="background:#fdecea;border-radius:10px;padding:10px 14px;font-size:12.5px;font-weight:600;color:#c0392b;display:flex;align-items:center;gap:7px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          N'utilise pas le logiciel
+        </div>`;
+
+    const clickAttr = inscrit ? `onclick="toggleClinic(${c.id})"` : '';
+    const hoverEnter = inscrit
+      ? `onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(12,61,34,0.15)'"`
+      : '';
+    const hoverLeave = inscrit ? `onmouseleave="this.style.transform='';this.style.boxShadow='${shadowFinal}'"` : '';
+    const chevron = inscrit
+      ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8a9a8d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s ease;transform:rotate(${isExpanded ? '180' : '0'}deg)"><polyline points="6 9 12 15 18 9"/></svg>`
+      : '';
+
+    return `<div ${clickAttr} ${hoverEnter} ${hoverLeave} style="background:${cardBgFinal};border-radius:14px;padding:20px;${inscrit ? 'cursor:pointer;' : ''}transition:box-shadow .18s ease,transform .18s ease;box-shadow:${shadowFinal}${!inscrit ? ';border:1.5px solid #f5c6c2' : ''}">
+      <div class="hg-clinic-card-head">
+        <div>
+          <div style="font-size:15px;font-weight:700;display:flex;align-items:center;flex-wrap:wrap;gap:4px">${esc(c.name)}${statutBadge}</div>
+          <div style="font-size:12px;color:#8a9a8d;margin-top:3px">${inscrit ? `Code <span style="font-family:monospace;color:#5b6b5e">${esc(c.code||'')}</span>${c.lastSeen ? ' · ' + ((() => { const diff = Math.floor((Date.now() - c.lastSeen)/60000); if (diff < 2) return '<span style="color:#019939">en ligne</span>'; if (diff < 60) return 'il y a ' + diff + ' min'; if (diff < 1440) return 'il y a ' + Math.floor(diff/60) + 'h'; return 'il y a ' + Math.floor(diff/1440) + 'j'; })()) : ' · <span style="color:#c0c8c2">jamais connectée</span>'}` : ''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex:none">
+          ${inscrit ? `<div style="display:flex;align-items:center;gap:6px">
+            <span style="width:8px;height:8px;border-radius:50%;background:${statusColor};display:inline-block"></span>
+            <span style="font-size:12px;font-weight:600;color:${statusColor}">${statusLabel}</span>
+          </div>` : ''}
+          ${chevron}
+        </div>
       </div>
-      ${expandedBlock}
+      ${statsBlock}
+      ${inscrit ? expandedBlock : ''}
     </div>`;
   }).join('');
 }
@@ -1200,6 +1404,38 @@ function toggleClinic(id) {
 function esc(str) {
   if (!str) return '';
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function telCopyHtml(tel, color) {
+  if (!tel) return '';
+  const c = color || '#5b6b5e';
+  const copyIcon = `<svg style="width:11px;height:11px;opacity:0.4;flex-shrink:0;vertical-align:middle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+  return `<div style="font-size:12px;color:${c};margin-top:2px;display:flex;align-items:center;gap:4px;cursor:pointer" onclick="copyTelClinique(event,'${tel.replace(/\s/g,'')}')" title="Copier le numéro">${esc(tel)}${copyIcon}</div>`;
+}
+
+function copyTelClinique(e, num) {
+  e.stopPropagation();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(num).then(() => _showTelToast('Numéro copié !')).catch(() => _copyTelFallback(num));
+  } else { _copyTelFallback(num); }
+}
+function _copyTelFallback(num) {
+  const ta = document.createElement('textarea');
+  ta.value = num; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); _showTelToast('Numéro copié !'); } catch(e) {}
+  document.body.removeChild(ta);
+}
+function _showTelToast(msg) {
+  let t = document.getElementById('_tel-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = '_tel-toast';
+    t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1a2e1e;color:#fff;padding:8px 18px;border-radius:99px;font-size:13px;font-weight:600;z-index:9999;pointer-events:none;opacity:0;transition:opacity 0.2s';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg; t.style.opacity = '1';
+  clearTimeout(t._to); t._to = setTimeout(() => t.style.opacity = '0', 1800);
 }
 
 // ==================== EN ROUTE VÉTÉRINAIRE ====================
@@ -1280,6 +1516,7 @@ async function fetchEnRouteVet() {
 // ==================== ADMIN POLLING ====================
 async function fetchAdminData() {
   try {
+    const before = _snapshotClinics();
     const r = await fetch('/api/data');
     if (!r.ok) return;
     const csvText = await r.text();
@@ -1317,6 +1554,7 @@ async function fetchAdminData() {
         species: (row['Espèces'] || row['Espèce'] || row['Espece'] || 'Espèce non précisée').trim(),
         eta:     'Dépôt particulier',
         contact: (row['Numéro'] || '').trim(),
+        date:    (row['DATE'] || row['Date'] || '').trim(),
         fromSheet: true,
       }));
       return {
@@ -1346,12 +1584,77 @@ async function fetchAdminData() {
     const updateEl = document.querySelector('#screen-admin [style*="Mis à jour"]');
     if (updateEl) updateEl.textContent = `Mis à jour à ${h}:${mn}`;
 
+    const after = _snapshotClinics();
+    _diffAndNotify(before, after);
     if (state.screen === 'admin') renderAdmin();
   } catch(e) { /* silencieux */ }
 }
 
+// ==================== NOTIFICATIONS ====================
+function updateNotifBtn() {
+  const btn = document.getElementById('notif-btn');
+  const lbl = document.getElementById('notif-btn-label');
+  if (!btn || !('Notification' in window)) { if (btn) btn.style.display = 'none'; return; }
+  if (Notification.permission === 'granted') {
+    btn.style.opacity = '0.5';
+    btn.style.cursor = 'default';
+    btn.onclick = null;
+    lbl.textContent = 'Notifs actives';
+  } else if (Notification.permission === 'denied') {
+    btn.style.opacity = '0.5';
+    btn.style.cursor = 'default';
+    btn.onclick = null;
+    lbl.textContent = 'Notifs bloquées';
+  }
+}
+
+async function enableNotifications() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission !== 'granted') {
+    await Notification.requestPermission();
+    updateNotifBtn();
+    if (Notification.permission === 'granted') {
+      notify('Hegalaldia', 'Les notifications sont activées.');
+    }
+  }
+}
+
+function requestNotifPermission() { updateNotifBtn(); }
+
+function notify(title, body, icon) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  new Notification(title, { body, icon: icon || 'favicon.png', requireInteraction: true });
+}
+
+let _adminSnapshot = {}; // { clinicName: { animaux, deces, enRoute, depots } }
+
+function _snapshotClinics() {
+  const snap = {};
+  state.adminClinics.forEach(c => {
+    snap[c.name] = { animaux: c.animaux, deces: c.deces, enRoute: c.enRoute, depots: c.depots };
+  });
+  return snap;
+}
+
+function _diffAndNotify(before, after) {
+  state.adminClinics.forEach(c => {
+    const prev = before[c.name];
+    if (!prev) return; // première fois, pas de notif
+    const next = after[c.name];
+    if (!next) return;
+    const nom = c.name.split('(')[1]?.replace(')','').trim() || c.name;
+
+    if (next.animaux > prev.animaux) notify(`🐾 Nouvel animal — ${nom}`, `${next.animaux - prev.animaux} animal(aux) supplémentaire(s) en clinique`);
+    if (next.animaux < prev.animaux) notify(`✅ Sortie — ${nom}`, `${prev.animaux - next.animaux} animal(aux) sorti(s)`);
+    if (next.deces > prev.deces) notify(`📋 Sortie enregistrée — ${nom}`, `${next.deces - prev.deces} sortie(s) de plus`);
+    if (next.enRoute > prev.enRoute) notify(`🚐 En route — ${nom}`, `${next.enRoute - prev.enRoute} rapatrieur(s) en route`);
+    if (next.depots > prev.depots) notify(`📦 Dépôt prévu — ${nom}`, `${next.depots - prev.depots} dépôt(s) attendu(s) de plus`);
+  });
+}
+
 let _adminInterval = null;
 function startAdminPolling() {
+  requestNotifPermission();
   fetchAdminData();
   if (_adminInterval) clearInterval(_adminInterval);
   _adminInterval = setInterval(fetchAdminData, 60000);
@@ -1406,14 +1709,34 @@ async function syncClinicStats() {
         sheetArrived: state.sheetArrived || [],
         animalsList:  state.animalsPresent.map(a => ({ id: a.id, species: a.species, num: a.num||'', commune: a.commune||'', arrivalDate: a.arrivalDate })),
         outcomesList: state.outcomes.map(o => ({ id: o.id, species: o.species, num: o.num||'', commune: o.commune||'', date: o.date, type: o.type })),
-        depotsList:   state.depots.map(d => ({ id: d.id, species: d.species, eta: d.eta||'', contact: d.contact||'' })),
+        depotsList:   state.depots.map(d => ({ id: d.id, species: d.species, eta: d.eta||'', contact: d.contact||'', date: d.date||'' })),
       })
     });
   } catch(e) {}
 }
 
-// Alias pour les appels directs (ajout/modif locaux → push immédiat sans pull)
-async function pushClinicStats() { await syncClinicStats(); }
+// Push uniquement (sans pull) — utilisé après un ajout/modif local
+async function pushClinicStats() {
+  if (!state.clinicCode) return;
+  try {
+    await fetch('/api/clinic-stats', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code:         state.clinicCode,
+        lastSeen:     Date.now(),
+        animaux:      state.animalsPresent.length,
+        deces:        state.outcomes.length,
+        depots:       state.depots.length,
+        enRoute:      state.enRoute.length,
+        sheetArrived: state.sheetArrived || [],
+        animalsList:  state.animalsPresent.map(a => ({ id: a.id, species: a.species, num: a.num||'', commune: a.commune||'', arrivalDate: a.arrivalDate })),
+        outcomesList: state.outcomes.map(o => ({ id: o.id, species: o.species, num: o.num||'', commune: o.commune||'', date: o.date, type: o.type })),
+        depotsList:   state.depots.map(d => ({ id: d.id, species: d.species, eta: d.eta||'', contact: d.contact||'', date: d.date||'' })),
+      })
+    });
+  } catch(e) {}
+}
 
 // Sauvegarde localStorage uniquement (sans sync serveur)
 function saveClinicStateLocal() {
@@ -1485,15 +1808,32 @@ document.addEventListener('visibilitychange', () => {
 // ==================== INIT ====================
 (async () => {
   await loadPartenaires();
+  await loadClinicPrefs();
   renderDashboard();
-  // Populate demo codes list
+  // Populate codes list (fetched server-side)
   const demoEl = document.getElementById('demo-codes');
   if (demoEl) {
-    demoEl.innerHTML = state.adminClinics.map(v =>
-      `<span style="display:inline-block;background:#f2f5f2;border-radius:5px;padding:1px 7px;margin:1px 2px;font-family:monospace;color:#3a5a3e">${v.code}</span>`
-    ).join('') + `<span style="display:inline-block;background:#0c3d22;border-radius:5px;padding:1px 7px;margin:1px 2px;font-family:monospace;color:#fff">HEGA-ADMIN</span>`;
+    try {
+      const r = await fetch('/api/clinics/codes');
+      const data = await r.json();
+      const allCodes = [
+        ...data.clinics.map(c => ({code: c.code, label: c.nom, admin: false})),
+        {code: data.admin_code, label: 'Admin', admin: true}
+      ];
+      const hidden = new Set();
+      function renderDemoCodes() {
+        demoEl.innerHTML = allCodes.filter(c => !hidden.has(c.code)).map(c =>
+          `<span style="display:inline-flex;align-items:center;gap:4px;background:${c.admin ? '#0c3d22' : '#f2f5f2'};border-radius:5px;padding:1px 7px;margin:1px 2px;font-family:monospace;color:${c.admin ? '#fff' : '#3a5a3e'}" title="${c.label}">
+            ${c.code}
+            <span onclick="event.stopPropagation();_demoHide('${c.code}')" style="cursor:pointer;font-size:11px;font-family:sans-serif;line-height:1;margin-left:2px;color:${c.admin ? '#a8d5b5' : '#8a9a8d'}" title="Masquer">×</span>
+          </span>`
+        ).join('');
+      }
+      window._demoHide = code => { hidden.add(code); renderDemoCodes(); };
+      renderDemoCodes();
+    } catch(e) { demoEl.textContent = 'Impossible de charger les codes.'; }
   }
 })();
 </script>
-</body>
+<script>fetch("/api/version").then(r=>r.json()).then(d=>{const el=document.createElement("div");el.style.cssText="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(0,0,0,0.25);font-family:monospace;z-index:9999;pointer-events:none";el.textContent="v"+d.commit+" · "+d.date;document.body.appendChild(el)}).catch(()=>{})</script></body>
 </html>

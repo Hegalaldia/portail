@@ -1,6 +1,29 @@
+# Système
 .DS_Store
-.auth_tokens.json
+*.pyc
+__pycache__/
+
+# Données live (changent en production)
+benevoles.json
 benevoles.json.bak
+benevoles_drafts.json
+messages.json
+clinic_stats.json
+clinic_history.json
+geo_cache.json
+
+# Sécurité (tokens, mots de passe, IPs)
+config.json
+tokens.json
+failed_logins.json
+.auth_tokens.json
+
+# Dossiers de données
+photos/
+backups/
+
+# Divers
+newsletter-tool/
 listingbenevole.xls
 heatmap-preview.png
 Capture*.png
