@@ -40,11 +40,32 @@ foreach ($dirs as $d) {
 }
 echo "</ul>";
 
-echo "<h3>PHP</h3><ul>";
-echo "<li>Version : " . phpversion() . "</li>";
-echo "<li>mod_rewrite : " . (in_array('mod_rewrite', apache_get_modules() ?? []) ? '✅ actif' : '⚠️ non détectable') . "</li>";
+// Créer les fichiers manquants
+$defaults = [
+    'benevoles_drafts.json' => '[]',
+    'messages.json'         => '[]',
+    'tokens.json'           => '[]',
+    'failed_logins.json'    => '[]',
+    'config.json'           => '{}',
+    'geo_cache.json'        => '{}',
+];
+echo "<h3>Création fichiers manquants</h3><ul>";
+foreach ($defaults as $f => $content) {
+    $path = $root . '/' . $f;
+    if (!file_exists($path)) {
+        $ok = file_put_contents($path, $content);
+        echo "<li>" . ($ok !== false ? "✅" : "❌") . " $f créé</li>";
+    }
+}
 echo "</ul>";
 
-echo "<h3>Test route API</h3>";
-$test = file_get_contents('http://' . $_SERVER['HTTP_HOST'] . '/api/benevoles');
-echo $test !== false ? "✅ /api/benevoles répond" : "❌ /api/benevoles ne répond pas";
+// Créer dossier photos
+$photosDir = $root . '/photos';
+if (!is_dir($photosDir)) {
+    $ok = mkdir($photosDir, 0755, true);
+    echo "<p>" . ($ok ? "✅" : "❌") . " Dossier photos/ créé</p>";
+}
+
+echo "<h3>PHP</h3><ul>";
+echo "<li>Version : " . phpversion() . "</li>";
+echo "</ul>";
