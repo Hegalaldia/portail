@@ -78,7 +78,7 @@ echo "HTTP_HOST : " . $_SERVER['HTTP_HOST'] . "\n";
 echo "</pre>";
 
 // Test direct include de api/index.php pour voir les erreurs PHP
-echo "<h3>Test include api/index.php</h3>";
+echo "<h3>Test GET /api/benevoles</h3>";
 ob_start();
 $_SERVER['REQUEST_URI'] = '/api/benevoles';
 $_SERVER['REQUEST_METHOD'] = 'GET';
@@ -90,4 +90,38 @@ try {
 } catch (Throwable $e) {
     ob_get_clean();
     echo "<p style='color:red'>❌ Erreur : " . $e->getMessage() . " dans " . $e->getFile() . " ligne " . $e->getLine() . "</p>";
+}
+
+// Test POST /api/auth
+echo "<h3>Test POST /api/auth</h3>";
+ob_start();
+// Simuler un POST avec un faux mot de passe
+$_SERVER['REQUEST_URI'] = '/api/auth';
+$_SERVER['REQUEST_METHOD'] = 'POST';
+$_SERVER['CONTENT_TYPE'] = 'application/json';
+// Patcher php://input via un fichier temporaire n'est pas possible, on va juste tester la route
+try {
+    // Tester la fonction check_portal_password directement
+    require_once $root . '/api/utils.php';
+    require_once $root . '/api/auth.php';
+    ob_get_clean();
+    $cfg = load_config();
+    $pwd_cfg = $cfg['portal_password'] ?? '(non défini — défaut: Hegalaldia2026)';
+    echo "<p>✅ auth.php chargé sans erreur</p>";
+    echo "<p>Mot de passe configuré : <code>" . htmlspecialchars($pwd_cfg) . "</code></p>";
+    $tokens_file = BASE_DIR . '/.auth_tokens.json';
+    echo "<p>Fichier .auth_tokens.json : " . (file_exists($tokens_file) ? '✅ existe' : '⚠️ n\'existe pas encore (normal au premier login)') . "</p>";
+    $fl_file = BASE_DIR . '/failed_logins.json';
+    $fl = json_read($fl_file, []);
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '?';
+    echo "<p>IP actuelle : <code>" . htmlspecialchars($ip) . "</code></p>";
+    if (isset($fl[$ip])) {
+        $entry = $fl[$ip];
+        echo "<p style='color:orange'>⚠️ Tentatives échouées pour cette IP : " . ($entry['count'] ?? 0) . ", bloquée jusqu'à : " . ($entry['blocked_until'] ?? 0 > time() ? date('H:i:s', $entry['blocked_until']) : 'non bloquée') . "</p>";
+    } else {
+        echo "<p>✅ Aucun blocage pour cette IP</p>";
+    }
+} catch (Throwable $e) {
+    ob_get_clean();
+    echo "<p style='color:red'>❌ Erreur : " . htmlspecialchars($e->getMessage()) . " dans " . htmlspecialchars($e->getFile()) . " ligne " . $e->getLine() . "</p>";
 }
