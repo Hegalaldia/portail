@@ -69,3 +69,25 @@ if (!is_dir($photosDir)) {
 echo "<h3>PHP</h3><ul>";
 echo "<li>Version : " . phpversion() . "</li>";
 echo "</ul>";
+
+echo "<h3>Test routing API</h3>";
+echo "<pre>";
+echo "REQUEST_URI : " . $_SERVER['REQUEST_URI'] . "\n";
+echo "SCRIPT_NAME : " . $_SERVER['SCRIPT_NAME'] . "\n";
+echo "HTTP_HOST : " . $_SERVER['HTTP_HOST'] . "\n";
+echo "</pre>";
+
+// Test direct include de api/index.php pour voir les erreurs PHP
+echo "<h3>Test include api/index.php</h3>";
+ob_start();
+$_SERVER['REQUEST_URI'] = '/api/benevoles';
+$_SERVER['REQUEST_METHOD'] = 'GET';
+try {
+    include $root . '/api/index.php';
+    $output = ob_get_clean();
+    echo "<p>✅ Réponse reçue (" . strlen($output) . " octets)</p>";
+    echo "<pre>" . htmlspecialchars(substr($output, 0, 200)) . "</pre>";
+} catch (Throwable $e) {
+    ob_get_clean();
+    echo "<p style='color:red'>❌ Erreur : " . $e->getMessage() . " dans " . $e->getFile() . " ligne " . $e->getLine() . "</p>";
+}
