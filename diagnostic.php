@@ -77,19 +77,35 @@ echo "SCRIPT_NAME : " . $_SERVER['SCRIPT_NAME'] . "\n";
 echo "HTTP_HOST : " . $_SERVER['HTTP_HOST'] . "\n";
 echo "</pre>";
 
-// Test direct include de api/index.php pour voir les erreurs PHP
-echo "<h3>Test GET /api/benevoles</h3>";
-ob_start();
-$_SERVER['REQUEST_URI'] = '/api/benevoles';
-$_SERVER['REQUEST_METHOD'] = 'GET';
-try {
-    include $root . '/api/index.php';
-    $output = ob_get_clean();
-    echo "<p>✅ Réponse reçue (" . strlen($output) . " octets)</p>";
-    echo "<pre>" . htmlspecialchars(substr($output, 0, 200)) . "</pre>";
-} catch (Throwable $e) {
-    ob_get_clean();
-    echo "<p style='color:red'>❌ Erreur : " . $e->getMessage() . " dans " . $e->getFile() . " ligne " . $e->getLine() . "</p>";
+// Test GET /api/benevoles via curl (évite exit() de json_response)
+echo "<h3>Test GET /api/benevoles (curl HTTP)</h3>";
+$_host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$_scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$_bev_url = $_scheme . '://' . $_host . '/api/benevoles';
+$_ch = curl_init($_bev_url);
+curl_setopt_array($_ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_TIMEOUT        => 10,
+    CURLOPT_SSL_VERIFYPEER => false,
+    CURLOPT_HEADER         => true,
+]);
+$_raw = curl_exec($_ch);
+$_err = curl_error($_ch);
+$_info = curl_getinfo($_ch);
+curl_close($_ch);
+if ($_err) {
+    echo "<p style='color:red'>❌ curl error : " . htmlspecialchars($_err) . "</p>";
+} else {
+    $_body = substr($_raw, $_info['header_size']);
+    echo "<p>HTTP status : <strong>" . $_info['http_code'] . "</strong></p>";
+    $_dec = json_decode($_body, true);
+    if ($_dec !== null) {
+        echo "<p style='color:green'>✅ JSON valide (" . strlen($_body) . " octets)</p>";
+        echo "<pre>" . htmlspecialchars(substr($_body, 0, 200)) . "</pre>";
+    } else {
+        echo "<p style='color:red'>❌ Réponse non-JSON</p>";
+        echo "<pre>" . htmlspecialchars(substr($_body, 0, 200)) . "</pre>";
+    }
 }
 
 // Test POST /api/auth via curl HTTP réel
