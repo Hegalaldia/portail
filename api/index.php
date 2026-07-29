@@ -1,4 +1,10 @@
 <?php
+// DEBUG TEMPORAIRE — à supprimer après diagnostic
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
+// FIN DEBUG
+
 /**
  * api/index.php — Routeur principal pour toutes les routes /api/*
  *
