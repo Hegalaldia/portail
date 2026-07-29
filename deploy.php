@@ -21,6 +21,6 @@ if (($data['ref'] ?? '') !== 'refs/heads/main') {
 }
 
 $dir = escapeshellarg(__DIR__);
-$https_url = 'https://github.com/PyroNiuM64/Heatmap-Hegalaldia.git';
+$https_url = 'https://github.com/Hegalaldia/portail.git';
 $output = shell_exec("cd $dir && git remote set-url origin " . escapeshellarg($https_url) . " && git pull origin main 2>&1");
 echo "OK\n" . $output;
