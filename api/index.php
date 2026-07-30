@@ -48,6 +48,12 @@ $uri = '/' . ltrim($uri, '/');  // normaliser : commence par '/'
 $qs = [];
 parse_str($_SERVER['QUERY_STRING'] ?? '', $qs);
 
+// DEBUG
+error_log("DEBUG api/index.php : uri=$uri method=$method");
+header('X-Debug-Uri: ' . $uri);
+header('X-Debug-Method: ' . $method);
+// FIN DEBUG
+
 // ── Routing ────────────────────────────────────────────────────────────────────
 
 try {
