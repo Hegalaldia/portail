@@ -303,6 +303,7 @@ try {
 
         // ── Auth portail ──────────────────────────────────────────────────────
         case $uri === '/auth' && $method === 'POST':
+            echo "ROUTE_REACHED\n";
             route_auth_post();
 
         case $uri === '/auth/verify' && $method === 'POST':
