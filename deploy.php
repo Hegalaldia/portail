@@ -22,5 +22,5 @@ if (($data['ref'] ?? '') !== 'refs/heads/main') {
 
 $dir = escapeshellarg(__DIR__);
 $https_url = 'https://github.com/Hegalaldia/portail.git';
-$output = shell_exec("cd $dir && git remote set-url origin " . escapeshellarg($https_url) . " && git clean -f deploy.php && git pull origin main 2>&1");
+$output = shell_exec("cd $dir && git remote set-url origin " . escapeshellarg($https_url) . " && git fetch origin main && git reset --hard FETCH_HEAD 2>&1");
 echo "OK\n" . $output;
