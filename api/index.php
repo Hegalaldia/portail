@@ -212,6 +212,7 @@ try {
 
         // ── Bénévoles ─────────────────────────────────────────────────────────
         case $uri === '/benevoles' && $method === 'GET':
+        case $uri === '/liste' && $method === 'GET':
             route_benevoles_get();
 
         case $uri === '/benevoles/drafts' && $method === 'GET':
