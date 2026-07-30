@@ -1646,7 +1646,7 @@ function archiveDownload() {
   const btn     = document.getElementById('archive-btn-dl');
   btn.classList.add('loading');
   btn.textContent = 'Génération…';
-  fetch(`/api/benevoles/export-xls?year=${year}`)
+  fetch(`/api/volontaires/export-xls?year=${year}`)
     .then(r => { if (!r.ok) return r.text().then(t => { throw new Error(t); }); return r.blob(); })
     .then(blob => {
       const a = document.createElement('a');
@@ -1669,7 +1669,7 @@ function archiveClear() {
   const btn = document.getElementById('archive-btn-clear');
   btn.classList.add('loading');
   btn.textContent = 'Suppression…';
-  fetch('/api/benevoles/clear-rapatriements', {
+  fetch('/api/volontaires/clear-rapatriements', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ year })
@@ -1725,7 +1725,7 @@ function updateArchiveDeleteBtn() {
 
 function archiveModalDownload() {
   const year = document.getElementById('archive-modal-year').value;
-  fetch(`/api/benevoles/export-xls?year=${year}`)
+  fetch(`/api/volontaires/export-xls?year=${year}`)
     .then(r => { if (!r.ok) return r.text().then(t => { throw new Error(t); }); return r.blob(); })
     .then(blob => {
       const a = document.createElement('a');
@@ -1742,7 +1742,7 @@ function archiveModalDelete() {
   const btn  = document.getElementById('archive-modal-delete-btn');
   btn.classList.add('loading');
   btn.textContent = 'Suppression en cours…';
-  fetch('/api/benevoles/clear-rapatriements', {
+  fetch('/api/volontaires/clear-rapatriements', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ year })
@@ -1770,7 +1770,7 @@ function exportXLS() {
   const ids = _filteredRows.map(b => b._id).filter(Boolean);
   const isFiltered = ids.length < allData.length;
 
-  fetch('/api/benevoles/export-xls', {
+  fetch('/api/volontaires/export-xls', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ ids: isFiltered ? ids : null }),
@@ -1900,7 +1900,7 @@ function parseDate(s) {
 let _lastDataHash = '';
 async function loadData(forceRender = false) {
   try {
-    const r = await fetch('/api/benevoles');
+    const r = await fetch('/api/volontaires');
     const newData = await r.json();
     const hash = JSON.stringify(newData);
     if (!forceRender && hash === _lastDataHash) return;
@@ -2857,7 +2857,7 @@ function renderCards(rows) {
           </div>
           <div style="display:flex;align-items:flex-start;gap:8px;flex-shrink:0;margin-left:8px;">
             <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">${badgesHtml}</div>
-            <img src="/api/benevoles/photo/${b._id||''}${_photoTs[b._id] ? '?t='+_photoTs[b._id] : ''}" alt="" style="width:60px;height:60px;border-radius:50%;object-fit:cover;display:none;flex-shrink:0;" onerror="this.style.display='none'" onload="this.style.display='block'">
+            <img src="/api/volontaires/photo/${b._id||''}${_photoTs[b._id] ? '?t='+_photoTs[b._id] : ''}" alt="" style="width:60px;height:60px;border-radius:50%;object-fit:cover;display:none;flex-shrink:0;" onerror="this.style.display='none'" onload="this.style.display='block'">
           </div>
         </div>
         ${cardIcons(b)}
@@ -3079,13 +3079,13 @@ function upsertDraft(data) {
   _saveDraftsLocal(drafts);
   updateDraftBadge();
   // Sync serveur (best-effort)
-  fetch('/api/benevoles/drafts', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) }).catch(()=>{});
+  fetch('/api/volontaires/drafts', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) }).catch(()=>{});
 }
 
 // Charger les brouillons depuis le serveur et fusionner avec localStorage
 async function syncDraftsFromServer() {
   try {
-    const r = await fetch('/api/benevoles/drafts');
+    const r = await fetch('/api/volontaires/drafts');
     if (!r.ok) return;
     const serverDrafts = await r.json();
     // Le serveur est la source de vérité : on remplace le local par le serveur
@@ -3094,7 +3094,7 @@ async function syncDraftsFromServer() {
     const localOnly = getDrafts().filter(d => !serverIds.has(d._draftId));
     // Envoyer les brouillons locaux manquants au serveur
     for (const d of localOnly) {
-      fetch('/api/benevoles/drafts', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(d) }).catch(()=>{});
+      fetch('/api/volontaires/drafts', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(d) }).catch(()=>{});
     }
     _saveDraftsLocal([...serverDrafts, ...localOnly]);
     updateDraftBadge();
@@ -3201,7 +3201,7 @@ function deleteDraft(i) {
   _saveDraftsLocal(drafts);
   updateDraftBadge();
   renderDrafts();
-  if (draftId) fetch(`/api/benevoles/drafts/${encodeURIComponent(draftId)}`, { method: 'DELETE' }).catch(()=>{});
+  if (draftId) fetch(`/api/volontaires/drafts/${encodeURIComponent(draftId)}`, { method: 'DELETE' }).catch(()=>{});
 }
 
 // ════════════════════════════
@@ -3483,7 +3483,7 @@ function startEdit(b) {
         preview.src = tmp.src; preview.style.display = 'block'; ph.style.display = 'none';
         if (delBtn) delBtn.style.display = 'flex';
       };
-      tmp.src = `/api/benevoles/photo/${b._id}?t=${Date.now()}`;
+      tmp.src = `/api/volontaires/photo/${b._id}?t=${Date.now()}`;
     } else {
       if (delBtn) delBtn.style.display = 'none';
     }
@@ -3510,7 +3510,7 @@ document.getElementById('add-form').addEventListener('submit', async e => {
   res.style.display = 'none';
   try {
   const data = collectForm(form);
-  const endpoint = editingBenev ? '/api/benevoles/update' : '/api/benevoles/add';
+  const endpoint = editingBenev ? '/api/volontaires/update' : '/api/volontaires/add';
   const body = editingBenev
     ? { ...data, _orig_nom: editingBenev.nom, _orig_prenom: editingBenev.prenom }
     : data;
@@ -3529,7 +3529,7 @@ document.getElementById('add-form').addEventListener('submit', async e => {
       // Upload photo si présente (création ou modification)
       const photoTargetId = isEdit ? editingBenev._id : rJson.id;
       if (_pendingFormPhotoBlob && photoTargetId) {
-        await fetch(`/api/benevoles/photo/${photoTargetId}`, {
+        await fetch(`/api/volontaires/photo/${photoTargetId}`, {
           method: 'POST', headers: { 'Content-Type': 'image/jpeg' }, body: _pendingFormPhotoBlob
         });
         _photoTs[photoTargetId] = Date.now();
@@ -3544,7 +3544,7 @@ document.getElementById('add-form').addEventListener('submit', async e => {
         const drafts = getDrafts().filter(d => d._draftId !== draftIdToDelete);
         _saveDraftsLocal(drafts);
         updateDraftBadge();
-        fetch(`/api/benevoles/drafts/${encodeURIComponent(draftIdToDelete)}`, { method: 'DELETE' }).catch(()=>{});
+        fetch(`/api/volontaires/drafts/${encodeURIComponent(draftIdToDelete)}`, { method: 'DELETE' }).catch(()=>{});
         _currentDraftId = null;
       }
       // Restaurer le bouton et masquer la bannière d'édition
@@ -3560,13 +3560,13 @@ document.getElementById('add-form').addEventListener('submit', async e => {
       });
       if (_pendingPhotoBenevId) {
         if (_pendingPhotoBlob) {
-          await fetch(`/api/benevoles/photo/${_pendingPhotoBenevId}`, {
+          await fetch(`/api/volontaires/photo/${_pendingPhotoBenevId}`, {
             method: 'POST', headers: { 'Content-Type': 'image/jpeg' }, body: _pendingPhotoBlob
           });
           _photoTs[_pendingPhotoBenevId] = Date.now();
           _pendingPhotoBlob = null;
         } else if (_pendingPhotoDelete) {
-          await fetch(`/api/benevoles/photo/${_pendingPhotoBenevId}`, { method: 'DELETE' });
+          await fetch(`/api/volontaires/photo/${_pendingPhotoBenevId}`, { method: 'DELETE' });
           _photoTs[_pendingPhotoBenevId] = Date.now();
           _pendingPhotoDelete = false;
         }
@@ -3793,7 +3793,7 @@ function openDetail(b) {
       <div class="dp-header-top">
         <div style="display:flex;align-items:center;gap:14px;min-width:0;">
           <div style="position:relative;flex-shrink:0;">
-            <img id="dp-photo-img" src="/api/benevoles/photo/${benevPhotoId}${_photoTs[benevPhotoId] ? '?t='+_photoTs[benevPhotoId] : ''}" alt=""
+            <img id="dp-photo-img" src="/api/volontaires/photo/${benevPhotoId}${_photoTs[benevPhotoId] ? '?t='+_photoTs[benevPhotoId] : ''}" alt=""
               style="width:86px;height:86px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.25);display:none;"
               onerror="this.style.display='none';document.getElementById('dp-photo-placeholder').style.display='flex'"
               onload="this.style.display='block';document.getElementById('dp-photo-placeholder').style.display='none'">
@@ -3886,7 +3886,7 @@ async function confirmDeleteBenevole() {
   if (!b) return;
   if (!confirm(`Supprimer définitivement ${b.prenom} ${b.nom} ?\n\nCette action est irréversible.`)) return;
   try {
-    const r = await fetch('/api/benevoles/delete', {
+    const r = await fetch('/api/volontaires/delete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ benevole_id: b._id })
@@ -4796,7 +4796,7 @@ function confirmCrop() {
       window._onFormPhotoCropped(blob);
     } else {
       // Mode direct depuis le panneau de détail (non utilisé actuellement)
-      fetch(`/api/benevoles/photo/${benevId}`, {
+      fetch(`/api/volontaires/photo/${benevId}`, {
         method: 'POST', headers: { 'Content-Type': 'image/jpeg' }, body: blob
       }).then(r => r.ok && _openDetailBenev && openDetail(_openDetailBenev));
     }

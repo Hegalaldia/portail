@@ -211,50 +211,49 @@ try {
             route_clinic_verify_code_post();
 
         // ── Bénévoles ─────────────────────────────────────────────────────────
-        case $uri === '/benevoles' && $method === 'GET':
-        case $uri === '/liste' && $method === 'GET':
+        case $uri === '/volontaires' && $method === 'GET':
             route_benevoles_get();
 
-        case $uri === '/benevoles/drafts' && $method === 'GET':
+        case $uri === '/volontaires/drafts' && $method === 'GET':
             route_benevoles_drafts_get();
 
-        case $uri === '/benevoles/drafts' && $method === 'POST':
+        case $uri === '/volontaires/drafts' && $method === 'POST':
             route_benevoles_drafts_post();
 
-        case preg_match('#^/benevoles/drafts/([^/]+)$#', $uri, $m) && $method === 'DELETE':
+        case preg_match('#^/volontaires/drafts/([^/]+)$#', $uri, $m) && $method === 'DELETE':
             route_benevoles_drafts_delete($m[1]);
 
-        case $uri === '/benevoles/add' && $method === 'POST':
+        case $uri === '/volontaires/add' && $method === 'POST':
             route_benevoles_add_post();
 
-        case $uri === '/benevoles/update' && $method === 'POST':
+        case $uri === '/volontaires/update' && $method === 'POST':
             route_benevoles_update_post();
 
-        case $uri === '/benevoles/delete' && $method === 'POST':
+        case $uri === '/volontaires/delete' && $method === 'POST':
             route_benevoles_delete_post();
 
-        case $uri === '/benevoles/reimport-xls' && $method === 'POST':
+        case $uri === '/volontaires/reimport-xls' && $method === 'POST':
             route_benevoles_reimport_post();
 
-        case $uri === '/benevoles/clear-rapatriements' && $method === 'POST':
+        case $uri === '/volontaires/clear-rapatriements' && $method === 'POST':
             route_clear_rapatriements_post();
 
         // ── Export XLS/CSV ────────────────────────────────────────────────────
-        case str_starts_with($uri, '/benevoles/export-xls') && $method === 'GET':
+        case str_starts_with($uri, '/volontaires/export-xls') && $method === 'GET':
             $year = isset($qs['year']) ? (int)$qs['year'] : null;
             route_benevoles_export_get($year);
 
-        case $uri === '/benevoles/export-xls' && $method === 'POST':
+        case $uri === '/volontaires/export-xls' && $method === 'POST':
             route_benevoles_export_post();
 
         // ── Photos ────────────────────────────────────────────────────────────
-        case preg_match('#^/benevoles/photo/([^/?]+)$#', $uri, $m) && $method === 'GET':
+        case preg_match('#^/volontaires/photo/([^/?]+)$#', $uri, $m) && $method === 'GET':
             route_benevoles_photo_get($m[1]);
 
-        case preg_match('#^/benevoles/photo/([^/?]+)$#', $uri, $m) && $method === 'POST':
+        case preg_match('#^/volontaires/photo/([^/?]+)$#', $uri, $m) && $method === 'POST':
             route_benevoles_photo_post($m[1]);
 
-        case preg_match('#^/benevoles/photo/([^/?]+)$#', $uri, $m) && $method === 'DELETE':
+        case preg_match('#^/volontaires/photo/([^/?]+)$#', $uri, $m) && $method === 'DELETE':
             route_benevoles_photo_delete($m[1]);
 
         // ── Centres de soins ──────────────────────────────────────────────────
