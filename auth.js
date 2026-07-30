@@ -65,7 +65,7 @@
       btn.textContent = '…';
       errEl.style.display = 'none';
 
-      fetch('/api/auth', {
+      fetch('/api/connexion', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({password: pwd})
@@ -148,7 +148,7 @@
       showOverlay();
       return;
     }
-    fetch('/api/auth/verify', {
+    fetch('/api/connexion/verify', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({token: token})

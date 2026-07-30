@@ -1,10 +1,4 @@
 <?php
-// DEBUG TEMPORAIRE — à supprimer après diagnostic
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
-// FIN DEBUG
-
 /**
  * api/index.php — Routeur principal pour toutes les routes /api/*
  *
@@ -47,12 +41,6 @@ $uri = '/' . ltrim($uri, '/');  // normaliser : commence par '/'
 // Helper : extrait les paramètres de query string
 $qs = [];
 parse_str($_SERVER['QUERY_STRING'] ?? '', $qs);
-
-// DEBUG
-error_log("DEBUG api/index.php : uri=$uri method=$method");
-header('X-Debug-Uri: ' . $uri);
-header('X-Debug-Method: ' . $method);
-// FIN DEBUG
 
 // ── Routing ────────────────────────────────────────────────────────────────────
 
@@ -308,11 +296,10 @@ try {
             json_response(get_version_info());
 
         // ── Auth portail ──────────────────────────────────────────────────────
-        case $uri === '/auth' && $method === 'POST':
-            echo "ROUTE_REACHED\n";
+        case $uri === '/connexion' && $method === 'POST':
             route_auth_post();
 
-        case $uri === '/auth/verify' && $method === 'POST':
+        case $uri === '/connexion/verify' && $method === 'POST':
             route_auth_verify_post();
 
         // ── 404 ───────────────────────────────────────────────────────────────
