@@ -404,7 +404,7 @@ const state = {
 // ==================== CHARGEMENT CLINIQUES PARTENAIRES ====================
 async function loadClinicPrefs() {
   try {
-    const r = await fetch('/api/clinics/prefs');
+    const r = await fetch('/api/clinic-prefs');
     state.clinicPrefs = await r.json();
   } catch(e) { state.clinicPrefs = {}; }
 }
@@ -413,7 +413,7 @@ async function setClinicPref(nom, val) {
   state.clinicPrefs[nom] = val;
   renderAdmin();
   renderPrefsDropdown();
-  await fetch('/api/clinics/prefs', {
+  await fetch('/api/clinic-prefs', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({nom, val})
@@ -469,7 +469,7 @@ async function loadPartenaires() {
     const visibles = vetos.filter(v => v.statut !== 'Eviter');
     let codesMap = {};
     try {
-      const cr = await fetch('/api/clinics/codes');
+      const cr = await fetch('/api/clinic-codes');
       const cd = await cr.json();
       cd.clinics.forEach(c => { codesMap[c.nom] = c.code; });
     } catch(e) {}
@@ -533,7 +533,7 @@ async function handleLogin(e) {
   btn.disabled = true;
   btn.textContent = 'Vérification…';
   try {
-    const res = await fetch('/api/clinics/verify-code', {
+    const res = await fetch('/api/clinic-verify-code', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({code})
@@ -902,7 +902,7 @@ async function sendMessage() {
   try {
     const now = new Date();
     const ts = now.toLocaleDateString('fr-FR') + ' à ' + now.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
-    const r = await fetch('/api/messages', {
+    const r = await fetch('/api/journal', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
@@ -932,7 +932,7 @@ async function loadAdminMessages() {
   const el = document.getElementById('admin-messages-panel');
   if (!el) return;
   try {
-    const r = await fetch('/api/messages');
+    const r = await fetch('/api/journal');
     const msgs = await r.json();
     const ids = new Set(msgs.map(m => m.id));
     if (_knownMsgIds !== null) {
@@ -972,7 +972,7 @@ async function loadAdminMessages() {
 }
 
 async function markRead(id) {
-  await fetch('/api/messages/read', {
+  await fetch('/api/journal/read', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify({id})
@@ -981,7 +981,7 @@ async function markRead(id) {
 }
 
 async function markUnread(id) {
-  await fetch('/api/messages/unread', {
+  await fetch('/api/journal/unread', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify({id})
@@ -990,7 +990,7 @@ async function markUnread(id) {
 }
 
 async function archiveMsg(id) {
-  await fetch('/api/messages/archive', {
+  await fetch('/api/journal/archive', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify({id})
@@ -999,7 +999,7 @@ async function archiveMsg(id) {
 }
 
 async function togglePin(id, pinned) {
-  await fetch('/api/messages/pin', {
+  await fetch('/api/journal/pin', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify({id, pinned})
@@ -1814,7 +1814,7 @@ document.addEventListener('visibilitychange', () => {
   const demoEl = document.getElementById('demo-codes');
   if (demoEl) {
     try {
-      const r = await fetch('/api/clinics/codes');
+      const r = await fetch('/api/clinic-codes');
       const data = await r.json();
       const allCodes = [
         ...data.clinics.map(c => ({code: c.code, label: c.nom, admin: false})),

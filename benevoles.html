@@ -2121,7 +2121,7 @@ function buildRapatSection() {
         if (r.confirme !== undefined) {
           // Non effectué d'un jour passé → supprimer silencieusement et ne pas afficher
           if (r.confirme === false && diff > 0) {
-            fetch('/api/rapatriements/delete', {
+            fetch('/api/trajets/delete', {
               method: 'POST', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ benevole_id: b._id, index: idx })
             }).catch(() => {});
@@ -3908,7 +3908,7 @@ async function confirmRapat(benevId, idx, done, btn) {
   const zone = btn.closest('.confirm-zone');
   zone.innerHTML = '<span style="font-size:0.75rem;color:#aaa;">Enregistrement…</span>';
   try {
-    const r = await fetch('/api/rapatriements/confirm', {
+    const r = await fetch('/api/trajets/confirm', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ benevole_id: benevId, index: idx, done })
@@ -4012,7 +4012,7 @@ async function deleteRapatFromEdit() {
   const btn = document.getElementById('rapat-delete-btn');
   btn.disabled = true; btn.textContent = 'Suppression…';
   try {
-    const r = await fetch('/api/rapatriements/delete', {
+    const r = await fetch('/api/trajets/delete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ benevole_id: _rapatEditState.benevId, index: _rapatEditState.idx })
@@ -4036,7 +4036,7 @@ async function saveRapatEdit() {
   const dates = document.getElementById('re-dates').value.split('\n').map(s => s.trim()).filter(Boolean);
   const trajet = document.getElementById('re-trajet').value.split('\n').map(s => s.trim()).filter(Boolean);
   try {
-    const r = await fetch('/api/rapatriements/update', {
+    const r = await fetch('/api/trajets/update', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -4065,7 +4065,7 @@ async function deleteRapatCarousel(benevId, idx, btn) {
   card.style.opacity = '0.4';
   card.style.pointerEvents = 'none';
   try {
-    const r = await fetch('/api/rapatriements/delete', {
+    const r = await fetch('/api/trajets/delete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ benevole_id: benevId, index: idx })
@@ -4082,7 +4082,7 @@ async function deleteRapatCarousel(benevId, idx, btn) {
 async function deleteRapat(benevId, idx) {
   if (!confirm('Supprimer ce rapatriement ?')) return;
   try {
-    const r = await fetch('/api/rapatriements/delete', {
+    const r = await fetch('/api/trajets/delete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ benevole_id: benevId, index: idx })
@@ -4460,7 +4460,7 @@ async function submitRapat(e) {
   btn.disabled = true; btn.textContent = 'Enregistrement…';
 
   const isEdit = _rapatEditState && _rapatEditState.benevId;
-  const url = isEdit ? '/api/rapatriements/update' : '/api/rapatriements/add';
+  const url = isEdit ? '/api/trajets/update' : '/api/trajets/add';
   if (isEdit) {
     payload.benevole_id = _rapatEditState.benevId;
     payload.index       = _rapatEditState.idx;

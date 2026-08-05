@@ -151,7 +151,7 @@
   const base = location.protocol === 'file:' ? 'http://localhost:8080' : '';
   let clinics = [], adminCode = '—';
   try {
-    const r = await fetch(base + '/api/clinics/codes');
+    const r = await fetch(base + '/api/clinic-codes');
     const data = await r.json();
     clinics = data.clinics;
     adminCode = data.admin_code;
@@ -197,7 +197,7 @@
     const btn = document.querySelectorAll('.no-print button')[i];
     btn.disabled = true; btn.textContent = '…';
     try {
-      const r = await fetch(base + '/api/clinics/regenerate-code', {
+      const r = await fetch(base + '/api/clinic-regenerate-code', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({nom})

@@ -2669,7 +2669,7 @@ async function rpSubmit() {
   btn.disabled = true; btn.textContent = 'Enregistrement…';
 
   try {
-    const r = await fetch('/api/rapatriements/add', {
+    const r = await fetch('/api/trajets/add', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });

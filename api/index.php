@@ -139,39 +139,39 @@ try {
             route_vetos_get();
 
         // ── Rapatriements en-route ────────────────────────────────────────────
-        case $uri === '/rapatriements/en-route' && $method === 'GET':
+        case $uri === '/trajets/en-route' && $method === 'GET':
             route_rapatriements_en_route_get();
 
         // ── Rapatriements add/delete/confirm/update ───────────────────────────
-        case $uri === '/rapatriements/add' && $method === 'POST':
+        case $uri === '/trajets/add' && $method === 'POST':
             route_rapatriements_add_post();
 
-        case $uri === '/rapatriements/delete' && $method === 'POST':
+        case $uri === '/trajets/delete' && $method === 'POST':
             route_rapatriements_delete_post();
 
-        case $uri === '/rapatriements/confirm' && $method === 'POST':
+        case $uri === '/trajets/confirm' && $method === 'POST':
             route_rapatriements_confirm_post();
 
-        case $uri === '/rapatriements/update' && $method === 'POST':
+        case $uri === '/trajets/update' && $method === 'POST':
             route_rapatriements_update_post();
 
         // ── Messages ──────────────────────────────────────────────────────────
-        case $uri === '/messages' && $method === 'GET':
+        case $uri === '/journal' && $method === 'GET':
             route_messages_get();
 
-        case $uri === '/messages' && $method === 'POST':
+        case $uri === '/journal' && $method === 'POST':
             route_messages_post();
 
-        case $uri === '/messages/read' && $method === 'POST':
+        case $uri === '/journal/read' && $method === 'POST':
             route_messages_read_post();
 
-        case $uri === '/messages/unread' && $method === 'POST':
+        case $uri === '/journal/unread' && $method === 'POST':
             route_messages_unread_post();
 
-        case $uri === '/messages/pin' && $method === 'POST':
+        case $uri === '/journal/pin' && $method === 'POST':
             route_messages_pin_post();
 
-        case $uri === '/messages/archive' && $method === 'POST':
+        case $uri === '/journal/archive' && $method === 'POST':
             route_messages_archive_post();
 
         // ── Historique cliniques ──────────────────────────────────────────────
@@ -194,20 +194,20 @@ try {
             route_clinic_stats_delete_item_post();
 
         // ── Clinics prefs ─────────────────────────────────────────────────────
-        case $uri === '/clinics/prefs' && $method === 'GET':
+        case $uri === '/clinic-prefs' && $method === 'GET':
             route_clinic_prefs_get();
 
-        case $uri === '/clinics/prefs' && $method === 'POST':
+        case $uri === '/clinic-prefs' && $method === 'POST':
             route_clinic_prefs_post();
 
         // ── Clinics codes ─────────────────────────────────────────────────────
-        case $uri === '/clinics/codes' && $method === 'GET':
+        case $uri === '/clinic-codes' && $method === 'GET':
             route_clinic_codes_get();
 
-        case $uri === '/clinics/regenerate-code' && $method === 'POST':
+        case $uri === '/clinic-regenerate-code' && $method === 'POST':
             route_clinic_regenerate_code_post();
 
-        case $uri === '/clinics/verify-code' && $method === 'POST':
+        case $uri === '/clinic-verify-code' && $method === 'POST':
             route_clinic_verify_code_post();
 
         // ── Bénévoles ─────────────────────────────────────────────────────────
