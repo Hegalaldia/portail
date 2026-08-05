@@ -1263,7 +1263,7 @@
           </div>
         </div>
         <div class="frow c3">
-          <div class="fg"><label>Nom de famille</label><input type="text" name="nom" autocomplete="off"></div>
+          <div class="fg"><label>Nom de famille</label><input type="text" name="nom" autocomplete="off" oninput="this.value=this.value.toUpperCase()"></div>
           <div class="fg"><label>Prénom</label><input type="text" name="prenom" autocomplete="off"></div>
           <div class="fg"><label>Date de naissance</label><input type="text" name="naissance" placeholder="JJ/MM/AAAA" autocomplete="off" maxlength="10" inputmode="numeric" oninput="fmtDateNaissance(this)"></div>
         </div>
