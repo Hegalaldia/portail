@@ -21,8 +21,26 @@ if (($data['ref'] ?? '') !== 'refs/heads/main') {
 }
 
 chdir(__DIR__);
+
+// Sauvegarder les fichiers de données avant le checkout
+$data_files = ['benevoles.json','benevoles_drafts.json','messages.json','config.json',
+               'tokens.json','failed_logins.json','.auth_tokens.json',
+               'clinic_stats.json','clinic_history.json','clinic_codes.json','geo_cache.json'];
+$saved = [];
+foreach ($data_files as $f) {
+    if (file_exists(__DIR__ . '/' . $f)) {
+        $saved[$f] = file_get_contents(__DIR__ . '/' . $f);
+    }
+}
+
 $https_url = 'https://github.com/Hegalaldia/portail.git';
 $o1 = shell_exec('git remote set-url origin ' . escapeshellarg($https_url) . ' 2>&1');
 $o2 = shell_exec('git fetch origin main 2>&1');
 $o3 = shell_exec('git checkout -f FETCH_HEAD 2>&1');
+
+// Restaurer les fichiers de données après le checkout
+foreach ($saved as $f => $content) {
+    file_put_contents(__DIR__ . '/' . $f, $content);
+}
+
 echo "OK\n$o1\n$o2\n$o3";
