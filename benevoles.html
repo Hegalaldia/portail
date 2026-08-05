@@ -1290,7 +1290,7 @@
         <div class="f-box gray" style="margin-bottom:26px;">
           <div class="f-box-title">Personne à prévenir en cas d'urgence</div>
           <div class="frow c3" style="margin-bottom:0;">
-            <div class="fg"><label>Nom</label><input type="text" name="urg_nom" autocomplete="off"></div>
+            <div class="fg"><label>Nom</label><input type="text" name="urg_nom" autocomplete="off" oninput="this.value=this.value.toUpperCase()"></div>
             <div class="fg"><label>Prénom</label><input type="text" name="urg_prenom" autocomplete="off"></div>
             <div class="fg"><label>Téléphone</label><input type="text" name="urg_tel" placeholder="06 00 00 00 00" class="mono" maxlength="14" inputmode="numeric" oninput="fmtTelephone(this)"></div>
           </div>
