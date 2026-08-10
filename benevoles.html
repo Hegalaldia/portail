@@ -2613,7 +2613,7 @@ function openRapatPanel(r, ri) {
       <div class="rp-section">
         <div class="rp-section-title" style="display:flex;align-items:center;justify-content:space-between;">
           Animaux attendus à l'arrivée
-          <button onclick="shareAnimaux()" style="font-size:0.72rem;font-weight:700;color:#9a3412;background:#ffedd5;border:1px solid #fed7aa;border-radius:6px;padding:3px 10px;cursor:pointer;">Partager</button>
+          <button onclick="shareAnimaux(this)" style="font-size:0.72rem;font-weight:700;color:#9a3412;background:#ffedd5;border:1px solid #fed7aa;border-radius:6px;padding:3px 10px;cursor:pointer;">Partager</button>
         </div>
         <div class="rp-animals-header">
           <span class="rp-animals-header-icon">🐾</span>
@@ -3075,11 +3075,15 @@ function copyNum(el, num) {
   });
 }
 let _shareText = '';
-function shareAnimaux() {
-  if (navigator.share) {
+function shareAnimaux(btn) {
+  if (navigator.share && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
     navigator.share({ title: 'Animaux rapatriement', text: _shareText });
   } else {
-    location.href = 'mailto:?subject=Animaux+rapatriement&body=' + encodeURIComponent(_shareText.replace(/\n/g, '\r\n'));
+    navigator.clipboard.writeText(_shareText).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = 'Copié !';
+      setTimeout(() => btn.textContent = orig, 1800);
+    });
   }
 }
 
