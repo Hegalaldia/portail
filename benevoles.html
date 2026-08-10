@@ -2674,7 +2674,7 @@ function closeRapatPanel() {
 
 // Clé unique par rapatriement pour le snapshot localStorage
 function rapatAnimauxKey(r) {
-  return `rapat_animaux|${r.benevId||''}|${r.date||''}|${r.route||''}`;
+  return `rapat_animaux_v2|${r.benevId||''}|${r.date||''}|${r.route||''}`;
 }
 function saveRapatAnimaux(r, animaux) {
   if (!animaux.length) return;
