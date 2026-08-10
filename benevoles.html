@@ -2336,10 +2336,13 @@ function buildRapatSection() {
     div.className = cardClass;
     div.dataset.villes = JSON.stringify(villes);
     div.dataset.status = r.status;
+    div.dataset.diff = r.diff;
     // Badge animaux : live pour les à venir, snapshot figé pour les passés
+    const isPasse = r.status === 'passe' || (r.status === 'confirme' && r.diff > 0);
+    const villesPickup = villes.slice(0, -1); // exclure la destination (dernier stop = dépôt)
     let animalCount = 0;
-    if (r.status !== 'passe') {
-      const animauxLive = getAnimauxDetailForTrajet(villes);
+    if (!isPasse) {
+      const animauxLive = getAnimauxDetailForTrajet(villesPickup);
       if (animauxLive.length) saveRapatAnimaux(r, animauxLive);
       animalCount = animauxLive.reduce((s, c) => s + c.animals.length, 0);
     } else {
@@ -2480,10 +2483,13 @@ async function loadAppelData() {
 
 function refreshAnimalBadges() {
   document.querySelectorAll('.rapat-card[data-villes]').forEach(card => {
-    if (card.dataset.status === 'passe') return;
+    const st = card.dataset.status;
+    const diff = parseInt(card.dataset.diff || '0', 10);
+    if (st === 'passe' || (st === 'confirme' && diff > 0)) return;
     const villes = JSON.parse(card.dataset.villes);
+    const villesPickup = villes.slice(0, -1);
     const existing = card.querySelector('.rapat-animal-badge');
-    const animalCount = getAnimauxForTrajet(villes);
+    const animalCount = getAnimauxForTrajet(villesPickup);
     if (animalCount > 0 && !existing) {
       const badge = document.createElement('div');
       badge.className = 'rapat-animal-badge';
@@ -2542,11 +2548,13 @@ function openRapatPanel(r, ri) {
   const overlay = document.getElementById('rapat-overlay');
 
   const villes = r.trajetArr.length ? r.trajetArr : r.route.split('>').map(v=>v.trim()).filter(Boolean);
+  const villesPickup = villes.slice(0, -1);
+  const isPasse = r.status === 'passe' || (r.status === 'confirme' && r.diff > 0);
   let animaux;
-  if (r.status === 'passe') {
+  if (isPasse) {
     animaux = loadRapatAnimaux(r) || [];
   } else {
-    animaux = getAnimauxDetailForTrajet(villes);
+    animaux = getAnimauxDetailForTrajet(villesPickup);
     saveRapatAnimaux(r, animaux);
   }
 
