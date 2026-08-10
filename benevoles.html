@@ -2338,7 +2338,7 @@ function buildRapatSection() {
     div.dataset.status = r.status;
     div.dataset.diff = r.diff;
     // Badge animaux : live pour les à venir, snapshot figé pour les passés
-    const isPasse = r.status === 'passe' || (r.status === 'confirme' && r.diff > 0);
+    const isPasse = r.status === 'passe' || (r.diff > 0 && ['confirme','a_confirmer'].includes(r.status));
     const villesPickup = villes.slice(0, -1); // exclure la destination (dernier stop = dépôt)
     let animalCount = 0;
     if (!isPasse) {
@@ -2485,7 +2485,7 @@ function refreshAnimalBadges() {
   document.querySelectorAll('.rapat-card[data-villes]').forEach(card => {
     const st = card.dataset.status;
     const diff = parseInt(card.dataset.diff || '0', 10);
-    if (st === 'passe' || (st === 'confirme' && diff > 0)) return;
+    if (st === 'passe' || (diff > 0 && ['confirme','a_confirmer'].includes(st))) return;
     const villes = JSON.parse(card.dataset.villes);
     const villesPickup = villes.slice(0, -1);
     const existing = card.querySelector('.rapat-animal-badge');
@@ -2549,7 +2549,7 @@ function openRapatPanel(r, ri) {
 
   const villes = r.trajetArr.length ? r.trajetArr : r.route.split('>').map(v=>v.trim()).filter(Boolean);
   const villesPickup = villes.slice(0, -1);
-  const isPasse = r.status === 'passe' || (r.status === 'confirme' && r.diff > 0);
+  const isPasse = r.status === 'passe' || (r.diff > 0 && ['confirme','a_confirmer'].includes(r.status));
   let animaux;
   if (isPasse) {
     animaux = loadRapatAnimaux(r) || [];
