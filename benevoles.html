@@ -170,9 +170,75 @@
       background: #fff; border-radius: 10px; padding: 14px 16px;
       width: 210px; flex-shrink: 0; border-left: 3px solid #e8825a;
       box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-      cursor: pointer;
+      cursor: pointer; transition: box-shadow .15s, transform .15s;
     }
-    .rapat-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.13); }
+    .rapat-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.13); transform: translateY(-1px); }
+    .rapat-card.panel-open { box-shadow: 0 4px 18px rgba(0,0,0,0.15); border-left-width: 4px; }
+    .rapat-animal-badge { display:inline-flex; align-items:center; gap:4px; margin-top:6px;
+      background:#fff7ed; border:1px solid #fed7aa; border-radius:6px;
+      padding:2px 7px; font-size:0.68rem; font-weight:700; color:#c2410c; }
+
+    /* ── Panneau latéral rapatriements ── */
+    #rapat-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.32);
+      z-index:502; backdrop-filter:blur(2px); }
+    #rapat-overlay.open { display:block; }
+    #rapat-panel { position:fixed; top:0; right:0; bottom:0; width:460px; max-width:100vw;
+      background:#fff; z-index:503; overflow-y:auto;
+      box-shadow:-4px 0 40px rgba(0,0,0,0.18);
+      transform:translateX(100%); transition:transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+    #rapat-panel.open { transform:translateX(0); }
+    .rp-header { background:linear-gradient(150deg,#7c2d12 0%,#c2410c 50%,#ea580c 100%);
+      padding:22px 24px 26px; color:#fff; position:sticky; top:0; z-index:10; }
+    .rp-eyebrow { font-size:0.68rem; font-weight:800; letter-spacing:.12em;
+      text-transform:uppercase; opacity:.75; margin-bottom:8px; }
+    .rp-name { font-size:1.25rem; font-weight:800; letter-spacing:-.01em; }
+    .rp-date { font-size:0.82rem; opacity:.8; margin-top:4px; }
+    .rp-close { position:absolute; top:16px; right:16px; background:rgba(255,255,255,.15);
+      border:none; color:#fff; width:32px; height:32px; border-radius:50%;
+      font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+    .rp-close:hover { background:rgba(255,255,255,.28); }
+    .rp-body { padding:20px 24px 40px; }
+    .rp-section { margin-bottom:22px; }
+    .rp-section-title { font-size:0.68rem; font-weight:800; text-transform:uppercase;
+      letter-spacing:.1em; color:#9ca3af; margin-bottom:10px; }
+    .rp-trajet { display:flex; flex-direction:column; gap:0; }
+    .rp-stop { display:flex; align-items:flex-start; gap:10px; padding:6px 0; }
+    .rp-stop-icon { width:20px; display:flex; flex-direction:column; align-items:center; flex-shrink:0; padding-top:2px; }
+    .rp-stop-dot { width:10px; height:10px; border-radius:50%; background:#e8825a; flex-shrink:0; }
+    .rp-stop-dot.first { background:#1a2e1e; }
+    .rp-stop-dot.last { background:#e8825a; }
+    .rp-stop-line { width:2px; flex:1; min-height:18px; background:#e5e7eb; margin-top:3px; }
+    .rp-stop-label { font-size:0.9rem; font-weight:600; color:#1a2e1e; line-height:1.4; }
+    .rp-stop-clinic { font-size:0.75rem; color:#6b7280; font-style:italic; margin-top:1px; }
+    .rp-meta-row { display:flex; gap:16px; flex-wrap:wrap; }
+    .rp-meta-item { display:flex; flex-direction:column; gap:2px; }
+    .rp-meta-label { font-size:0.65rem; font-weight:700; text-transform:uppercase;
+      letter-spacing:.07em; color:#9ca3af; }
+    .rp-meta-value { font-size:0.9rem; font-weight:600; color:#1a2e1e; }
+    .rp-notes-box { background:#f9f9f7; border-left:3px solid #e8825a;
+      border-radius:0 8px 8px 0; padding:10px 14px;
+      font-size:0.85rem; color:#374151; line-height:1.6; font-style:italic; }
+    /* Section animaux */
+    .rp-animals-header { background:#fff7ed; border:1.5px solid #fed7aa; border-radius:10px 10px 0 0;
+      padding:10px 14px; display:flex; align-items:center; gap:8px; }
+    .rp-animals-header-icon { font-size:16px; }
+    .rp-animals-header-text { font-size:0.78rem; font-weight:800; color:#c2410c; }
+    .rp-animals-list { border:1.5px solid #fed7aa; border-top:none; border-radius:0 0 10px 10px; overflow:hidden; }
+    .rp-animal-item { padding:10px 14px; border-bottom:1px solid #fef3c7; background:#fff;
+      display:flex; align-items:flex-start; gap:10px; }
+    .rp-animal-item:last-child { border-bottom:none; }
+    .rp-animal-dot { width:8px; height:8px; border-radius:50%; background:#f97316; flex-shrink:0; margin-top:5px; }
+    .rp-animal-species { font-size:0.88rem; font-weight:700; color:#1a2e1e; }
+    .rp-animal-meta { font-size:0.75rem; color:#6b7280; margin-top:2px; }
+    .rp-animal-clinic { font-size:0.7rem; font-weight:600; color:#9a3412; background:#ffedd5;
+      border-radius:4px; padding:1px 6px; display:inline-block; margin-top:3px; }
+    .rp-clinic-group-header { padding:7px 14px; background:#fff7ed; border-bottom:1px solid #fed7aa;
+      font-size:0.72rem; font-weight:800; color:#9a3412; text-transform:uppercase; letter-spacing:0.04em; }
+    .rp-no-animals { padding:14px; text-align:center; font-size:0.82rem; color:#9ca3af; }
+    .rp-edit-btn { width:100%; padding:11px; border-radius:9px; border:1.5px solid #dbe3dc;
+      background:#fff; font-size:13px; font-weight:700; color:#0c3d22; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; gap:7px; transition:background .15s; }
+    .rp-edit-btn:hover { background:#f7f9f5; }
     .rapat-card.en-cours { border-left-color: #2d9e5e; background: #f0faf4; }
     .rapat-card.en-cours .rapat-meta span:first-child { color: #1b7a40; }
     .rapat-card.en-cours .rapat-more { color: #2d9e5e; }
@@ -2268,35 +2334,41 @@ function buildRapatSection() {
 
     const div = document.createElement('div');
     div.className = cardClass;
+    div.dataset.villes = JSON.stringify(villes);
+    div.dataset.status = r.status;
+    // Badge animaux : live pour les à venir, snapshot figé pour les passés
+    let animalCount = 0;
+    if (r.status !== 'passe') {
+      const animauxLive = getAnimauxDetailForTrajet(villes);
+      if (animauxLive.length) saveRapatAnimaux(r, animauxLive);
+      animalCount = animauxLive.reduce((s, c) => s + c.animals.length, 0);
+    } else {
+      const snap = loadRapatAnimaux(r);
+      if (snap) animalCount = snap.reduce((s, c) => s + c.animals.length, 0);
+    }
+    const animalBadge = animalCount > 0
+      ? `<div class="rapat-animal-badge">🐾${animalCount} ${animalCount > 1 ? 'animaux' : 'animal'} attendu${animalCount > 1 ? 's' : ''}</div>`
+      : '';
+
     div.innerHTML = `
       <div class="rapat-meta"><span>${diffStr}</span><span style="display:flex;align-items:center;gap:5px;">${r.status === 'en_cours' ? '<span class="live-dot" style="position:static;display:inline-block;"></span>' : ''}${esc(r.dateStr)}</span></div>
       <div class="rapat-route-short">${hegoShort(villes[0])}</div>
       ${hasMultiple ? `<div class="rapat-more" style="margin:1px 0;">+ ${villes.length-2} étape${villes.length-2>1?'s':''}</div>` : ''}
-      <div class="rapat-route-short rapat-route-arrival" style="color:#e8825a;">${hegoShort(villes[villes.length-1])}</div>
-      <div class="rapat-route-full">${full}</div>
-      ${metaExtra ? `<div class="rapat-extra">${esc(metaExtra)}</div>` : ''}
+      <div class="rapat-route-short" style="color:#e8825a;">${hegoShort(villes[villes.length-1])}</div>
       <div class="rapat-name"><span class="rapat-nom">${esc(r.nom)}</span> <span class="rapat-prenom">${esc(r.prenom)}</span></div>
-      ${r.notes ? `<div class="rapat-notes" title="${esc(r.notes)}">${esc(r.notes)}</div>` : ''}
+      ${r.notes ? `<div class="rapat-notes">${esc(r.notes)}</div>` : ''}
+      ${animalBadge}
       ${confirmZone}
     `;
 
-    if (hasMultiple) {
-      div.addEventListener('click', e => {
-        const isExpanded = div.dataset.expanded === '1';
-        scroll.querySelectorAll('.rapat-card').forEach(c => { if (c !== div) collapseCard(c); });
-        if (isExpanded) collapseCard(div); else expandCard(div);
-        e.stopPropagation();
-      });
-    }
-
-    // Clic sur les notes tronquées → expand inline
-    const notesEl = div.querySelector('.rapat-notes');
-    if (notesEl) {
-      notesEl.addEventListener('click', e => {
-        e.stopPropagation();
-        notesEl.classList.toggle('expanded');
-      });
-    }
+    // Clic sur la carte → ouvrir le panneau latéral
+    div.addEventListener('click', e => {
+      if (e.target.closest('.confirm-btn') || e.target.closest('.confirm-zone')) return;
+      scroll.querySelectorAll('.rapat-card').forEach(c => c.classList.remove('panel-open'));
+      div.classList.add('panel-open');
+      openRapatPanel(r, ri);
+      e.stopPropagation();
+    });
 
     if (r.benevId && r.origIdx !== null && !['passe','confirme'].includes(r.status)) {
       window._rapatEditData[ri] = {
@@ -2307,90 +2379,306 @@ function buildRapatSection() {
         trajetArr: r.trajetArr || [], distanceKm: r.distanceKm || '',
         notes: r.notes || ''
       };
-      const wrapper = document.createElement('div');
-      wrapper.style.cssText = 'display:flex;flex-direction:column;flex-shrink:0;width:210px;gap:4px';
-      wrapper.appendChild(div);
-      wrapper.insertAdjacentHTML('beforeend',
-        `<button onclick="openRapatEditModal(window._rapatEditData[${ri}])" style="padding:5px 8px;border-radius:8px;border:1.5px solid #dbe3dc;background:#fff;font-size:11.5px;font-weight:600;color:#5b6b5e;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Modifier</button>`
-      );
-      scroll.appendChild(wrapper);
-    } else {
-      scroll.appendChild(div);
+    }
+    scroll.appendChild(div);
+  });
+
+}
+
+// ── Panneau latéral rapatriements ─────────────────────────────────────────────
+
+// Liste des cliniques exactement telles qu'elles apparaissent dans Vétérinaire(s)
+const CLINIQUES = ["Amou (Bio'vet)","Anglet (Clinique du BAB)","Anglet (Clinique du port)","Anglet (Mercure)","Anglet (Rives et marvoyer)","Anglet (Saint-Jean)","Angresse (Vét' in Land)","Arcangues (Chapelet)","Argeles-Gazost (7 vallées)","Arudy (Les Crestadous)","Arzacq-Arraziguet (Abiopole)","Ascain (Vétérinaire de la Rhune)","Bardos (Bardovet)","Bayonne (Arènes)","Bayonne (Biovet)","Bayonne (Petit Bayonne)","Bayonne (Sainte croix)","Biarritz (Joël BRIED)","Biarritz (Parme)","Bidart (Zatozte)","Billère (Caillard)","Bizanos (Coq À l'Âne)","Bizanos (Merle Gilles)","Briscous (L'épervier)","Cambo-les-Bains (Artategia)","Cambo-les-Bains (Ursuya)","Capbreton (Boudigau)","Capbreton (Côte Sud Landes)","Ciboure (ZUBI BURU)","Dax (Vétérinaire du Lac)","Gan (Gat y Câ)","Hagetmau (Anibio)","Hasparren (ARTA LEKU)","Hendaye (Clinique de la plage)","Hendaye (Hegal Zabal)","Ibos (Vétérinaire la Croix des Pyrénées)","Juillan (L'ami fidèle)","Labenne (Ker Guilhem)","Lannemezan (Gypaète)","Lembeye (Vic-Bilh)","Lons (Mail)","Lourdes (Biscaye)","Maubourguet (Croix Blanche)","Mauléon-Licharre (Belzunce)","Mauléon-Licharre (Vet'Avenir 64)","Mirepeix (Piemont)","Morlaas (La Bastide)","Navarrenx (Bocahut et Rousset SCP)","Navarrenx (Carsuzaa Jacques)","Navarrenx (Coum câ e gat)","Navarrenx (Playoust)","Oloron (Haut Bearn)","Oloron (Porte d'Aspe)","Ondres (Faure Antoine)","Orthez (Gaston Pheobus)","Orthez (Les Brises)","Orx (Marais d'Orx)","Pau (Clinique de la Paix)","Pau (Lapuyade)","Peyrehorade (Bio'vet)","Pouzac (Pieri Nicolas)","Saint-Gaudens (Anselme Arrieu)","Saint-Gaudens (Cave Canem)","Saint-Jean-de-Luz (Animalia Ttikiak)","Saint-Jean-de-Luz (La croix basque)","Saint-Jean-de-Luz (Montréjeau)","Saint-Jean-le-Vieux (Garaziko Marexalak)","Saint-Martin-de-Seignanx (Bio'vet)","Saint-Palais (Amikuze)","Saint-Paul-Lès-Dax (Bio'vet)","Saint-Pée-sur-Nivelle (Arche des 4 pattes)","Saint-Pierre-d'Irube (Saint Pierre)","Saint-Vincent-de-Tyrosse (Scoobby)","Salies-de-Béarn (Sanglier)","Sauvagnon (Anibio)","Sauveterre-de-Béarn (Mauduit-Sartre)","Seignosse (SEIGNOSSE)","Séméac (Bigot Bonamy)","Serres-Castet (Luy de Bearn)","Soorts-Hossegor (COURTES Isabelle)","Soumoulou (110 Bêtes)","Susmiou (Playoust)","Tarbes (Gambetta)","Tarbes (Ger)","Tarbes (L'aiguille)","Tarbes (Les pattes de l'adour)","Tarbes (Marcadieu)","Tardets-Sorholus (Saison)","Tarnos (L'Ariou)","Tarnos (Vet'o Squart)","Tosse (Maremne)","Tournay (l'Arriu)","Tournay (Anivet)","Urrugne (Ekidocs)","Urrugne (Océan)","Urt (Fovéa)","Ustaritz (Errobia)","Vic-en-Bigorre (Vic)"];
+
+// Index ville normalisée → noms de cliniques exacts
+const CLINIQUES_BY_VILLE = {};
+CLINIQUES.forEach(c => {
+  const ville = normStr(c.split('(')[0].trim());
+  if (!CLINIQUES_BY_VILLE[ville]) CLINIQUES_BY_VILLE[ville] = [];
+  CLINIQUES_BY_VILLE[ville].push(c);
+});
+
+let _appelRows = null; // lignes parsées du fichier d'appel (CSV)
+
+function normStr(v) {
+  return (v||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
+}
+function normVille(v) {
+  return normStr((v||'').split('(')[0].trim());
+}
+
+function parseCSV(text) {
+  // Parser RFC 4180 — gère les champs quotés avec sauts de ligne intégrés
+  const records = [];
+  let i = 0, n = text.length;
+
+  function parseField() {
+    if (i < n && text[i] === '"') {
+      i++; // skip opening quote
+      let val = '';
+      while (i < n) {
+        if (text[i] === '"') {
+          if (i+1 < n && text[i+1] === '"') { val += '"'; i += 2; }
+          else { i++; break; } // closing quote
+        } else { val += text[i++]; }
+      }
+      return val;
+    }
+    let val = '';
+    while (i < n && text[i] !== ',' && text[i] !== '\n' && text[i] !== '\r') val += text[i++];
+    return val.trim();
+  }
+
+  function parseRow() {
+    const cells = [];
+    while (i < n && text[i] !== '\n' && text[i] !== '\r') {
+      cells.push(parseField());
+      if (i < n && text[i] === ',') i++;
+      else break;
+    }
+    // skip \r\n
+    if (i < n && text[i] === '\r') i++;
+    if (i < n && text[i] === '\n') i++;
+    return cells;
+  }
+
+  const headers = parseRow();
+  while (i < n) {
+    const cells = parseRow();
+    if (cells.every(c => !c)) continue;
+    const row = {};
+    headers.forEach((h, idx) => { row[h] = (cells[idx] || '').trim(); });
+    records.push(row);
+  }
+  return records;
+}
+
+async function loadAppelData() {
+  if (_appelRows !== null) return;
+  try {
+    const res = await fetch('/api/data');
+    const text = await res.text();
+    const rows = parseCSV(text);
+    rows.forEach((r, i) => { r._ligne = i + 2; }); // +2 : ligne 1 = en-têtes
+    // Garder seulement les 90 derniers jours, Devenir = ACCUEILLIS ou Clinique
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 90);
+    _appelRows = rows.filter(r => {
+      const dev = (r['Devenir'] || '').trim().toUpperCase();
+      if (dev !== 'CLINIQUE') return false;
+      // Filtrer par date
+      const ds = (r['DATE'] || '').trim();
+      if (!ds) return true;
+      const parts = ds.split('/');
+      if (parts.length < 3) return true;
+      const d = new Date(2000 + parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
+      return d >= cutoff;
+    });
+  } catch(e) { _appelRows = []; }
+  // Mettre à jour les badges sur les cartes déjà rendues
+  refreshAnimalBadges();
+}
+
+function refreshAnimalBadges() {
+  document.querySelectorAll('.rapat-card[data-villes]').forEach(card => {
+    if (card.dataset.status === 'passe') return;
+    const villes = JSON.parse(card.dataset.villes);
+    const existing = card.querySelector('.rapat-animal-badge');
+    const animalCount = getAnimauxForTrajet(villes);
+    if (animalCount > 0 && !existing) {
+      const badge = document.createElement('div');
+      badge.className = 'rapat-animal-badge';
+      badge.textContent = `🐾${animalCount} ${animalCount > 1 ? 'animaux' : 'animal'} attendu${animalCount > 1 ? 's' : ''}`;
+      const confirmZone = card.querySelector('.confirm-zone');
+      if (confirmZone) card.insertBefore(badge, confirmZone);
+      else card.appendChild(badge);
     }
   });
-
-  document.addEventListener('click', () => {
-    scroll.querySelectorAll('.rapat-card').forEach(c => collapseCard(c));
-  });
 }
 
-function expandCard(card) {
-  const shorts = card.querySelectorAll('.rapat-route-short');
-  const full   = card.querySelector('.rapat-route-full');
-  const more   = card.querySelector('.rapat-more');
-  if (!full) return;
-  card.dataset.expanded = '1';
+function getCliniquesForStop(stop) {
+  // Cherche les cliniques exactes correspondant à un stop (ville ou "Ville (Clinique)")
+  const nv = normVille(stop);
+  return CLINIQUES_BY_VILLE[nv] || [];
+}
 
-  // Masquer les lignes courtes
-  shorts.forEach(s => { s.style.display = 'none'; });
-  if (more) more.style.display = 'none';
-  const name = card.querySelector('.rapat-name');
-  if (name) { name.style.overflow = 'visible'; name.style.textOverflow = 'clip'; }
+function getAnimauxForTrajet(villes) {
+  if (!_appelRows) return 0;
+  const cliniques = new Set(villes.flatMap(getCliniquesForStop));
+  if (!cliniques.size) return 0;
+  return _appelRows.filter(r => {
+    const vet = (r['Vétérinaire(s)'] || '').trim();
+    return cliniques.has(vet) || [...cliniques].some(c => normStr(c) === normStr(vet));
+  }).length;
+}
 
-  // Préparer full pour mesure (invisible, nowrap)
-  card.style.whiteSpace = 'nowrap';
-  full.style.transition = 'none';
-  full.style.height = 'auto';
-  full.style.opacity = '1';
+function getAnimauxDetailForTrajet(villes) {
+  if (!_appelRows) return [];
+  // Map clinique → stop d'origine
+  const cliniqueToStop = {};
+  villes.forEach(v => getCliniquesForStop(v).forEach(c => { cliniqueToStop[c] = v; }));
+  const cliniques = new Set(Object.keys(cliniqueToStop));
+  if (!cliniques.size) return [];
 
-  // Mesurer largeur et hauteur cibles
-  card.style.transition = 'none';
-  card.style.overflow = 'visible';
-  card.style.width = 'auto';
-  const targetW = Math.max(210, Math.min(card.scrollWidth + 2, 480));
-  const targetH = full.scrollHeight;
-  card.style.width = '210px';
-  card.style.overflow = 'hidden';
-
-  // Partir de height 0 pour la hauteur
-  full.style.height = '0';
-  full.style.overflow = 'hidden';
-
-  // Animer largeur + hauteur ensemble
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      const ease = '0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-      card.style.transition = `width ${ease}`;
-      card.style.width = targetW + 'px';
-      full.style.transition = `height ${ease}`;
-      full.style.height = targetH + 'px';
-      setTimeout(() => { full.style.height = 'auto'; full.style.overflow = ''; }, 320);
+  const byClinic = {};
+  for (const r of _appelRows) {
+    const vet = (r['Vétérinaire(s)'] || '').trim();
+    const matched = [...cliniques].find(c => normStr(c) === normStr(vet));
+    if (!matched) continue;
+    if (!byClinic[matched]) byClinic[matched] = { clinicNom: matched, clinicVille: cliniqueToStop[matched], animals: [] };
+    byClinic[matched].animals.push({
+      species: r['Espèces'] || '',
+      commune: r['Lieux'] || '',
+      num: r['Numéro,'] || r['Numéro'] || '',
+      date: r['DATE'] || '',
+      commentaire: r['Commentaire'] || '',
+      ligne: r._ligne || '',
     });
-  });
+  }
+  return Object.values(byClinic);
 }
 
-function collapseCard(card) {
-  if (card.dataset.expanded !== '1') return;
-  card.dataset.expanded = '0';
+function openRapatPanel(r, ri) {
+  const panel   = document.getElementById('rapat-panel');
+  const overlay = document.getElementById('rapat-overlay');
 
-  const shorts = card.querySelectorAll('.rapat-route-short');
-  const full   = card.querySelector('.rapat-route-full');
-  const more   = card.querySelector('.rapat-more');
+  const villes = r.trajetArr.length ? r.trajetArr : r.route.split('>').map(v=>v.trim()).filter(Boolean);
+  let animaux;
+  if (r.status === 'passe') {
+    animaux = loadRapatAnimaux(r) || [];
+  } else {
+    animaux = getAnimauxDetailForTrajet(villes);
+    saveRapatAnimaux(r, animaux);
+  }
 
-  // Rétrécir d'abord
-  card.style.transition = 'width 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-  card.style.width = '210px';
+  // Trajet HTML
+  const trajetHTML = villes.map((v, i) => {
+    const isFirst = i === 0, isLast = i === villes.length - 1;
+    const isHego = v.toLowerCase().includes('hegalaldia') || v.toLowerCase().includes('ustaritz');
+    const label = isHego
+      ? `<span style="display:inline-flex;align-items:center;gap:5px;"><img src="/LogoHegalaldiaCrop.png" style="height:14px;vertical-align:middle;object-fit:contain;">Hegalaldia</span>`
+      : esc(v);
+    // Cliniques correspondant à ce stop via CLINIQUES_BY_VILLE
+    const clinicsForStop = getCliniquesForStop(v);
+    const clinicStr = clinicsForStop.length
+      ? `<div class="rp-stop-clinic">${clinicsForStop.map(c => c.includes('(') ? c.split('(')[1].replace(')','').trim() : c).join(', ')}</div>`
+      : '';
+    return `
+      <div class="rp-stop">
+        <div class="rp-stop-icon">
+          <div class="rp-stop-dot ${isFirst?'first':isLast?'last':''}"></div>
+          ${!isLast ? `<div class="rp-stop-line"></div>` : ''}
+        </div>
+        <div style="padding-bottom:${!isLast?'10px':'0'}">
+          <div class="rp-stop-label">${label}</div>
+          ${clinicStr}
+        </div>
+      </div>`;
+  }).join('');
 
-  // Swap du contenu à la fin
-  setTimeout(() => {
-    card.style.whiteSpace = '';
-    const name = card.querySelector('.rapat-name');
-    if (name) { name.style.overflow = ''; name.style.textOverflow = ''; }
-    if (full) { full.style.height = '0'; full.style.opacity = '0'; }
-    shorts.forEach(s => { s.style.display = ''; });
-    if (more) more.style.display = '';
-  }, 200);
+  // Métadonnées
+  const metaHTML = [
+    r.heures ? `<div class="rp-meta-item"><div class="rp-meta-label">Horaires</div><div class="rp-meta-value">${esc(r.heures)}</div></div>` : '',
+    r.distanceKm ? `<div class="rp-meta-item"><div class="rp-meta-label">Distance</div><div class="rp-meta-value">${esc(r.distanceKm)} km</div></div>` : '',
+  ].filter(Boolean).join('');
+
+  // Animaux HTML
+  let animauxHTML = '';
+  if (animaux.length) {
+    const items = animaux.map(({clinicNom, clinicVille, animals}) => `
+      <div class="rp-clinic-group-header">${esc(clinicNom)}${clinicVille && clinicVille !== clinicNom ? ` — ${esc(clinicVille)}` : ''}</div>
+      ${animals.map(a => `
+        <div class="rp-animal-item">
+          <div class="rp-animal-dot"></div>
+          <div>
+            <div class="rp-animal-species">${esc(a.species||'Espèce inconnue')}</div>
+            <div class="rp-animal-meta">${[a.commune, a.date, a.ligne ? `Ligne ${a.ligne}` : ''].filter(Boolean).map(esc).join(' · ')}${a.num ? ` · <span onclick="copyNum(this,'${esc(a.num).replace(/'/g,'&#39;')}')" style="cursor:pointer;color:#9a3412;font-weight:600;text-decoration:underline dotted;">${esc(a.num)}</span>` : ''}</div>
+            ${a.commentaire ? `<div class="rp-animal-meta" style="font-style:italic">${esc(a.commentaire)}</div>` : ''}
+          </div>
+        </div>`).join('')}`
+    ).join('');
+    const total = animaux.reduce((s,c)=>s+c.animals.length,0);
+    _shareText = `Rapatriement du ${r.dateStr} — ${r.nom} ${r.prenom}\nTrajet : ${villes.join(' > ')}\n\nAnimaux en clinique :\n\n` +
+      animaux.map(({clinicNom, animals}) =>
+        `${clinicNom}\n` + animals.map(a => `  - ${a.species||'?'}${a.commune ? ' · '+a.commune : ''}${a.num ? ' · '+a.num : ''}${a.ligne ? ' (ligne '+a.ligne+')' : ''}`).join('\n')
+      ).join('\n\n');
+    animauxHTML = `
+      <div class="rp-section">
+        <div class="rp-section-title" style="display:flex;align-items:center;justify-content:space-between;">
+          Animaux attendus à l'arrivée
+          <button onclick="shareAnimaux()" style="font-size:0.72rem;font-weight:700;color:#9a3412;background:#ffedd5;border:1px solid #fed7aa;border-radius:6px;padding:3px 10px;cursor:pointer;">Partager</button>
+        </div>
+        <div class="rp-animals-header">
+          <span class="rp-animals-header-icon">🐾</span>
+          <span class="rp-animals-header-text">${total} ${total>1?'animaux':'animal'} en clinique sur ce trajet</span>
+        </div>
+        <div class="rp-animals-list">${items}</div>
+      </div>`;
+  } else {
+    animauxHTML = `
+      <div class="rp-section">
+        <div class="rp-section-title">Animaux attendus à l'arrivée</div>
+        <div style="background:#f9fafb;border-radius:10px;padding:14px;text-align:center;font-size:0.82rem;color:#9ca3af;">
+          Aucun animal signalé dans les cliniques de ce trajet
+        </div>
+      </div>`;
+  }
+
+  // Bouton modifier
+  const editBtn = (r.benevId && r.origIdx !== null && !['passe','confirme'].includes(r.status) && window._rapatEditData[ri])
+    ? `<button class="rp-edit-btn" onclick="openRapatEditModal(window._rapatEditData[${ri}]);closeRapatPanel()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Modifier ce rapatriement
+      </button>` : '';
+
+  const statusLabel = { en_cours:'En cours', a_confirmer:'À confirmer', demain:'Demain',
+    aujourd_hui:"Aujourd'hui", passe:'Passé', confirme:'Confirmé' }[r.status] || '';
+
+  panel.innerHTML = `
+    <div class="rp-header">
+      <button class="rp-close" onclick="closeRapatPanel()">✕</button>
+      <div class="rp-eyebrow">Rapatriement ${statusLabel ? '— ' + statusLabel : ''}</div>
+      <div class="rp-name">${esc(r.prenom)} <span style="text-transform:uppercase">${esc(r.nom)}</span></div>
+      <div class="rp-date">${esc(r.dateStr)}${r.heures ? ' · ' + esc(r.heures) : ''}</div>
+    </div>
+    <div class="rp-body">
+      <div class="rp-section">
+        <div class="rp-section-title">Trajet</div>
+        <div class="rp-trajet">${trajetHTML}</div>
+      </div>
+      ${metaHTML ? `<div class="rp-section"><div class="rp-section-title">Informations</div><div class="rp-meta-row">${metaHTML}</div></div>` : ''}
+      ${r.notes ? `<div class="rp-section"><div class="rp-section-title">Notes</div><div class="rp-notes-box">${esc(r.notes)}</div></div>` : ''}
+      ${animauxHTML}
+      ${editBtn}
+    </div>`;
+
+  overlay.classList.add('open');
+  requestAnimationFrame(() => panel.classList.add('open'));
 }
+
+function closeRapatPanel() {
+  const panel   = document.getElementById('rapat-panel');
+  const overlay = document.getElementById('rapat-overlay');
+  if (!panel || !panel.classList.contains('open')) return;
+  panel.classList.remove('open');
+  overlay.classList.remove('open');
+  document.querySelectorAll('.rapat-card').forEach(c => c.classList.remove('panel-open'));
+}
+
+// Clé unique par rapatriement pour le snapshot localStorage
+function rapatAnimauxKey(r) {
+  return `rapat_animaux|${r.benevId||''}|${r.date||''}|${r.route||''}`;
+}
+function saveRapatAnimaux(r, animaux) {
+  if (!animaux.length) return;
+  try { localStorage.setItem(rapatAnimauxKey(r), JSON.stringify(animaux)); } catch(e) {}
+}
+function loadRapatAnimaux(r) {
+  try { return JSON.parse(localStorage.getItem(rapatAnimauxKey(r))); } catch(e) { return null; }
+}
+
+// Charger le fichier d'appel dès que la page charge, puis toutes les 30s
+loadAppelData();
+setInterval(() => { _appelRows = null; loadAppelData(); }, 30_000);
 
 // ════════════════════════════
 //  Filtres
@@ -2770,6 +3058,21 @@ function showTelToast(msg) {
 
 function esc(s) {
   return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function copyNum(el, num) {
+  navigator.clipboard.writeText(num).then(() => {
+    const orig = el.textContent;
+    el.textContent = 'Copié !';
+    setTimeout(() => el.textContent = orig, 1200);
+  });
+}
+let _shareText = '';
+function shareAnimaux() {
+  if (navigator.share) {
+    navigator.share({ title: 'Animaux rapatriement', text: _shareText });
+  } else {
+    location.href = 'mailto:?subject=Animaux+rapatriement&body=' + encodeURIComponent(_shareText);
+  }
 }
 
 function fmtDateNaissance(input) {
@@ -4512,6 +4815,8 @@ async function submitRapat(e) {
 }
 </script>
 
+<div id="rapat-overlay" onclick="closeRapatPanel()"></div>
+<div id="rapat-panel"></div>
 <div id="detail-overlay"></div>
 <div id="detail-panel"></div>
 
