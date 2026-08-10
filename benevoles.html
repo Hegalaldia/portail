@@ -3076,7 +3076,7 @@ function copyNum(el, num) {
 }
 let _shareText = '';
 function shareAnimaux(btn) {
-  if (navigator.share && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+  if (navigator.share) {
     navigator.share({ title: 'Animaux rapatriement', text: _shareText });
   } else {
     navigator.clipboard.writeText(_shareText).then(() => {
