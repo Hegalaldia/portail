@@ -590,6 +590,7 @@
     .dp-rapat-item .rapat-del-btn:hover { color: #c0392b !important; background: rgba(192,57,43,0.1); }
     .dp-rapat-date { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; font-weight: 700; color: #e8825a; margin-bottom: 5px; }
     .dp-rapat-route { font-size: 0.9rem; color: #14241a; line-height: 1.6; }
+    .dp-rapat-notes { font-size: 0.78rem; color: #666; font-style: italic; margin-top: 6px; padding-top: 6px; border-top: 1px solid #eaeee4; line-height: 1.5; }
     .dp-rapat-route .stop { display: flex; align-items: center; gap: 6px; }
     .dp-rapat-route .stop-dot { color: #e8825a; font-weight: 700; width: 14px; text-align: center; flex-shrink: 0; }
     .dp-empty { color: #bbb; font-size: 0.9rem; font-style: italic; }
@@ -3734,7 +3735,8 @@ function openDetail(b) {
         const route      = trajetArr.join(' > ');
         const distanceKm = r.distance_km || '';
         const heures     = (r.heure_depart && r.heure_arrivee) ? `${r.heure_depart} → ${r.heure_arrivee}` : (r.heure_depart || r.heure_arrivee || '');
-        items.push({ dateStr, route, trajetArr, distanceKm, heures, date: parseDate(dateStr), origIdx: idx });
+        const notes      = r.notes || '';
+        items.push({ dateStr, route, trajetArr, distanceKm, heures, notes, date: parseDate(dateStr), origIdx: idx });
       });
     } else {
       String(rawRapat).split('\n').forEach((line, idx) => {
@@ -3759,6 +3761,7 @@ function openDetail(b) {
           <button class="rapat-del-btn" onclick="deleteRapat('${benevId}',${r.origIdx})" title="Supprimer ce rapatriement">✕</button>
           <div class="dp-rapat-date">${esc(r.dateStr)}${meta ? `<span style="font-size:0.75rem;color:#aaa;font-weight:400;margin-left:8px;">${esc(meta)}</span>` : ''}</div>
           <div class="dp-rapat-route">${stops}</div>
+          ${r.notes ? `<div class="dp-rapat-notes">${esc(r.notes)}</div>` : ''}
         </div>`;
       }).join('') + '</div>';
     }
