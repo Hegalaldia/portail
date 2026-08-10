@@ -3079,7 +3079,7 @@ function shareAnimaux() {
   if (navigator.share) {
     navigator.share({ title: 'Animaux rapatriement', text: _shareText });
   } else {
-    location.href = 'mailto:?subject=Animaux+rapatriement&body=' + encodeURIComponent(_shareText);
+    location.href = 'mailto:?subject=Animaux+rapatriement&body=' + encodeURIComponent(_shareText.replace(/\n/g, '\r\n'));
   }
 }
 
