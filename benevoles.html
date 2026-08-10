@@ -208,7 +208,9 @@
     .rapat-more { font-size: 0.68rem; color: #e8825a; margin-top: 2px; overflow: hidden; }
     .rapat-extra { font-size: 0.68rem; color: #888; margin-top: 2px; overflow: hidden; }
     .rapat-name { font-size: 0.77rem; color: #888; letter-spacing: 0.04em; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .rapat-notes { font-size: 0.75rem; color: #666; font-style: italic; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rapat-notes { font-size: 0.75rem; color: #666; font-style: italic; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+    .rapat-notes.expanded { white-space: normal; overflow: visible; }
+    .rapat-notes:hover { color: #444; }
     .rapat-name .rapat-nom { text-transform: uppercase; }
     .rapat-name .rapat-prenom { text-transform: capitalize; }
 
@@ -2273,7 +2275,7 @@ function buildRapatSection() {
       <div class="rapat-route-full">${full}</div>
       ${metaExtra ? `<div class="rapat-extra">${esc(metaExtra)}</div>` : ''}
       <div class="rapat-name"><span class="rapat-nom">${esc(r.nom)}</span> <span class="rapat-prenom">${esc(r.prenom)}</span></div>
-      ${r.notes ? `<div class="rapat-notes">${esc(r.notes)}</div>` : ''}
+      ${r.notes ? `<div class="rapat-notes" title="${esc(r.notes)}">${esc(r.notes)}</div>` : ''}
       ${confirmZone}
     `;
 
@@ -2283,6 +2285,15 @@ function buildRapatSection() {
         scroll.querySelectorAll('.rapat-card').forEach(c => { if (c !== div) collapseCard(c); });
         if (isExpanded) collapseCard(div); else expandCard(div);
         e.stopPropagation();
+      });
+    }
+
+    // Clic sur les notes tronquées → expand inline
+    const notesEl = div.querySelector('.rapat-notes');
+    if (notesEl) {
+      notesEl.addEventListener('click', e => {
+        e.stopPropagation();
+        notesEl.classList.toggle('expanded');
       });
     }
 
