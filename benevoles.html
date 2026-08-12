@@ -2279,7 +2279,7 @@ function buildRapatSection() {
     };
     const diffStr = LABEL[r.status] || `IL Y A ${r.diff} J`;
 
-    const villes = r.trajetArr.length ? r.trajetArr : r.route.split('>').map(v => v.trim()).filter(Boolean);
+    const villes = r.trajetArr.length ? r.trajetArr.map(canonicalVille) : r.route.split('>').map(v => canonicalVille(v.trim())).filter(Boolean);
     const hasMultiple = villes.length > 2;
     const hegoShort = v => v.toLowerCase().includes('hegalaldia')
       ? `<img src="/LogoHegalaldiaCrop.png" style="height:13px;vertical-align:middle;margin-right:2px;object-fit:contain;">Hegalaldia`
@@ -2395,11 +2395,18 @@ const CLINIQUES = ["Amou (Bio'vet)","Anglet (Clinique du BAB)","Anglet (Clinique
 
 // Index ville normalisée → noms de cliniques exacts
 const CLINIQUES_BY_VILLE = {};
+const VILLE_CANONICAL = {}; // normVille → nom canonique avec casse correcte
 CLINIQUES.forEach(c => {
-  const ville = normStr(c.split('(')[0].trim());
+  const villeRaw = c.split('(')[0].trim();
+  const ville = normStr(villeRaw);
   if (!CLINIQUES_BY_VILLE[ville]) CLINIQUES_BY_VILLE[ville] = [];
   CLINIQUES_BY_VILLE[ville].push(c);
+  if (!VILLE_CANONICAL[ville]) VILLE_CANONICAL[ville] = villeRaw;
 });
+
+function canonicalVille(v) {
+  return VILLE_CANONICAL[normVille(v)] || v;
+}
 
 let _appelRows = null; // lignes parsées du fichier d'appel (CSV)
 
@@ -2547,7 +2554,7 @@ function openRapatPanel(r, ri) {
   const panel   = document.getElementById('rapat-panel');
   const overlay = document.getElementById('rapat-overlay');
 
-  const villes = r.trajetArr.length ? r.trajetArr : r.route.split('>').map(v=>v.trim()).filter(Boolean);
+  const villes = r.trajetArr.length ? r.trajetArr.map(canonicalVille) : r.route.split('>').map(v => canonicalVille(v.trim())).filter(Boolean);
   const villesPickup = villes.slice(0, -1);
   const isPasse = r.status === 'passe' || (r.diff > 0 && ['confirme','a_confirmer'].includes(r.status));
   let animaux;
@@ -4067,7 +4074,7 @@ function openDetail(b) {
     if (items.length > 0) {
       const benevId = b._id || '';
       rapatHTML = '<div class="dp-rapat-list">' + items.map(r => {
-        const villes = r.trajetArr.length ? r.trajetArr : r.route.split('>').map(v => v.trim()).filter(Boolean);
+        const villes = r.trajetArr.length ? r.trajetArr.map(canonicalVille) : r.route.split('>').map(v => canonicalVille(v.trim())).filter(Boolean);
         const stops = villes.length > 1
           ? villes.map((v, i) => `<div class="stop"><span class="stop-dot">${i===0?'·':'↓'}</span><span style="font-weight:${i===0||i===villes.length-1?700:400}">${esc(v)}</span></div>`).join('')
           : `<div class="stop"><span class="stop-dot">·</span><span>${esc(r.route||'—')}</span></div>`;
