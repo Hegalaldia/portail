@@ -2467,7 +2467,7 @@ async function loadAppelData() {
     const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 90);
     _appelRows = rows.filter(r => {
       const dev = (r['Devenir'] || '').trim().toUpperCase();
-      if (dev !== 'CLINIQUE') return false;
+      if (dev !== 'CLINIQUE' && dev !== 'EN ROUTE SUR CENTRE') return false;
       // Filtrer par date
       const ds = (r['DATE'] || '').trim();
       if (!ds) return true;
