@@ -1183,6 +1183,7 @@
     <div class="stat-card dark">
       <div class="stat-num" id="stat-rapat-mois">—</div>
       <div class="stat-label">Rapat. ce mois</div>
+      <div style="font-size:0.68rem;color:rgba(255,255,255,0.5);margin-top:2px;"><span id="stat-rapat-annee">—</span> cette année</div>
     </div>
   </div>
 
@@ -2137,24 +2138,29 @@ function computeStats() {
   // Rapatriements ce mois
   const now = new Date();
   const thisMonth = now.getMonth(); const thisYear = now.getFullYear();
-  let rapatMois = 0;
+  let rapatMois = 0, rapatAnnee = 0;
   allData.forEach(b => {
     if (!b.derniers_rapat) return;
     if (Array.isArray(b.derniers_rapat)) {
       b.derniers_rapat.forEach(r => {
         const d = parseDate(r.date || '');
-        if (d && d.getMonth() === thisMonth && d.getFullYear() === thisYear) rapatMois++;
+        if (!d) return;
+        if (d.getFullYear() === thisYear) rapatAnnee++;
+        if (d.getMonth() === thisMonth && d.getFullYear() === thisYear) rapatMois++;
       });
     } else {
       String(b.derniers_rapat).split('\n').forEach(line => {
         const sep = line.indexOf(' : ');
         const dateStr = (sep > -1 ? line.slice(0, sep) : line).trim();
         const d = parseDate(dateStr);
-        if (d && d.getMonth() === thisMonth && d.getFullYear() === thisYear) rapatMois++;
+        if (!d) return;
+        if (d.getFullYear() === thisYear) rapatAnnee++;
+        if (d.getMonth() === thisMonth && d.getFullYear() === thisYear) rapatMois++;
       });
     }
   });
   document.getElementById('stat-rapat-mois').textContent = rapatMois;
+  document.getElementById('stat-rapat-annee').textContent = rapatAnnee;
 
   // Pill counts
   document.getElementById('cnt-tous').textContent = total;
@@ -3255,6 +3261,20 @@ function renderCards(rows) {
   });
 }
 
+function countAnimauxRapatries(b) {
+  if (!b.derniers_rapat || !Array.isArray(b.derniers_rapat)) return 0;
+  let total = 0;
+  b.derniers_rapat.forEach((r, idx) => {
+    const route = Array.isArray(r.trajet) ? r.trajet.join(' > ') : (r.trajet || '');
+    const key = `rapat_animaux_v2|${b._id||''}|${r.date||''}|${route}`;
+    try {
+      const snap = JSON.parse(localStorage.getItem(key));
+      if (snap) total += snap.reduce((s, c) => s + (c.animals ? c.animals.length : 0), 0);
+    } catch(e) {}
+  });
+  return total;
+}
+
 function getLastRapat(b) {
   // Retourne {dateStr, route, date} du dernier rapatriement, ou null
   if (!b.derniers_rapat) return null;
@@ -4264,6 +4284,12 @@ function openDetail(b) {
         <div class="dp-comment">${esc(b.commentaire||b.info_temp).replace(/\n/g,'<br>')}</div>
       `) : ''}
 
+      ${(() => {
+        if (!b.rapatrieur || b.rapatrieur !== 'on') return '';
+        const n = countAnimauxRapatries(b);
+        if (!n) return '';
+        return `<div style="display:inline-flex;align-items:center;gap:6px;margin-bottom:12px;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:8px;padding:5px 12px;font-size:0.78rem;font-weight:700;color:#c2410c;">🐾 ${n} ${n > 1 ? 'animaux' : 'animal'} rapatrié${n > 1 ? 's' : ''} (estimé)</div>`;
+      })()}
       ${section(`Rapatriements (${nbRapat})`, rapatHTML || '<div class="dp-empty">Aucun rapatriement enregistré.</div>')}
 
       ${b.modif ? `<div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:#aaa;margin-top:20px;padding-top:16px;border-top:1px solid #eee;">Modifié le ${esc(b.modif)}</div>` : ''}
