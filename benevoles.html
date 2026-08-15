@@ -2444,7 +2444,8 @@ function canonicalVille(v) {
   return VILLE_CANONICAL[normVille(v)] || v;
 }
 
-let _appelRows = null; // lignes parsées du fichier d'appel (CSV)
+let _appelRows = null;     // lignes filtrées (Clinique + En route)
+let _appelRows_all = null; // toutes les lignes (pour compter les ACCUEILLIS)
 
 function normStr(v) {
   return (v||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
@@ -2508,6 +2509,7 @@ async function loadAppelData() {
     rows.forEach((r, i) => { r._ligne = i + 2; }); // +2 : ligne 1 = en-têtes
     // Garder seulement les 90 derniers jours, Devenir = ACCUEILLIS ou Clinique
     const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 90);
+    _appelRows_all = rows;
     _appelRows = rows.filter(r => {
       const dev = (r['Devenir'] || '').trim().toUpperCase();
       if (dev !== 'CLINIQUE' && dev !== 'EN ROUTE SUR CENTRE') return false;
@@ -2519,7 +2521,7 @@ async function loadAppelData() {
       const d = new Date(2000 + parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
       return d >= cutoff;
     });
-  } catch(e) { _appelRows = []; }
+  } catch(e) { _appelRows = []; _appelRows_all = []; }
   // Mettre à jour les badges sur les cartes déjà rendues
   refreshAnimalBadges();
 }
@@ -2729,7 +2731,7 @@ function loadRapatAnimaux(r) {
 
 // Charger le fichier d'appel dès que la page charge, puis toutes les 30s
 loadAppelData();
-setInterval(() => { _appelRows = null; loadAppelData(); }, 30_000);
+setInterval(() => { _appelRows = null; _appelRows_all = null; loadAppelData(); }, 30_000);
 
 // ════════════════════════════
 //  Filtres
@@ -3267,17 +3269,21 @@ function renderCards(rows) {
 }
 
 function countAnimauxRapatries(b) {
-  if (!b.derniers_rapat || !Array.isArray(b.derniers_rapat)) return 0;
-  let total = 0;
-  b.derniers_rapat.forEach((r, idx) => {
-    const route = Array.isArray(r.trajet) ? r.trajet.join(' > ') : (r.trajet || '');
-    const key = `rapat_animaux_v2|${b._id||''}|${r.date||''}|${route}`;
-    try {
-      const snap = JSON.parse(localStorage.getItem(key));
-      if (snap) total += snap.reduce((s, c) => s + (c.animals ? c.animals.length : 0), 0);
-    } catch(e) {}
+  if (!_appelRows || !b.derniers_rapat || !Array.isArray(b.derniers_rapat)) return 0;
+  // Collecter toutes les cliniques des trajets passés du bénévole
+  const cliniques = new Set();
+  b.derniers_rapat.forEach(r => {
+    const villes = Array.isArray(r.trajet) ? r.trajet.map(canonicalVille) : (r.trajet||'').split('>').map(v=>canonicalVille(v.trim())).filter(Boolean);
+    villes.slice(0, -1).forEach(v => getCliniquesForStop(v).forEach(c => cliniques.add(c)));
   });
-  return total;
+  if (!cliniques.size) return 0;
+  // Compter les animaux ACCUEILLIS correspondant à ces cliniques
+  return _appelRows_all ? _appelRows_all.filter(r => {
+    const dev = (r['Devenir'] || '').trim().toUpperCase();
+    if (dev !== 'ACCUEILLIS') return false;
+    const vet = (r['Vétérinaire(s)'] || '').trim();
+    return [...cliniques].some(c => normStr(c) === normStr(vet));
+  }).length : 0;
 }
 
 function getLastRapat(b) {
