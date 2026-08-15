@@ -4295,12 +4295,6 @@ function openDetail(b) {
         <div class="dp-comment">${esc(b.commentaire||b.info_temp).replace(/\n/g,'<br>')}</div>
       `) : ''}
 
-      ${(() => {
-        if (!b.rapatrieur || b.rapatrieur !== 'on') return '';
-        const n = countAnimauxRapatries(b);
-        if (!n) return '';
-        return `<div style="display:inline-flex;align-items:center;gap:6px;margin-bottom:12px;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:8px;padding:5px 12px;font-size:0.78rem;font-weight:700;color:#c2410c;">🐾 ${n} ${n > 1 ? 'animaux' : 'animal'} rapatrié${n > 1 ? 's' : ''} (estimé)</div>`;
-      })()}
       ${section(`Rapatriements (${nbRapat})`, rapatHTML || '<div class="dp-empty">Aucun rapatriement enregistré.</div>')}
 
       ${b.modif ? `<div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:#aaa;margin-top:20px;padding-top:16px;border-top:1px solid #eee;">Modifié le ${esc(b.modif)}</div>` : ''}
