@@ -1089,7 +1089,7 @@
     <a href="#" class="nav-link" data-page="page-rapat-add">Rapatriement</a>
     <a href="#" class="nav-link" data-page="page-brouillons">Brouillons <span id="draft-badge" style="display:none;background:#e8825a;color:#fff;border-radius:10px;padding:1px 7px;font-size:0.72rem;margin-left:3px"></span></a>
     <a href="/index.html" class="nav-link ext">Accueil</a>
-    <a href="https://hegalaldia.org" target="_blank" class="nav-link ext">Site de l'association</a>
+    <a href="https://hegalaldia.ovh" target="_blank" class="nav-link ext">Site de l'association</a>
   </nav>
 </header>
 
@@ -2373,18 +2373,11 @@ function buildRapatSection() {
     div.dataset.villes = JSON.stringify(villes);
     div.dataset.status = r.status;
     div.dataset.diff = r.diff;
-    // Badge animaux : live pour les à venir, snapshot figé pour les passés
-    const isPasse = ['passe','a_confirmer','confirme'].includes(r.status);
+    div.dataset.rapatKey = rapatAnimauxKey(r);
+    // Badge animaux : snapshot figé (capturé à la première ouverture du panneau)
     const villesPickup = villes.slice(0, -1); // exclure la destination (dernier stop = dépôt)
-    let animalCount = 0;
-    if (!isPasse) {
-      const animauxLive = getAnimauxDetailForTrajet(villesPickup);
-      if (animauxLive.length) saveRapatAnimaux(r, animauxLive);
-      animalCount = animauxLive.reduce((s, c) => s + c.animals.length, 0);
-    } else {
-      const snap = loadRapatAnimaux(r);
-      if (snap) animalCount = snap.reduce((s, c) => s + c.animals.length, 0);
-    }
+    const snap = loadRapatAnimaux(r);
+    let animalCount = snap ? snap.reduce((s, c) => s + c.animals.length, 0) : 0;
     const animalBadge = animalCount > 0
       ? `<div class="rapat-animal-badge">🐾${animalCount} ${animalCount > 1 ? 'animaux' : 'animal'} attendu${animalCount > 1 ? 's' : ''}</div>`
       : '';
@@ -2529,12 +2522,26 @@ async function loadAppelData() {
 function refreshAnimalBadges() {
   document.querySelectorAll('.rapat-card[data-villes]').forEach(card => {
     const st = card.dataset.status;
-    const diff = parseInt(card.dataset.diff || '0', 10);
-    if (['passe','a_confirmer','confirme'].includes(st)) return;
-    const villes = JSON.parse(card.dataset.villes);
-    const villesPickup = villes.slice(0, -1);
     const existing = card.querySelector('.rapat-animal-badge');
-    const animalCount = getAnimauxForTrajet(villesPickup);
+    // Utilise le snapshot s'il existe ; sinon tente le live pour les rapatriements à venir
+    let animalCount = 0;
+    const key = card.dataset.rapatKey;
+    if (key) {
+      try {
+        const snap = JSON.parse(localStorage.getItem(key));
+        if (snap) animalCount = snap.reduce((s, c) => s + c.animals.length, 0);
+      } catch(e) {}
+    }
+    // Pour les rapatriements non-passés sans snapshot : charger depuis le live et sauvegarder
+    if (!animalCount && !['passe','a_confirmer','confirme'].includes(st)) {
+      const villes = JSON.parse(card.dataset.villes);
+      const villesPickup = villes.slice(0, -1);
+      const animauxLive = getAnimauxDetailForTrajet(villesPickup);
+      if (animauxLive.length) {
+        animalCount = animauxLive.reduce((s, c) => s + c.animals.length, 0);
+        if (key) try { localStorage.setItem(key, JSON.stringify(animauxLive)); } catch(e) {}
+      }
+    }
     if (animalCount > 0 && !existing) {
       const badge = document.createElement('div');
       badge.className = 'rapat-animal-badge';
@@ -2542,6 +2549,8 @@ function refreshAnimalBadges() {
       const confirmZone = card.querySelector('.confirm-zone');
       if (confirmZone) card.insertBefore(badge, confirmZone);
       else card.appendChild(badge);
+    } else if (animalCount > 0 && existing) {
+      existing.textContent = `🐾${animalCount} ${animalCount > 1 ? 'animaux' : 'animal'} attendu${animalCount > 1 ? 's' : ''}`;
     }
   });
 }
@@ -2595,10 +2604,12 @@ function openRapatPanel(r, ri) {
   const villes = r.trajetArr.length ? r.trajetArr.map(canonicalVille) : r.route.split('>').map(v => canonicalVille(v.trim())).filter(Boolean);
   const villesPickup = villes.slice(0, -1);
   const isPasse = ['passe','a_confirmer','confirme'].includes(r.status);
-  let animaux;
-  if (isPasse) {
-    animaux = loadRapatAnimaux(r) || [];
-  } else {
+  _currentRapatPanel = r;
+  _currentVillesPickup = villesPickup;
+  window._currentRapatIdx = ri;
+  // Snapshot-first : on utilise la liste gelée si elle existe, sinon on capture depuis le live
+  let animaux = loadRapatAnimaux(r);
+  if (!animaux) {
     animaux = getAnimauxDetailForTrajet(villesPickup);
     saveRapatAnimaux(r, animaux);
   }
@@ -2654,11 +2665,17 @@ function openRapatPanel(r, ri) {
       animaux.map(({clinicNom, animals}) =>
         `${clinicNom}\n` + animals.map(a => `  - ${a.species||'?'}${a.commune ? ' · '+a.commune : ''}${a.num ? ' · '+a.num : ''}${a.ligne ? ' (ligne '+a.ligne+')' : ''}`).join('\n')
       ).join('\n\n');
+    const refreshBtn = !isPasse
+      ? `<button onclick="refreshAnimauxPanel()" style="font-size:0.72rem;font-weight:700;color:#374151;background:#f3f4f6;border:1px solid #d1d5db;border-radius:6px;padding:3px 10px;cursor:pointer;">Mettre à jour</button>`
+      : '';
     animauxHTML = `
       <div class="rp-section">
         <div class="rp-section-title" style="display:flex;align-items:center;justify-content:space-between;">
           Animaux attendus à l'arrivée
-          <button onclick="shareAnimaux(this)" style="font-size:0.72rem;font-weight:700;color:#9a3412;background:#ffedd5;border:1px solid #fed7aa;border-radius:6px;padding:3px 10px;cursor:pointer;">Partager</button>
+          <span style="display:flex;gap:6px;">
+            ${refreshBtn}
+            <button onclick="shareAnimaux(this)" style="font-size:0.72rem;font-weight:700;color:#9a3412;background:#ffedd5;border:1px solid #fed7aa;border-radius:6px;padding:3px 10px;cursor:pointer;">Partager</button>
+          </span>
         </div>
         <div class="rp-animals-header">
           <span class="rp-animals-header-icon">🐾</span>
@@ -2667,9 +2684,15 @@ function openRapatPanel(r, ri) {
         <div class="rp-animals-list">${items}</div>
       </div>`;
   } else {
+    const refreshBtn = !isPasse
+      ? `<button onclick="refreshAnimauxPanel()" style="font-size:0.72rem;font-weight:700;color:#374151;background:#f3f4f6;border:1px solid #d1d5db;border-radius:6px;padding:3px 10px;cursor:pointer;">Mettre à jour</button>`
+      : '';
     animauxHTML = `
       <div class="rp-section">
-        <div class="rp-section-title">Animaux attendus à l'arrivée</div>
+        <div class="rp-section-title" style="display:flex;align-items:center;justify-content:space-between;">
+          Animaux attendus à l'arrivée
+          ${refreshBtn}
+        </div>
         <div style="background:#f9fafb;border-radius:10px;padding:14px;text-align:center;font-size:0.82rem;color:#9ca3af;">
           Aucun animal signalé dans les cliniques de ce trajet
         </div>
@@ -2715,6 +2738,20 @@ function closeRapatPanel() {
   panel.classList.remove('open');
   overlay.classList.remove('open');
   document.querySelectorAll('.rapat-card').forEach(c => c.classList.remove('panel-open'));
+}
+
+// Rapatriement courant dans le panneau (pour refreshAnimauxPanel)
+let _currentRapatPanel = null;
+let _currentVillesPickup = null;
+
+function refreshAnimauxPanel() {
+  if (!_currentRapatPanel || !_currentVillesPickup) return;
+  _appelRows = null; _appelRows_all = null;
+  loadAppelData().then(() => {
+    const animaux = getAnimauxDetailForTrajet(_currentVillesPickup);
+    saveRapatAnimaux(_currentRapatPanel, animaux);
+    openRapatPanel(_currentRapatPanel, window._currentRapatIdx);
+  });
 }
 
 // Clé unique par rapatriement pour le snapshot localStorage

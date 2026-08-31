@@ -123,7 +123,7 @@ function get_remaining_attempts(string $ip): int
 function check_portal_password(string $pwd): bool
 {
     $cfg = load_config();
-    $expected = $cfg['portal_password'] ?? 'Hegalaldia2026';
+    $expected = $cfg['portal_password'] ?? 'Hl67bWwAED';
     return $pwd === $expected;
 }
 
