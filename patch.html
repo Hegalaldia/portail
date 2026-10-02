@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <title>Patch notes — Hegalaldia</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: #f4f7f4;
+      min-height: 100vh;
+      padding: 32px 16px 64px;
+    }
+
+    .header {
+      max-width: 680px;
+      margin: 0 auto 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .header a {
+      font-size: 13px;
+      color: #0c3d22;
+      font-weight: 600;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1.5px solid #d4e4d7;
+      transition: background 0.15s;
+    }
+    .header a:hover { background: #eaf3eb; }
+    .header-title {
+      flex: 1;
+    }
+    .header-title h1 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #0c3d22;
+      letter-spacing: -0.02em;
+    }
+    .header-title p {
+      font-size: 13px;
+      color: #6b7f6e;
+      margin-top: 2px;
+    }
+
+    .timeline {
+      max-width: 680px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .release {
+      background: #fff;
+      border-radius: 18px;
+      border: 1.5px solid #e4ece5;
+      box-shadow: 0 2px 12px rgba(12,61,34,0.06);
+      overflow: hidden;
+    }
+    .release.major {
+      border-color: #a8d5b5;
+      box-shadow: 0 4px 20px rgba(12,61,34,0.12);
+    }
+
+    .release-header {
+      padding: 18px 22px 14px;
+      border-bottom: 1px solid #f0f4f0;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .release.major .release-header {
+      background: linear-gradient(135deg, #f0f8f2 0%, #e8f5eb 100%);
+    }
+
+    .release-date {
+      font-size: 12px;
+      font-weight: 700;
+      color: #8a9a8d;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      padding-top: 3px;
+    }
+
+    .release-meta { flex: 1; }
+    .release-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1a2e1e;
+      line-height: 1.3;
+    }
+    .release-sub {
+      font-size: 12.5px;
+      color: #6b7f6e;
+      margin-top: 3px;
+    }
+
+    .badge-major {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #d1fae5;
+      color: #065f46;
+      white-space: nowrap;
+    }
+
+    .items {
+      padding: 14px 22px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13.5px;
+      color: #2d3d31;
+      line-height: 1.5;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 8px;
+      border-radius: 6px;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .tag-feat   { background: #dbeafe; color: #1d4ed8; }
+    .tag-fix    { background: #fef3c7; color: #92400e; }
+    .tag-debug  { background: #fee2e2; color: #991b1b; }
+    .tag-revert { background: #f3f4f6; color: #374151; }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #9aaa9d;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-top: 10px;
+      margin-bottom: 2px;
+      padding-bottom: 4px;
+      border-bottom: 1px dashed #e8eee9;
+    }
+    .section-label:first-child { margin-top: 0; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <a href="index.html">← Retour</a>
+    <div class="header-title">
+      <h1>Patch notes</h1>
+      <p>Historique des mises à jour du portail Hegalaldia</p>
+    </div>
+  </div>
+
+  <div class="timeline">
+
+    <!-- ── 02/10/2026 ───────────────────────────────────────── -->
+    <div class="release major">
+      <div class="release-header">
+        <div class="release-date">02 oct. 2026</div>
+        <div class="release-meta">
+          <div class="release-name">Bénévoles — Archive & brouillons</div>
+          <div class="release-sub">Gestion des suppressions et fiabilité des brouillons</div>
+        </div>
+        <div class="badge-major">★ Majeur</div>
+      </div>
+      <div class="items">
+        <div class="section-label">Nouveautés</div>
+        <div class="item"><span class="tag tag-feat">Feat</span> Archive 30 jours des bénévoles supprimés — restauration depuis la page Brouillons</div>
+        <div class="item"><span class="tag tag-feat">Feat</span> Tombstones de brouillons — un brouillon supprimé ne revient plus après la synchronisation serveur</div>
+        <div class="section-label">Correctifs</div>
+        <div class="item"><span class="tag tag-debug">Debug</span> Brouillon fantôme — le brouillon réapparaissait en boucle après avoir été converti en bénévole</div>
+        <div class="item"><span class="tag tag-debug">Debug</span> Restauration échouait avec "Données manquantes" — validation PHP alignée (seul le nom est requis)</div>
+        <div class="item"><span class="tag tag-fix">Fix</span> Reprendre un brouillon en mode édition modifiait le bénévole édité au lieu du brouillon</div>
+        <div class="item"><span class="tag tag-fix">Fix</span> Bannière "Mode édition — [nom]" persistait après avoir repris un brouillon</div>
+        <div class="item"><span class="tag tag-fix">Fix</span> Dépréciations PHP 8.4 sur str_getcsv / fputcsv causant des erreurs d'en-têtes HTTP</div>
+      </div>
+    </div>
+
+    <!-- ── 31/08/2026 ───────────────────────────────────────── -->
+    <div class="release major">
+      <div class="release-header">
+        <div class="release-date">31 août 2026</div>
+        <div class="release-meta">
+          <div class="release-name">Rapatriements — Animaux snapshot</div>
+          <div class="release-sub">Gel des animaux attendus à la création + mise à jour manuelle</div>
+        </div>
+        <div class="badge-major">★ Majeur</div>
+      </div>
+      <div class="items">
+        <div class="item"><span class="tag tag-feat">Feat</span> Animaux attendus gelés au premier affichage du panneau — ne changent plus si le fichier d'appel évolue</div>
+        <div class="item"><span class="tag tag-feat">Feat</span> Bouton "Mettre à jour" pour forcer le rechargement des animaux depuis le fichier d'appel</div>
+        <div class="item"><span class="tag tag-fix">Fix</span> Animaux affichés uniquement pour les stops de collecte (pas la destination finale)</div>
+        <div class="item"><span class="tag tag-fix">Fix</span> Snapshots localStorage invalidés proprement entre versions (v2)</div>
+      </div>
+    </div>
+
+    <!-- ── 15/08/2026 ───────────────────────────────────────── -->
+    <div class="release">
+      <div class="release-header">
+        <div class="release-date">15 août 2026</div>
+        <div class="release-meta">
+          <div class="release-name">Bénévoles — Statistiques rapatriements</div>
+        </div>
+      </div>
+      <div class="items">
+        <div class="item"><span class="tag tag-feat">Feat</span> Compteur animaux rapatriés dans le panneau bénévole, calculé depuis le fichier d'appel (ACCUEILLIS)</div>
+        <div class="item"><span class="tag tag-feat">Feat</span> Rapatriements de l'année affichés côte à côte dans les stats bénévole</div>
+      </div>
+    </div>
+
+    <!-- ── 12/08/2026 ───────────────────────────────────────── -->
+    <div class="release major">
+      <div class="release-header">
+        <div class="release-date">12 août 2026</div>
+        <div class="release-meta">
+          <div class="release-name">Bénévoles — Tri & édition rapatriements</div>
+        </div>
+        <div class="badge-major">★ Majeur</div>
+      </div>
+      <div class="items">
+        <div class="item"><span class="tag tag-feat">Feat</span> Bouton modifier (crayon) directement sur chaque rapatriement depuis la fiche bénévole</div>
+        <div class="item"><span class="tag tag-feat">Feat</span> Tri de la liste bénévoles : alphabétique, ajout récent, commune, dernier rapatriement</div>
+        <div class="item"><span class="tag tag-feat">Feat</span> Correction automatique des noms de villes vers la casse canonique (ex. "billère" → "Billère")</div>
+        <div class="item"><span class="tag tag-feat">Feat</span> Rapatriements "En route sur Centre" inclus dans les animaux attendus</div>
+      </div>
+    </div>
+
+    <!-- ── 10/08/2026 ───────────────────────────────────────── -->
+    <div class="release major">
+      <div class="release-header">
+        <div class="release-date">10 août 2026</div>
+        <div class="release-meta">
+          <div class="release-name">Rapatriements — Panneau animaux & partage</div>
+        </div>
+        <div class="badge-major">★ Majeur</div>
+      </div>
+      <div class="items">
+        <div class="item"><span class="tag tag-feat">Feat</span> Panneau rapatriement : animaux attendus par clinique avec partage (copie presse-papier / share natif mobile)</div>
+        <div class="item"><span class="tag tag-feat">Feat</span> Notes rapatriement cliquables pour voir le texte complet depuis la liste</div>
+        <div class="item"><span class="tag tag-fix">Fix</span> Partage animaux — copie presse-papier sur desktop, share natif sur mobile</div>
+        <div class="item"><span class="tag tag-fix">Fix</span> Sauts de ligne CRLF dans les e-mails mailto pour Outlook Windows</div>
+      </div>
+    </div>
+
+    <!-- ── 05/08/2026 ───────────────────────────────────────── -->
+    <div class="release">
+      <div class="release-header">
+        <div class="release-date">5 août 2026</div>
+        <div class="release-meta">
+          <div class="release-name">Déploiement — Protection données live</div>
+        </div>
+      </div>
+      <div class="items">
+        <div class="item"><span class="tag tag-fix">Fix</span> benevoles.json protégé lors des déploiements — les données du serveur OVH ne sont plus écrasées</div>
+        <div class="item"><span class="tag tag-fix">Fix</span> Titre onglet corrigé en "Portail — Hegalaldia"</div>
+        <div class="item"><span class="tag tag-fix">Fix</span> Majuscules forcées sur les noms de la personne à prévenir en urgence</div>
+      </div>
+    </div>
+
+    <!-- ── 29/06/2026 ───────────────────────────────────────── -->
+    <div class="release major">
+      <div class="release-header">
+        <div class="release-date">29 juin 2026</div>
+        <div class="release-meta">
+          <div class="release-name">Heatmap — Lancement initial</div>
+          <div class="release-sub">Première version du portail</div>
+        </div>
+        <div class="badge-major">★ Majeur</div>
+      </div>
+      <div class="items">
+        <div class="item"><span class="tag tag-feat">Feat</span> Heatmap des appels avec toggle vue heatmap / cercles et filtres par période</div>
+        <div class="item"><span class="tag tag-feat">Feat</span> Localisation des cliniques (cercles) et DCVR (losanges) sur la carte</div>
+        <div class="item"><span class="tag tag-feat">Feat</span> Zone d'intervention Hegalaldia en pointillés</div>
+        <div class="item"><span class="tag tag-feat">Feat</span> Panneau filtres avec réglage taille/opacité</div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>
