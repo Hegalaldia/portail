@@ -2752,11 +2752,37 @@ let _currentVillesPickup = null;
 
 function refreshAnimauxPanel() {
   if (!_currentRapatPanel || !_currentVillesPickup) return;
+  const btn = document.querySelector('[onclick="refreshAnimauxPanel()"]');
+  if (btn) { btn.textContent = 'Chargement…'; btn.disabled = true; }
   _appelRows = null; _appelRows_all = null;
   loadAppelData().then(() => {
     const animaux = getAnimauxDetailForTrajet(_currentVillesPickup);
     saveRapatAnimaux(_currentRapatPanel, animaux);
     openRapatPanel(_currentRapatPanel, window._currentRapatIdx);
+    // Message de succès sur le bouton après réouverture du panneau
+    setTimeout(() => {
+      const b = document.querySelector('[onclick="refreshAnimauxPanel()"]');
+      if (!b) return;
+      const orig = b.textContent;
+      b.textContent = animaux.length ? `✓ ${animaux.length} animal${animaux.length > 1 ? 'x' : ''} mis à jour` : '✓ Aucun animal trouvé';
+      b.style.background = animaux.length ? '#dcfce7' : '#f3f4f6';
+      b.style.color = animaux.length ? '#166534' : '#6b7280';
+      b.style.borderColor = animaux.length ? '#bbf7d0' : '#d1d5db';
+      setTimeout(() => {
+        b.textContent = 'Mettre à jour';
+        b.style.background = ''; b.style.color = ''; b.style.borderColor = '';
+      }, 3000);
+    }, 50);
+  }).catch(() => {
+    const b = document.querySelector('[onclick="refreshAnimauxPanel()"]');
+    if (!b) return;
+    b.textContent = '✗ Erreur de chargement';
+    b.style.background = '#fee2e2'; b.style.color = '#991b1b'; b.style.borderColor = '#fca5a5';
+    b.disabled = false;
+    setTimeout(() => {
+      b.textContent = 'Mettre à jour';
+      b.style.background = ''; b.style.color = ''; b.style.borderColor = '';
+    }, 3000);
   });
 }
 
