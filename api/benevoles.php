@@ -794,6 +794,32 @@ function route_benevoles_delete_post(): void
     json_response(['ok' => $deleted > 0, 'deleted' => $deleted]);
 }
 
+function route_benevoles_restore_post(): void
+{
+    $body = read_json_body();
+    $b    = $body['benevole'] ?? null;
+    if (!$b || empty($b['nom'])) {
+        json_response(['ok' => false, 'error' => 'Données manquantes (nom de famille requis)'], 400);
+        return;
+    }
+    $volunteers = load_benevoles();
+    $nom    = strtolower(trim($b['nom']));
+    $prenom = strtolower(trim($b['prenom']));
+    foreach ($volunteers as $v) {
+        if (strtolower(trim($v['nom'] ?? '')) === $nom && strtolower(trim($v['prenom'] ?? '')) === $prenom) {
+            json_response(['ok' => false, 'error' => 'Un bénévole avec ce nom existe déjà.'], 409);
+            return;
+        }
+    }
+    // Réinjecter le bénévole tel quel (préserve _id, derniers_rapat, date_creation…)
+    if (empty($b['_id'])) $b['_id'] = generate_uuid();
+    $b['modif'] = date('d/m/y à H:i');
+    $volunteers[] = $b;
+    save_benevoles($volunteers);
+    maybe_run_backup();
+    json_response(['ok' => true, 'id' => $b['_id']]);
+}
+
 function route_benevoles_export_get(?int $year = null): void
 {
     export_benevoles($year, null);

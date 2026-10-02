@@ -838,6 +838,8 @@
       font-size: 13.5px; font-weight: 600; cursor: pointer; transition: background .15s;
     }
     .btn-supprimer:hover { background: #fbf0ee; }
+    .deleted-card { border-color: #fecaca; background: #fff8f8; opacity: 0.9; }
+    .deleted-card:hover { opacity: 1; }
     .drafts-empty {
       padding: 70px 30px; text-align: center;
       background: #fff; border: 1px dashed #d9e0d5; border-radius: 16px;
@@ -1589,6 +1591,10 @@
       <div class="drafts-empty-title">Aucun brouillon</div>
       <p class="drafts-empty-sub">Les fiches enregistrées en brouillon apparaîtront ici.</p>
       <button class="btn-start" onclick="goPage('page-ajouter')"><span style="font-size:18px;line-height:0;">+</span> Commencer une fiche</button>
+    </div>
+    <div id="deleted-section" style="display:none;margin-top:32px;">
+      <div style="font-size:0.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#9ca3af;margin-bottom:12px;">Supprimés récemment <span style="font-weight:500;text-transform:none;letter-spacing:0;">(conservés 30 jours)</span></div>
+      <div id="deleted-grid" class="drafts-grid"></div>
     </div>
   </div>
 </div>
@@ -3511,6 +3517,68 @@ function toggleCaisses(item) {
 //  BROUILLONS
 // ════════════════════════════
 const DRAFT_KEY = 'hegalaldia_drafts';
+const DELETED_DRAFT_IDS_KEY = 'hegalaldia_deleted_draft_ids';
+const DELETED_KEY = 'hegalaldia_deleted_benevoles';
+const DELETED_TTL = 30 * 24 * 3600 * 1000; // 30 jours
+
+function markDraftDeleted(draftId) {
+  if (!draftId) return;
+  try {
+    const ids = JSON.parse(localStorage.getItem(DELETED_DRAFT_IDS_KEY) || '[]');
+    if (!ids.includes(draftId)) ids.push(draftId);
+    localStorage.setItem(DELETED_DRAFT_IDS_KEY, JSON.stringify(ids.slice(-100)));
+  } catch(e) {}
+}
+function getDeletedDraftIds() {
+  try { return new Set(JSON.parse(localStorage.getItem(DELETED_DRAFT_IDS_KEY) || '[]')); }
+  catch(e) { return new Set(); }
+}
+
+function getDeletedBenevoles() {
+  try {
+    const all = JSON.parse(localStorage.getItem(DELETED_KEY) || '[]');
+    const now = Date.now();
+    return all.filter(d => (now - (d._deletedAt || 0)) < DELETED_TTL);
+  } catch(e) { return []; }
+}
+function saveDeletedBenevole(b) {
+  try {
+    const all = getDeletedBenevoles();
+    all.unshift({ ...b, _deletedAt: Date.now(), _deletedAtStr: new Date().toLocaleString('fr') });
+    localStorage.setItem(DELETED_KEY, JSON.stringify(all));
+  } catch(e) {}
+}
+function removeDeletedBenevole(id) {
+  try {
+    const all = getDeletedBenevoles().filter(d => d._id !== id);
+    localStorage.setItem(DELETED_KEY, JSON.stringify(all));
+  } catch(e) {}
+}
+async function restoreBenevole(id) {
+  const all = getDeletedBenevoles();
+  const b = all.find(d => d._id === id);
+  if (!b) return;
+  if (!b.nom) {
+    if (confirm(`Données incomplètes pour ce bénévole (nom de famille manquant).\nImpossible de restaurer.\n\nSupprimer cette entrée de l'archive ?`)) {
+      removeDeletedBenevole(id);
+      renderDrafts();
+    }
+    return;
+  }
+  try {
+    const r = await fetch('/api/volontaires/restore', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ benevole: b })
+    });
+    const json = await r.json();
+    if (!json.ok) { alert('Erreur : ' + (json.error || 'Inconnue')); return; }
+    removeDeletedBenevole(id);
+    await loadData();
+    renderDrafts();
+    alert(`${b.prenom} ${b.nom} a bien été restauré(e) !`);
+  } catch(e) { alert('Erreur réseau : ' + e.message); }
+}
 function getDrafts() { try { return JSON.parse(localStorage.getItem(DRAFT_KEY)||'[]'); } catch(e) { return []; } }
 function _saveDraftsLocal(drafts) { localStorage.setItem(DRAFT_KEY, JSON.stringify(drafts)); }
 
@@ -3540,13 +3608,21 @@ async function syncDraftsFromServer() {
     const serverDrafts = await r.json();
     // Le serveur est la source de vérité : on remplace le local par le serveur
     // On ajoute uniquement les brouillons locaux non encore envoyés (pas de _draftId connu du serveur)
-    const serverIds = new Set(serverDrafts.map(d => d._draftId));
-    const localOnly = getDrafts().filter(d => !serverIds.has(d._draftId));
+    const tombstones = getDeletedDraftIds();
+    const filteredServer = serverDrafts.filter(d => !tombstones.has(d._draftId));
+    const serverIds = new Set(filteredServer.map(d => d._draftId));
+    const localOnly = getDrafts().filter(d => !serverIds.has(d._draftId) && !tombstones.has(d._draftId));
     // Envoyer les brouillons locaux manquants au serveur
     for (const d of localOnly) {
       fetch('/api/volontaires/drafts', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(d) }).catch(()=>{});
     }
-    _saveDraftsLocal([...serverDrafts, ...localOnly]);
+    // Supprimer côté serveur les brouillons marqués comme supprimés localement
+    for (const id of tombstones) {
+      if (serverDrafts.some(d => d._draftId === id)) {
+        fetch(`/api/volontaires/drafts/${encodeURIComponent(id)}`, { method: 'DELETE' }).catch(()=>{});
+      }
+    }
+    _saveDraftsLocal([...filteredServer, ...localOnly]);
     updateDraftBadge();
   } catch(e) {}
 }
@@ -3591,9 +3667,46 @@ window.addEventListener('beforeunload', e => {
 });
 function renderDrafts() {
   const drafts = getDrafts();
+  const deleted = getDeletedBenevoles();
   const grid = document.getElementById('drafts-grid');
   const empty = document.getElementById('drafts-empty');
+  const delSection = document.getElementById('deleted-section');
+  const delGrid = document.getElementById('deleted-grid');
   grid.innerHTML = '';
+
+  // Section supprimés récemment
+  if (deleted.length > 0) {
+    delSection.style.display = '';
+    delGrid.innerHTML = '';
+    deleted.forEach(b => {
+      const daysLeft = Math.ceil((DELETED_TTL - (Date.now() - b._deletedAt)) / 86400000);
+      const card = document.createElement('div');
+      card.className = 'draft-card deleted-card';
+      card.innerHTML = `
+        <div class="draft-card-top">
+          <div>
+            <div class="draft-name">${esc((b.nom||'') + (b.prenom ? ' '+b.prenom : ''))}</div>
+            <div class="draft-date">Supprimé le ${esc(b._deletedAtStr||'')} · expire dans ${daysLeft}j</div>
+          </div>
+          <span class="draft-badge-pill" style="background:#fee2e2;color:#b91c1c;">Supprimé</span>
+        </div>
+        <div class="draft-sep"></div>
+        <div class="draft-info">
+          ${b.telephone ? `<div class="draft-info-row"><span class="draft-info-lbl">Tél.</span><span class="draft-info-val">${esc(fmtTel(b.telephone))}</span></div>` : ''}
+          ${b.commune ? `<div class="draft-info-row"><span class="draft-info-lbl">Commune</span><span class="draft-info-val commune">${esc(b.commune)}</span></div>` : ''}
+          ${b.email ? `<div class="draft-info-row"><span class="draft-info-lbl">Email</span><span class="draft-info-val" style="font-size:12px;">${esc(b.email)}</span></div>` : ''}
+        </div>
+        <div class="draft-actions">
+          <button class="btn-reprendre" onclick="restoreBenevole('${esc(b._id)}')">↩ Restaurer</button>
+          <button class="btn-supprimer" onclick="removeDeletedBenevole('${esc(b._id)}');renderDrafts()">Effacer</button>
+        </div>
+      `;
+      delGrid.appendChild(card);
+    });
+  } else {
+    delSection.style.display = 'none';
+  }
+
   if (drafts.length === 0) { empty.style.display = ''; grid.style.display = 'none'; return; }
   empty.style.display = 'none'; grid.style.display = '';
 
@@ -3644,12 +3757,15 @@ function reprendDraft(i) {
   // Effacer tout contexte d'édition en cours — le brouillon est un nouvel ajout
   editingBenev = null; window.editingBenev = null;
   document.getElementById('btn-delete-benev').style.display = 'none';
+  document.getElementById('form-saved-banner').style.display = 'none';
+  document.getElementById('btn-submit').innerHTML = '<span style="font-size:18px;line-height:0;">✓</span> Enregistrer la fiche';
   fillForm(d);
   goPage('page-ajouter', { keepEdit: true });
 }
 function deleteDraft(i) {
   const drafts = getDrafts();
   const draftId = drafts[i]?._draftId;
+  if (draftId) markDraftDeleted(draftId);
   drafts.splice(i, 1);
   _saveDraftsLocal(drafts);
   updateDraftBadge();
@@ -3994,11 +4110,12 @@ document.getElementById('add-form').addEventListener('submit', async e => {
       // Supprimer le brouillon correspondant à cette session
       if (_currentDraftId) {
         const draftIdToDelete = _currentDraftId;
+        _currentDraftId = null;
+        markDraftDeleted(draftIdToDelete);
         const drafts = getDrafts().filter(d => d._draftId !== draftIdToDelete);
         _saveDraftsLocal(drafts);
         updateDraftBadge();
-        fetch(`/api/volontaires/drafts/${encodeURIComponent(draftIdToDelete)}`, { method: 'DELETE' }).catch(()=>{});
-        _currentDraftId = null;
+        try { await fetch(`/api/volontaires/drafts/${encodeURIComponent(draftIdToDelete)}`, { method: 'DELETE' }); } catch(e) {}
       }
       // Restaurer le bouton et masquer la bannière d'édition
       btn.innerHTML = '<span style="font-size:18px;line-height:0;">✓</span> Enregistrer la fiche';
@@ -4350,7 +4467,7 @@ function openDetail(b) {
 async function confirmDeleteBenevole() {
   const b = editingBenev;
   if (!b) return;
-  if (!confirm(`Supprimer définitivement ${b.prenom} ${b.nom} ?\n\nCette action est irréversible.`)) return;
+  if (!confirm(`Supprimer définitivement ${b.prenom} ${b.nom} ?\n\nVous pourrez le restaurer depuis la page Brouillons pendant 30 jours.`)) return;
   try {
     const r = await fetch('/api/volontaires/delete', {
       method: 'POST',
@@ -4358,6 +4475,8 @@ async function confirmDeleteBenevole() {
       body: JSON.stringify({ benevole_id: b._id })
     });
     if (!r.ok) throw new Error(await r.text());
+    // Sauvegarder dans l'archive locale (30 jours)
+    saveDeletedBenevole(b);
     editingBenev = null; window.editingBenev = null;
     document.getElementById('btn-delete-benev').style.display = 'none';
     document.getElementById('btn-submit').innerHTML = '<span style="font-size:18px;line-height:0;">✓</span> Enregistrer la fiche';
