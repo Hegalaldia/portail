@@ -2991,7 +2991,10 @@ function render() {
       if (va === null) return 1;
       if (vb === null) return -1;
     }
-    else if (sortCol==='modif') { va=a.modif||''; vb=b.modif||''; }
+    else if (sortCol==='modif') {
+      const parseMod = s => { const m=(s||'').match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/); if(!m)return 0; const y=m[3].length===2?2000+parseInt(m[3]):parseInt(m[3]); return new Date(y,parseInt(m[2])-1,parseInt(m[1])).getTime(); };
+      return sortAsc ? parseMod(a.modif)-parseMod(b.modif) : parseMod(b.modif)-parseMod(a.modif);
+    }
     else if (sortCol==='rapat') {
       const la = getLastRapat(a); const lb = getLastRapat(b);
       va = la ? la.date.getTime().toString() : '0';
