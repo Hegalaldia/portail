@@ -3641,6 +3641,9 @@ function reprendDraft(i) {
   const d = drafts[i];
   // Restaurer l'ID du brouillon pour que les saves suivantes écrasent le même slot
   _currentDraftId = d._draftId || ('draft_' + Date.now());
+  // Effacer tout contexte d'édition en cours — le brouillon est un nouvel ajout
+  editingBenev = null; window.editingBenev = null;
+  document.getElementById('btn-delete-benev').style.display = 'none';
   fillForm(d);
   goPage('page-ajouter', { keepEdit: true });
 }
