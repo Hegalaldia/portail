@@ -232,6 +232,9 @@ try {
         case $uri === '/volontaires/delete' && $method === 'POST':
             route_benevoles_delete_post();
 
+        case $uri === '/volontaires/restore' && $method === 'POST':
+            route_benevoles_restore_post();
+
         case $uri === '/volontaires/reimport-xls' && $method === 'POST':
             route_benevoles_reimport_post();
 
