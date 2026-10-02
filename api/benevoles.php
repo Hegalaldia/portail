@@ -450,7 +450,7 @@ function export_csv_fallback(array $data, ?int $year): void
         'Comp. Bricolage','Comp. Informatique','Comp. Communication','Comp. Comptabilité','Comp. Photo','Comp. Couture','Autres comp.',
         'Rapatriements','Commentaire','Bénévole depuis','Dernière modif.',
     ];
-    fputcsv($out, $headers, ';');
+    fputcsv($out, $headers, ';', '"', '\\');
 
     $yn_fields = ['centre','rapatrieur','autre','forme','forme_soin','forme_rapat',
                   'adhesion','caisses','gants','garde_domicile','recu_fiscal',
@@ -489,7 +489,7 @@ function export_csv_fallback(array $data, ?int $year): void
             explode(' ', $b['date_creation'] ?? '')[0] ?? '',
             explode(' ', $b['modif'] ?? '')[0] ?? '',
         ];
-        fputcsv($out, $row, ';');
+        fputcsv($out, $row, ';', '"', '\\');
     }
     fclose($out);
     exit;

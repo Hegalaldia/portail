@@ -152,7 +152,7 @@ function get_vetos_with_codes(): array
     }
 
     $csv  = fetch_csv_tab(get_sheet_id(), 'Vétérinaires');
-    $rows = array_map('str_getcsv', explode("\n", $csv));
+    $rows = array_map(fn($line) => str_getcsv($line, ',', '"', '\\'), explode("\n", $csv));
     $vetos = [];
 
     foreach (array_slice($rows, 1) as $row) {

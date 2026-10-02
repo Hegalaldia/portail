@@ -70,7 +70,7 @@ try {
             } else {
                 $csv = fetch_csv_tab(get_sheet_id(), 'Ville');
                 $villes = [];
-                $rows = array_map('str_getcsv', explode("\n", $csv));
+                $rows = array_map(fn($line) => str_getcsv($line, ',', '"', '\\'), explode("\n", $csv));
                 if (!empty($rows)) {
                     $headers = array_shift($rows);
                     $col_idx = array_search('Ville de decouverte', $headers);
@@ -114,7 +114,7 @@ try {
             } else {
                 $csv = fetch_csv_tab(get_sheet_id(), 'Divers');
                 $especes = [];
-                foreach (array_map('str_getcsv', explode("\n", $csv)) as $row) {
+                foreach (array_map(fn($line) => str_getcsv($line, ',', '"', '\\'), explode("\n", $csv)) as $row) {
                     $v = trim($row[0] ?? '');
                     if ($v !== '') $especes[$v] = true;
                 }
