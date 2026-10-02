@@ -1645,11 +1645,7 @@
       <div class="f-row" style="margin-top:16px;">
         <div class="fg">
           <label>Heure de départ</label>
-          <input type="time" id="rapat-heure-depart" style="width:100%;padding:9px 12px;border:1.5px solid #d8d4ce;border-radius:9px;font-size:0.9rem;">
-        </div>
-        <div class="fg">
-          <label>Heure d'arrivée</label>
-          <input type="time" id="rapat-heure-arrivee" style="width:100%;padding:9px 12px;border:1.5px solid #d8d4ce;border-radius:9px;font-size:0.9rem;">
+          <input type="time" id="rapat-heure-depart" style="width:100%;padding:9px 12px;border:1.5px solid #d8d4ce;border-radius:9px;font-size:0.9rem;" oninput="updateArrivalEstimate()">
         </div>
       </div>
     </div>
@@ -1695,13 +1691,19 @@
           <div style="width:28px;"></div>
         </div>
       </div>
-      <!-- Distance calculée -->
-      <div id="rapat-distance-row" style="display:none;margin-top:14px;padding:10px 14px;background:#f0faf4;border-radius:9px;border:1px solid #b8e0c4;display:flex;align-items:center;gap:10px;">
+      <!-- Distance + durée calculées -->
+      <div id="rapat-distance-row" style="display:none;margin-top:14px;padding:10px 14px;background:#f0faf4;border-radius:9px;border:1px solid #b8e0c4;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#019939" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 12h18M3 6h18M3 18h18"/>
         </svg>
         <span style="font-size:0.88rem;color:#2d6a42;">Distance estimée : <strong id="rapat-distance-val">—</strong></span>
+        <span id="rapat-duree-val" style="font-size:0.88rem;color:#2d6a42;display:none;">· Durée estimée : <strong id="rapat-duree-txt">—</strong></span>
         <span id="rapat-distance-spin" style="display:none;font-size:0.78rem;color:#aaa;margin-left:4px;">calcul en cours…</span>
+      </div>
+      <!-- Heure d'arrivée après le trajet -->
+      <div style="margin-top:14px;">
+        <label style="font-size:0.8rem;font-weight:600;color:#4a5e4d;display:block;margin-bottom:5px;">Heure d'arrivée <span id="rapat-arrivee-hint" style="font-weight:400;color:#8a9a8d;font-size:0.75rem;"></span></label>
+        <input type="time" id="rapat-heure-arrivee" style="width:100%;padding:9px 12px;border:1.5px solid #d8d4ce;border-radius:9px;font-size:0.9rem;">
       </div>
     </div>
 
@@ -4835,6 +4837,17 @@ async function calcDistance() {
     if (d.code === 'Ok' && d.routes.length) {
       const km = Math.round(d.routes[0].distance / 1000);
       val.textContent = `${km} km`;
+      // Durée OSRM + 10 min par étape intermédiaire
+      const etapes = [...document.querySelectorAll('#rapat-trajet-list [data-role="etape"] .trajet-ville')]
+        .map(i => i.value.trim()).filter(Boolean);
+      const dureeS = d.routes[0].duration + etapes.length * 600;
+      const hh = Math.floor(dureeS / 3600);
+      const mm = Math.round((dureeS % 3600) / 60);
+      const dureeStr = hh > 0 ? `${hh}h${mm.toString().padStart(2,'0')}` : `${mm} min`;
+      document.getElementById('rapat-duree-val').style.display = '';
+      document.getElementById('rapat-duree-txt').textContent = dureeStr + (etapes.length ? ` (+${etapes.length}×10 min étape)` : '');
+      // Pré-remplir heure d'arrivée si départ saisi et arrivée vide
+      updateArrivalEstimate(dureeS);
     } else {
       val.textContent = 'Impossible de calculer';
     }
@@ -4842,6 +4855,23 @@ async function calcDistance() {
     val.textContent = 'Erreur réseau';
   }
   spin.style.display = 'none';
+}
+
+function updateArrivalEstimate(dureeS) {
+  const depart = document.getElementById('rapat-heure-depart').value;
+  const arrivee = document.getElementById('rapat-heure-arrivee');
+  const hint = document.getElementById('rapat-arrivee-hint');
+  if (!depart) return;
+  // Si dureeS non fourni, récupérer depuis la dernière estimation connue
+  if (dureeS === undefined) { if (window._lastDureeS) dureeS = window._lastDureeS; else return; }
+  window._lastDureeS = dureeS;
+  const [hDep, mDep] = depart.split(':').map(Number);
+  const totalMin = hDep * 60 + mDep + Math.round(dureeS / 60);
+  const hArr = Math.floor(totalMin / 60) % 24;
+  const mArr = totalMin % 60;
+  const estimated = `${hArr.toString().padStart(2,'0')}:${mArr.toString().padStart(2,'0')}`;
+  if (!arrivee.value) arrivee.value = estimated;
+  if (hint) hint.textContent = `(estimée ${estimated})`;
 }
 
 async function trajetAcSearch(input) {
