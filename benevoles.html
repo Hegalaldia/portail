@@ -1367,7 +1367,7 @@
         </div>
         <div class="frow c3">
           <div class="fg"><label>Nom de famille</label><input type="text" name="nom" autocomplete="off" oninput="this.value=this.value.toUpperCase()"></div>
-          <div class="fg"><label>Prénom</label><input type="text" name="prenom" autocomplete="off"></div>
+          <div class="fg"><label>Prénom</label><input type="text" name="prenom" autocomplete="off" oninput="if(this.value)this.value=this.value.charAt(0).toUpperCase()+this.value.slice(1)"></div>
           <div class="fg"><label>Date de naissance</label><input type="text" name="naissance" placeholder="JJ/MM/AAAA" autocomplete="off" maxlength="10" inputmode="numeric" oninput="fmtDateNaissance(this)"></div>
         </div>
 
@@ -1393,7 +1393,7 @@
           <div class="f-box-title">Personne à prévenir en cas d'urgence</div>
           <div class="frow c3" style="margin-bottom:0;">
             <div class="fg"><label>Nom</label><input type="text" name="urg_nom" autocomplete="off" oninput="this.value=this.value.toUpperCase()"></div>
-            <div class="fg"><label>Prénom</label><input type="text" name="urg_prenom" autocomplete="off"></div>
+            <div class="fg"><label>Prénom</label><input type="text" name="urg_prenom" autocomplete="off" oninput="if(this.value)this.value=this.value.charAt(0).toUpperCase()+this.value.slice(1)"></div>
             <div class="fg"><label>Téléphone</label><input type="text" name="urg_tel" placeholder="06 00 00 00 00" class="mono" maxlength="14" inputmode="numeric" oninput="fmtTelephone(this)"></div>
           </div>
         </div>
