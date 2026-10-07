@@ -4912,14 +4912,16 @@ async function trajetAcSearch(input) {
         Centre de soins Hegalaldia <span class="ac-badge" style="background:#e6f5ec;color:#019939;border-radius:4px;padding:1px 6px;font-size:0.7rem;margin-left:4px;">Ustaritz</span>
       </div>`;
     }
+    if (showVetos.length) {
+      html += `<div class="trajet-ac-group">Cliniques vétérinaires</div>`;
+      html += showVetos.map(v => acVetoItem(v, uid)).join('');
+    }
     if (matchVilles.length) {
       html += `<div class="trajet-ac-group">Villes</div>`;
       html += matchVilles.map(v =>
         `<div class="trajet-ac-item" onmousedown="trajetAcSelect(event,'${v.replace(/'/g,"\'")}','${uid}')">${esc(v)}</div>`
       ).join('');
     }
-    html += `<div class="trajet-ac-group">Cliniques vétérinaires</div>`;
-    html += showVetos.map(v => acVetoItem(v, uid)).join('');
 
     dd.innerHTML = html;
     dd.classList.add('open');
